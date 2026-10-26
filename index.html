@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>设计与改进纸飞机</title>
+<meta name="description" content="小学科学 3D 仿真实验：折一架纸飞机，再把它送回家。">
+<style>
+  :root { --surface: #fffaf0; --foreground: #173d43; --muted: #526b68; --accent: #205a63; --accent-fg: #fffaf0;
+          --line: #dce5dd; --step-chip: #e7c689; --on-step-chip: #654e25; --finding-wash: #f3ead6; --finding-rule: #d4ad64;
+          --shadow: 0 22px 56px rgba(22,48,41,0.18), 0 4px 10px rgba(22,48,41,0.08), inset 0 2px 0 #ffffff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body { font-family: Inter, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif; color: var(--foreground);
+         background: radial-gradient(ellipse at 50% 0%, #f6c58a 0%, #e7a76c 38%, #3d5a8a 100%) fixed; padding: 40px 16px 56px; }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { margin: 0 auto 10px; width: fit-content; font-weight: 800; font-size: clamp(28px, 6vw, 42px); letter-spacing: 0.2em; padding: 12px 26px 14px calc(26px + 0.2em);
+       color: var(--accent-fg); border-radius: 18px; background: linear-gradient(180deg, #2d727b 0%, #205a63 55%, #184a52 100%);
+       box-shadow: inset 0 0 0 2px rgba(231,198,137,0.85), inset 0 3px 0 rgba(255,255,255,0.25), 0 10px 0 -2px #9c7a3e, 0 16px 30px rgba(22,48,41,0.35); }
+  .lede { text-align: center; color: #fffaf0; font-size: 16px; letter-spacing: 0.12em; margin: 22px 0 30px; text-shadow: 0 1px 6px rgba(30,16,6,0.6); }
+  .ch { display: block; text-decoration: none; color: inherit; background: var(--surface); border: 1px solid #fff; border-radius: 28px; padding: 22px 24px; margin-bottom: 18px;
+        box-shadow: var(--shadow); transition: transform 0.2s cubic-bezier(.22,1,.36,1); }
+  .ch:hover { transform: translateY(-2px); }
+  .ch:active { transform: translateY(1px); }
+  .ch:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .tag { display: inline-block; font-size: 14px; font-weight: 700; letter-spacing: 0.12em; color: var(--on-step-chip); background: var(--step-chip); border-radius: 999px; padding: 3px 12px; }
+  .ch h2 { margin: 10px 0 6px; font-size: 24px; letter-spacing: 0.08em; }
+  .ch p { margin: 0 0 12px; line-height: 1.7; color: var(--muted); font-size: 16px; }
+  .book { background: var(--finding-wash); border-left: 3px solid var(--finding-rule); border-radius: 0 14px 14px 0; padding: 8px 12px; font-weight: 700; line-height: 1.7; font-size: 15px; }
+  .go { margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: var(--accent-fg); font-weight: 700; letter-spacing: 0.14em;
+        padding: 10px 24px; border-radius: 999px; min-height: 44px; box-shadow: 0 3px 8px #264d4330, inset 0 1px 0 #ffffff35; }
+  .note { color: #fffaf0; text-align: center; font-size: 14px; line-height: 1.8; opacity: 0.92; margin-top: 26px; text-shadow: 0 1px 4px rgba(30,16,6,0.6); }
+  @media (prefers-reduced-motion: reduce) { .ch { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>设计与改进纸飞机</h1>
+  <p class="lede">小学科学 · 3D 仿真实验 · 两段连起来玩</p>
+
+  <a class="ch" href="折一架纸飞机.html">
+    <span class="tag">第一段 · 科学课</span>
+    <h2>折一架纸飞机</h2>
+    <p>在课桌上一步一步把纸折成飞机，先猜它能飞多远，再想办法让它飞过粉笔线、从教室门飞出去。</p>
+    <div class="book">机头抬起来一点，飞机才飞得远<br>两边机翼一样高，飞机才不歪</div>
+    <span class="go">开始上课 →</span>
+  </a>
+
+  <a class="ch" href="纸飞机回家.html">
+    <span class="tag">第二段 · 放学后</span>
+    <h2>纸飞机回家</h2>
+    <p>爸爸在楼下等你。从四楼教室出发，飞过天井、绕过湿走廊，把纸飞机送进爸爸的车筐。</p>
+    <div class="book">机头抬起来一点，飞机才飞得远<br>两边机翼一样高，飞机才不歪<br>机头太重会栽头</div>
+    <span class="go">出发 →</span>
+  </a>
+
+  <p class="note">手机、平板、电脑都能玩，横屏更舒服。打开声音，有童声讲解。<br>第一段玩完，结尾可以直接接着玩第二段。</p>
+</main>
+</body>
+</html>
