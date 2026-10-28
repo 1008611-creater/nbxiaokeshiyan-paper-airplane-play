@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>「翅膀一样高」小剧场 · 官方 p5 原版预览</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #1c2150; color: #fffaf0; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 12px; box-sizing: border-box; }
+  #stage { width: min(96vw, 960px, calc((100vh - 110px) * 16 / 9)); aspect-ratio: 16 / 9; border: 2px solid #f7c934; border-radius: 14px; overflow: hidden; background: #2b2a5c; }
+  #note { position: fixed; right: 12px; top: 10px; font-size: 13px; color: #f7c934; opacity: 0.9; }
+  #msg { font-size: 18px; color: #f7c934; }
+  button { font: inherit; font-size: 16px; font-weight: 700; padding: 10px 20px; border-radius: 14px; border: 3px solid #1b1f3b; background: #f7c934; color: #1b1f3b; cursor: pointer; }
+</style></head><body>
+<div id="note">同一段 sketch：这一页由 CDN 上的官方 p5 驱动，游戏里由内联进单文件的同一个官方 p5 驱动</div>
+<div id="stage"></div><div id="msg"></div><button id="again">再看一遍</button>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/p5.min.js"></script>
+<script>/* config.js — 所有可调的数，集中在这里。物理与画面共用。
+ * 前段「折一架纸飞机」：科学课上，在教室里折、试飞、改进，最后一投飞出教室门。 */
+(function (root) {
+  'use strict';
+  var CFG = {
+    G: 9.8,
+    // 发射：拉得越满越快，但快不等于远
+    THROW: { VMIN: 2.8, VMAX: 6.3, HAND_Y: 1.3, AIM_MAX: 0.36, AIM_SNAP: 0.06, MIN_PULL: 0.12 },   // MIN_PULL：往后拉不到这么多就松手，算点了一下，不扔
+    // 纸飞机的空气动力（单位质量）
+    AERO: {
+      CL_K: 0.864, CD_K: 0.864,
+      CD0: 0.095, CDI: 0.12,
+      CLA: 0.07, STALL: 14, VT: 4.3,
+      K_ALPHA: 46, K_Q: 7.5,
+      K_ROLL: 0.4, K_ROLLD: 4.2, K_ROLLS: 3.0
+    },
+    // 纸飞机由三个部件拼成，每个部件只写和课上那架（尖头折平 + 窄翼 + 平翼尖）不一样的数。
+    // 直接写的数是替换，d 开头是加减，m 开头是乘。星星由这些数算出来，不手填
+    PARTS: {
+      nose: { tip: {}, flat: { TRIM: -2, K_ALPHA: 70, K_Q: 10, STALL: 18, dCD0: 0.003, mK_ROLL: 1.5 } },  // 平头：机头重，抬过头也不失速，但飞不远
+      wing: { narrow: {}, wide: { dCD0: -0.035, CDI: 0.07, mK_ROLL: 1.375 } },                            // 宽翼：阻力小、滑得远，但对两翼不齐更敏感
+      tip:  { flat: {}, up: { K_ROLLS: 12, K_ROLLD: 7, dCD0: 0.005 } }                                    // 翼尖上翘：自己回正，飞得直
+    },
+    // 图鉴里有名字的四种飞机 = 四种部件组合（机头-机翼-翼尖）。孩子自己设计的写成 'my:机头-机翼-翼尖'
+    KINDS: {
+      dart:    'tip-narrow-flat',   // 平头镖：课上折的那架
+      glider:  'tip-wide-flat',     // 宽翼滑翔机
+      flat:    'flat-narrow-flat',  // 平头稳稳机
+      winglet: 'tip-narrow-up'      // 翘翼机
+    },
+    // 图鉴的星星：三投标准试飞（远、直、稳），四档力度取平均，按固定刻度换成 1~3 颗星
+    DESIGN: {
+      POWERS: [0.3, 0.45, 0.6, 0.75],
+      TESTS: [
+        { key: 'far', name: '远', setup: { angle: 15, wingL: 0, wingR: 0 } },        // 机头抬一点，飞多远
+        { key: 'straight', name: '直', setup: { angle: 15, wingL: 0, wingR: -6 } },  // 一边翅膀低 6°（常见的折歪），偏多少
+        { key: 'steady', name: '稳', setup: { angle: 35, wingL: 0, wingR: 0 } }      // 机头抬过头，还能飞多远
+      ],
+      SCALE: { far: [4.8, 5.35], straight: [1.1, 0.75], steady: [2.8, 3.4] }
+    },
+    // 手上能改的：出手时机头抬多少（量角器读数）、两边机翼各折多高
+    SETUP: {
+      ANGLE_MAX: 45,
+      TRIM: 0,
+      WING_MIN: -14, WING_MAX: 14, WING_SNAP: 3,
+      BENT: 12            // 第二关飞过线后撞到前墙，一边翅膀被撞低的度数
+    },
+    // 每一局不一样（局数 % 3）：撞低的是哪边翅膀、太阳偏到哪儿
+    ROUNDS: [
+      { bend: 'R', sun: 0 },
+      { bend: 'L', sun: 0.18 },
+      { bend: 'R', sun: 0.32 }
+    ],
+    // 折纸：一张作业纸（A4，米），机头朝 +x
+    SHEET: { W: 0.21, L: 0.297, KEEL: 0.028 },
+    // 教室几何（米）。地面 y=0。孩子站在最后一排课桌前的过道里，面朝讲台和门
+    COURSE: {
+      ROOMS: [
+        { id: 'class', x0: -9, x1: -0.1, y0: 0, y1: 3.2, z0: -3.5, z1: 3.5 },
+        { id: 'door',  x0: -0.1, x1: 0.1, y0: 0, y1: 2.1, z0: -0.6, z1: 0.6 },
+        { id: 'hall',  x0: 0.1, x1: 6, y0: 0, y1: 3.0, z0: -1.2, z1: 1.2 }
+      ],
+      SPOT: { x: -5.8, y: 1.3, z: 0, yaw: 0, room: 'class' },
+      DESK: { x: -7.0, z: 0, top: 0.76 },
+      TAPE_X0: -5.8,                 // 地上的粉笔尺：从脚下量起，每米一道
+      GOAL_X: -0.6,                  // 第二关：讲台前那条粉笔线（离出手点 5.2 米；平着扔使多大劲都到不了，见 tools/tune.cjs）
+      PODIUM: { x0: -1.4, x1: -0.35, z0: -3.4, z1: -0.9 },
+      FLAG_X: -2.8                   // 第一关：红旗默认插在 3 米处（只是摆放位置，不算孩子的猜测）
+    },
+    CAM: { FOV: 52 }
+  };
+  // ---- 第四步新增，只有这两处 ----
+  // 中村锁的机头（隐藏款，不进「我的设计」）：三角往下折、两角再折、三角尖翻上来锁住，叠了好几层纸，重量靠前，比尖头稳；
+  // 但锁好的机头还是收拢成尖的，迎风面和重量都不如平头那么大。没有实测，每个数取尖头（课上那架）和平头的正中间
+  CFG.PARTS.nose.lock = { TRIM: -1, K_ALPHA: 58, K_Q: 8.75, STALL: 16, dCD0: 0.0015, mK_ROLL: 1.25 };
+  // 中村锁 = 锁住的机头 + 宽翼 + 平翼尖。机身折线离中线约 2 cm（CSIRO 的 A4 折法，见 plane.js F2），和宽翼滑翔机一样 → 宽翼
+  CFG.KINDS.nakamura = 'lock-wide-flat';
+  // ---- 图鉴扩充：真实机型。部件只按折法判（见 plane.js F2 注释）：有小三角翻上去压住两个角 → lock；机头整块往下折或卷成厚条、没有锁片 → flat；
+  // 平面阶段两边又往中线折过一次（正面背面都算）→ narrow，只折过角 → wide；有翼尖竖起来这一步 → up。星星照旧由物理算
+  CFG.KINDS.raven = 'lock-narrow-flat';      // 渡鸦：中间三角翻上去压住两个角 = 锁片；两条斜边又折到中线 = 窄翼；没有竖翼尖
+  CFG.KINDS.harrier = 'lock-wide-flat';      // 鹞式：露出来的小三角翻上去压住两个角 = 锁片；只折过角 = 宽翼；没有竖翼尖（和中村锁同部件，所以同星）
+  CFG.KINDS.heavy = 'flat-narrow-flat';      // 重头镖：尖来回压折成厚厚一叠、没有锁片 = 平头；两条斜边又折到中线 = 窄翼；没有竖翼尖
+  CFG.KINDS.bulldog = 'flat-narrow-flat';    // 斗牛犬镖：尖整块往下折成短平头、没有锁片 = 平头；翻面后两边又折到中线 = 窄翼；没有竖翼尖
+  CFG.KINDS.hunting = 'flat-wide-up';        // 狩猎号：上边卷成平平厚厚一条、没有锁片 = 平头；只折过角（往背面）= 宽翼；翼尖竖起来 = 上翘
+  CFG.KINDS.heso = 'lock-wide-flat';         // 肚脐飞机：露出来的小尖翻回去压住两个角 = 锁片；只折过角 = 宽翼；翅膀斜着折但没有竖翼尖（和中村锁同部件，所以同星）
+  root.CFG = CFG;
+  if (typeof module !== 'undefined' && module.exports) module.exports = CFG;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* lines.js — 全部台词（童声 + 字幕共用一份）。tools/tts.mjs 读这份生成音频。
+ * 规矩：先说眼前的现象，再反问；课本原话只在第 3 级卡片里完整说出来；同一个东西只用一个名字。
+ * 名字：机头、机翼（两边翅膀）、红旗、粉笔线、教室门。 */
+(function (root) {
+  'use strict';
+  root.LINES = {
+    intro:       '科学课！用这张纸，折一架飞得又远又直的纸飞机。',
+    fold_go:     '捏住发光的纸角，折到小圈那儿。',
+    fold_t1:     '发光的那个角，要折到哪儿去？',
+    fold_t2:     '跟着小手，捏住纸角，拖过去！',
+    fold_again:  '另一边也一样。',
+    fold_edge:   '把斜边再往中线折一次。',
+    fold_tip:    '机尖太尖会扎到人。把尖尖往回折平一点！',
+    fold_half:   '沿着中线对折，左边折到右边上。',
+    fold_wing:   '把上面这一层翅膀，往下折过来。',
+    fold_flip:   '翻过来，另一边翅膀也折下来。',
+    fold_nose:   '把尖尖的三角整个往下折，盖住纸。机头变平、变厚了。',
+    fold_corner2:'两个新的角，也往中线折过去。',
+    fold_winglet:'翅膀打开了。把翅膀最外边一条，往上竖起来！',
+    // 中村锁（隐藏款）
+    fold_lock_nose:  '把尖尖的三角整个往下折，像一座小房子。',
+    fold_lock_corner:'两个上角，都折到三角尖上面的小点。',
+    fold_lock:   '把露出来的三角尖往上翻，压住两个角——锁住啦！',
+    hidden_open: '你拿到了隐藏的飞机——中村锁！',
+    // 真实机型（图鉴扩充）：一句一个动作，先说做什么
+    fold_nose_bottom: '尖尖折到纸的最下边。',
+    fold_envelope: '整个往下折，留一指宽。',
+    fold_pleat_up: '尖尖翻上去，多出一截。',
+    fold_pleat_down: '再折下来，对准折痕。',
+    fold_back:   '这一折，往背面折。',
+    fold_roll:   '上边往下折一条。',
+    fold_roll_again: '再卷一次，机头更厚。',
+    hidden_fold: '中村锁的机头会锁起来，一步一步来。',
+        book_open:   '这是纸飞机图鉴。选一架没折过的，折出来试一试！',
+    guess_ask:   '先猜一猜：和课上那架比，它会飞得更远、更直、更稳吗？给每一项点星星。',
+    test_far:    '第一投：机头抬一点，平平地扔出去，看它飞多远。',
+    test_straight:'第二投：右边翅膀故意低一点点，看它会歪多少。',
+    test_steady: '第三投：机头抬得太高了，看它会不会冲上去又栽下来。',
+    test_done:   '三颗星都点亮啦！你猜对了几项？',
+    design_open: '机头、机翼、翼尖各挑一样，拼一架你的！',
+    name_ask:    '给你的飞机起个名字，收进图鉴吧！',
+    name_saved:  '收好啦！图鉴里有你设计的飞机了。',
+    fold_done:   '折好啦！把机翼展开，拿起来试一试。',
+
+    predict_ask: '先猜一猜：平着扔，它能飞多远？把红旗拖到你猜的地方。',
+    flag_t1:     '按住红旗，往前或往后拖。',
+    flag_t2:     '跟着小手，拖动红旗。',
+    flag_ok:     '猜好了，就点「就猜这儿」。',
+    throw_t1:    '按住纸飞机，往后拉，再松手！',
+    throw_t2:    '跟着小手，往后拉，松手！',
+    throw_back:  '不是往前推哦，往后拉，像拉弹弓！',
+    cmp_far:     '比你猜的还远！',
+    cmp_near:    '比你猜的近一些。',
+    cmp_same:    '和你猜的差不多！',
+    predict_card:'先猜，再试，再比一比。猜得不准没关系，比一比才知道下次该改哪儿。',
+    predict_q:   '它能不能飞得更远呢？',
+
+    angle_ask:   '看到前面那条粉笔线了吗？怎样才能飞过去？',
+    angle_t1:    '使劲扔也不行呢。出手的时候，机头是平的吗？',
+    dots_hint:   '飞机上的小亮点，都能捏一捏哦。',
+    angle_t2:    '还记得课上说的吗？机头……',
+    nose_t3:     '机头抬起来一点，飞机才飞得远！',
+    angle_high:  '抬太高啦，冲上去就没劲了。',
+    nose_more:   '机头再抬一点点。',
+    angle_pass:  '飞过线啦！是抬了机头吧？',
+    angle_pass_r:'飞过线啦！记住机头抬了多少。',
+    angle_card:  '出手时机头抬起一点，飞机先往上爬一段，再慢慢滑下来，就飞得远。抬太多，它冲上去没了劲，一下就掉了。',
+    angle_q:     '抬得越高越好吗？下次试试看。',
+
+    bend_r:      '哎呀，落地摔了一下，右边翅膀压低了。它还能飞直吗？',
+    bend_l:      '哎呀，落地摔了一下，左边翅膀压低了。它还能飞直吗？',
+    door_ask:    '下课铃快响了！让它从教室门飞出去吧。',
+    wing_ask:    '它老往一边拐。两边翅膀，有什么不一样？',
+    wing_t1:     '看看两边翅膀尖，一样高吗？',
+    wing_t2:     '还记得课上说的吗？两边机翼……',
+    wing_t3:     '两边机翼一样高，飞机才不歪！',
+    snap:        '一样高啦！',
+    door_pass:   '飞出教室门啦！',
+    wing_card:   '两边一样高，左右托起的力一样大，飞机就不拐弯。真飞机的两只翅膀，也是一模一样的。',
+    wing_q:      '要是故意让一边高一点，它会往哪边拐？',
+    far_t1:      '飞得很直，可还不够远。看看机头？',
+
+    free_go:     '现在自由试飞！每次只改一个地方，看看会怎样。',
+    free_tip:    '想下课了，就点「下课」。',
+    end:         '你用课上的两句话，让纸飞机飞得又远又直！',
+    again:       '再上一次课，看能不能少扔几次？',
+    practice:    '放学啦，爸爸在楼下等，把纸飞机送下去吧！',
+    home_back:   '你的纸飞机回家啦！还想用更少的次数试试吗？',
+    solved_go:   '改好啦，扔扔看！',
+    power:       '机头刚好！换个力气再试试。',
+    rescue_go:   '帮你改好啦，现在扔扔看！',
+    fold_rescue: '看，这样折。'
+  };
+  // 课本原话（逐字，不许改写）
+  root.TEXTBOOK = {
+    nose: '机头抬起来一点，飞机才飞得远',
+    wing: '两边机翼一样高，飞机才不歪'
+  };
+  // 课本原文（冀人版一年级上册《做科学》第 7 页「检验与改进」的图注，逐字）。上面两句是对它的解读，卡片上原文作出处、解读不加引号
+  root.TEXTBOOK_SRC = { nose: '改变投掷角度', wing: '改变机翼角度', page: '第 7 页', ask: '你还遇到了哪些问题？是怎样改进的？' };
+  if (typeof module !== 'undefined' && module.exports) module.exports = { LINES: root.LINES, TEXTBOOK: root.TEXTBOOK, TEXTBOOK_SRC: root.TEXTBOOK_SRC };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* mg.js — 知识点弹窗的 MG 小剧场：官方 p5（实例模式）跑一段程序绘制的 sketch。
+ * 本文件只管三件事：
+ *   1. MG.run(sketch, parent, onFail)：包一层 new p5——数存活实例（MG.live），setup / draw 抛错就自己 remove 并回调 onFail，
+ *      不让异常冒出去（台上永远退回旧图文卡，不白屏）
+ *   2. 节拍表：一张卡 = 两条台词（正文 + 提问），按标点切成几句，每句在台词里的起止按字数占比算；
+ *      画面每帧读童声时钟 clock()，算出现在演到第几拍、这一拍演了几秒（不另起定时器）
+ *   3. 各张卡的 sketch（标准 p5 实例模式 function (p) {…}，网页里换成 CDN 上的官方 p5 一字不改也能跑）
+ * 风格对标《NB 小科机械剧场 · 齿轮传动与变速》：深蓝舞台 + 红幕、顶部横幅、底部深蓝黄边字幕条、
+ * 白大褂 NB 博士 + 蓝色小怪兽、贴纸标签、左右分屏。全部程序绘制，没有一张图。 */
+(function (root) {
+  'use strict';
+  var MG = { live: 0 };
+
+  /* ======================= 跑一个 sketch（数实例 + 兜底） ======================= */
+  MG.run = function (sketch, parent, onFail) {
+    if (!root.p5) throw new Error('p5 没有加载');
+    var dead = false, inst = null;
+    var h = {
+      remove: function () {
+        if (dead) return;
+        dead = true; MG.live--;
+        if (inst) try { inst.remove(); } catch (e) { /* 已经拆掉了 */ }
+      }
+    };
+    function fail(e) {
+      if (dead) return;
+      if (root.console) console.warn('[MG] 小剧场出错，退回图文卡：' + (e && e.message || e));
+      h.remove();
+      if (onFail) onFail(e);
+    }
+    MG.live++;
+    inst = new root.p5(function (p) {
+      sketch(p);
+      var s = p.setup, d = p.draw, r = p.windowResized;
+      p.setup = function () { if (dead) return; try { if (s) s.call(p); } catch (e) { fail(e); } };
+      p.draw = function () { if (dead) return; try { if (d) d.call(p); } catch (e) { fail(e); } };
+      if (r) p.windowResized = function () { if (dead) return; try { r.call(p); } catch (e) { fail(e); } };
+    }, parent);
+    if (dead) try { inst.remove(); } catch (e) { /* setup 里就失败了：构造完再拆 */ }
+    h.p = inst;
+    return h;
+  };
+
+  /* ======================= 节拍表 ======================= */
+  // groups[i] = 第 i 条台词切出来的每一拍各占几小段（小段 = 到下一个标点为止）
+  MG.WING = { lines: ['wing_card', 'wing_q'], groups: [[1, 1, 1, 2], [2]] };
+  function pieces(s) { return s.match(/[^，。！？]+[，。！？]?/g) || [s]; }
+  // 这张卡的每一拍：{ line, text, a, b }（a、b = 这一句在它那条台词里的起止，按字数占比）
+  MG.sentences = function (card) {
+    if (card._s) return card._s;
+    var L = root.LINES, out = [];
+    card.lines.forEach(function (id, li) {
+      var ps = pieces(L[id]), n = L[id].length, k = 0, at = 0;
+      card.groups[li].forEach(function (g) {
+        var tx = ps.slice(k, k + g).join(''); k += g;
+        out.push({ line: li, text: tx, a: at / n, b: (at + tx.length) / n }); at += tx.length;
+      });
+    });
+    return (card._s = out);
+  };
+  // c = clock()：{ line: -1（还没开演）| 0 | 1, t, dur, done } → 第几拍（0 = 幕还合着）、这一拍演了几秒 bt、这一拍多长 bd
+  MG.beat = function (card, c) {
+    var S = MG.sentences(card);
+    if (!c || c.line < 0) return { beat: 0, bt: 0, bd: 1, u: 0, text: '' };
+    if (c.done) { var z = S[S.length - 1]; return { beat: S.length, bt: 99, bd: 1, u: 1, text: z.text }; }
+    var f = Math.min(1, Math.max(0, c.t / Math.max(0.1, c.dur)));
+    for (var i = 0; i < S.length; i++) {
+      var s = S[i];
+      if (s.line !== c.line) continue;
+      if (f < s.b || i === S.length - 1 || S[i + 1].line !== c.line) {
+        var bd = (s.b - s.a) * c.dur, bt = Math.max(0, (f - s.a) * c.dur);
+        return { beat: i + 1, bt: bt, bd: bd, u: Math.min(1, bt / bd), text: s.text };
+      }
+    }
+    return { beat: 0, bt: 0, bd: 1, u: 0, text: '' };
+  };
+
+  /* ======================= 色表与小工具 ======================= */
+  var C = {
+    bg: '#2b2a5c', floor: '#232150', ink: '#1b1f3b', navy: '#1c2150',
+    red: '#e2483d', curtain: '#c8323c', fold: '#8f1f2c',
+    blue: '#2f6bd8', blueD: '#2153ad', yellow: '#f7c934', green: '#3aa957', cream: '#f4efe0',
+    paper: '#fbf6e8', shade: '#e3d8bd', skin: '#f8d2b2', orange: '#f27a30', white: '#ffffff'
+  };
+  var FONT = 'sans-serif';   // p5 会把带空格的字体列表整个加引号、浏览器不认；中文由系统回退到苹方 / 雅黑
+  var W = 640, H = 360;     // 逻辑画布 16:9，实际像素按容器宽统一缩放
+  function cl(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function eo(x) { x = cl(x); return 1 - Math.pow(1 - x, 3); }                       // 扫入：ease-out
+  function eio(x) { x = cl(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  function back(x) { x = cl(x); var c1 = 2.2, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); }   // 贴纸弹出：冲过头一点再回来
+
+  /* ======================= 「翅膀一样高」小剧场 ======================= */
+  // clock()：每帧返回 { line, t, dur, done }；opts.onHit(kind)：撞墙 / 盖章那一下（游戏里接现成的 SFX，可不传）
+  MG.wingSketch = function (clock, opts) {
+    opts = opts || {};
+    var CARD = MG.WING;
+    // 「一边低」压低的度数和游戏里撞歪的一样（config.js 的 SETUP.BENT），不手写
+    var BENT = ((root.CFG && root.CFG.SETUP && root.CFG.SETUP.BENT) || 12) * Math.PI / 180;
+    return function (p) {
+      var parent = null, now = 0;
+      var st = { yaw: -1, yawAt: 0, hit: {} };
+      var BL = { x: 70, y: 56, w: 242, h: 186 }, BR = { x: 328, y: 56, w: 242, h: 186 }, BC = { x: 150, y: 56, w: 340, h: 186 };
+
+      function fit() {
+        var w = Math.max(160, Math.round((parent && parent.clientWidth) || W)), h = Math.round(w * 9 / 16);
+        if (p.width !== w || p.height !== h) p.resizeCanvas(w, h);
+      }
+      p.setup = function () {
+        if (root.__MG_FAIL) throw new Error('__MG_FAIL 演练：setup 主动抛错');
+        p.pixelDensity(Math.min(root.devicePixelRatio || 1, 2));
+        var r = p.createCanvas(W, H);
+        parent = r.elt.parentNode;
+        r.elt.style.display = 'block';
+        fit();
+        p.textFont(FONT);
+        frame();     // 同一个调用栈里就画出第一帧：幕布合着 + 横幅，不等下一帧
+      };
+      p.draw = frame;
+      p.windowResized = fit;
+
+      /* ---------- 小工具 ---------- */
+      function ink(w) { p.stroke(C.ink); p.strokeWeight(w); p.strokeJoin(p.ROUND); p.strokeCap(p.ROUND); }
+      function fa(hex, a) { var c = p.color(hex); c.setAlpha(a); p.fill(c); }
+      function dash(on) { p.drawingContext.setLineDash(on ? [7, 6] : []); }
+      function poly(pts, close) { p.beginShape(); for (var i = 0; i < pts.length; i++) p.vertex(pts[i][0], pts[i][1]); p.endShape(close === false ? undefined : p.CLOSE); }
+      function once(key, kind) { if (!st.hit[key]) { st.hit[key] = 1; if (opts.onHit) opts.onHit(kind); } }
+      // 对勾、问号都用线条画，不靠系统字体（不会变成 emoji）
+      function tick(x, y, s, col) { p.noFill(); p.stroke(col); p.strokeWeight(s * 0.32); p.strokeCap(p.ROUND); p.strokeJoin(p.ROUND); poly([[x - s, y], [x - s * 0.3, y + s * 0.7], [x + s, y - s * 0.8]], false); }
+      function qmark(x, y, s, col) {
+        p.noFill(); p.stroke(col); p.strokeWeight(s * 0.2); p.strokeCap(p.ROUND);
+        p.arc(x, y - s * 0.34, s * 0.72, s * 0.66, p.PI * 1.02, p.PI * 2.5);
+        p.line(x, y - 0.01 * s, x, y + 0.16 * s);
+        p.noStroke(); p.fill(col); p.circle(x, y + 0.44 * s, s * 0.21);
+      }
+      function spark(x, y, r) { p.fill(C.yellow); ink(1.8); poly([[x, y - r], [x + r * 0.28, y - r * 0.28], [x + r, y], [x + r * 0.28, y + r * 0.28], [x, y + r], [x - r * 0.28, y + r * 0.28], [x - r, y], [x - r * 0.28, y - r * 0.28]]); }
+      // 贴纸：k = 弹出进度（0..1，带一次冲过头），mark = 'tick' 时字后面画个对勾
+      function sticker(x, y, label, bg, k, rot, size, mark) {
+        if (k <= 0) return;
+        size = size || 15;
+        p.push(); p.translate(x, y); p.rotate(rot || 0); p.scale(back(k));
+        p.textSize(size); p.textStyle(p.BOLD);
+        var tw = p.textWidth(label) + (mark ? size * 1.3 : 0), w = tw + 20, h = size + 14;
+        p.fill(bg); ink(3); p.rect(-w / 2, -h / 2, w, h, 9);
+        p.noStroke(); p.fill(bg === C.yellow ? C.ink : C.white); p.textAlign(p.LEFT, p.CENTER);
+        p.text(label, -tw / 2, 1);
+        if (mark) tick(tw / 2 - size * 0.5, 0, size * 0.42, C.white);
+        p.pop();
+      }
+      // 粗箭头（默认朝上，ang 转向）：tail = 箭尾离箭头尖的长度
+      function arrow(x, y, len, w, ang, col) {
+        if (len < 2) return;
+        var hh = Math.min(len * 0.55, w * 1.5);
+        p.push(); p.translate(x, y); p.rotate(ang || 0);
+        p.fill(col || C.yellow); ink(2.6);
+        poly([[0, 0], [w, hh], [w * 0.42, hh], [w * 0.42, len], [-w * 0.42, len], [-w * 0.42, hh], [-w, hh]]);
+        p.pop();
+      }
+
+      /* ---------- 舞台：深蓝底、地板、红幕、横幅、字幕条 ---------- */
+      function stage() {
+        p.background(C.bg);
+        p.noStroke(); p.fill('#33326c'); p.rect(0, 0, W, 268);
+        p.fill(C.bg); for (var i = 0; i < 5; i++) p.rect(20 + i * 130, 0, 60, 268);       // 背墙竖条（舞台布景）
+        p.fill(C.floor); p.rect(0, 268, W, 92);
+        p.stroke('#45437f'); p.strokeWeight(2); p.line(0, 268, W, 268);
+        p.noStroke(); fa('#3c3a7a', 160); p.ellipse(320, 284, 560, 34);               // 台口一圈光
+      }
+      // 红幕：k = 0 合着，1 拉开（两边各收成一束，黄色绑带）
+      function curtain(k) {
+        var half = 320, wv = half + (34 - half) * k;
+        for (var side = -1; side <= 1; side += 2) {
+          var pts = [], folds = [[], [], []];
+          for (var y = 0; y <= H; y += 12) {
+            var pinch = k * 0.42 * Math.exp(-Math.pow((y - 190) / 95, 2));
+            var w = wv * (1 - pinch) + Math.sin(y * 0.09 + side) * 3 * (1 - k);
+            pts.push([side < 0 ? w : W - w, y]);
+            for (var f = 0; f < 3; f++) { var fw = w * (f + 1) / 4; folds[f].push([side < 0 ? fw : W - fw, y]); }
+          }
+          var shape = [[side < 0 ? 0 : W, H], [side < 0 ? 0 : W, 0]].concat(pts.slice(0, 1)).concat(pts);
+          p.fill(C.curtain); ink(3.5); poly(shape);
+          p.noFill(); p.stroke(C.fold); p.strokeWeight(2.5);
+          for (var g = 0; g < 3; g++) poly(folds[g], false);
+          if (k > 0.5) { var tx = side < 0 ? wv * 0.58 : W - wv * 0.58; p.fill(C.yellow); ink(2.5); p.rect(tx - 9, 184, 18, 12, 6); }
+        }
+        // 顶上一排褶边
+        p.fill(C.curtain); ink(3); p.rect(-4, -4, W + 8, 20);
+        for (var x = 0; x < W; x += 32) p.arc(x + 16, 16, 32, 20, 0, p.PI, p.CHORD);
+      }
+      function banner(tO) {
+        var y = 10, w = 330, x = 320 - w / 2;
+        p.fill(C.navy); p.stroke(C.yellow); p.strokeWeight(2.5);
+        poly([[x, y], [x + w, y], [x + w + 8, y + 17], [x + w, y + 34], [x, y + 34], [x - 8, y + 17]]);
+        p.noStroke(); p.fill(C.yellow); p.textSize(17); p.textStyle(p.BOLD); p.textAlign(p.CENTER, p.CENTER);
+        p.text('NB 小科纸飞机剧场 · 翅膀一样高', 320, y + 18);
+        sticker(x - 6, y + 28, '想一想', C.red, tO < 0 ? 1 : cl((tO - 0.25) / 0.25), -0.12, 12);   // 旧卡的标签不丢
+      }
+      // 一次一句：换句（= 换拍）时新句从下方轻弹入；按这一拍演了几秒算，跟童声时钟走
+      function subtitle(text, bt) {
+        if (!text) return;
+        var k = eo(bt / 0.22);
+        p.textSize(20); p.textStyle(p.BOLD);
+        var w = p.textWidth(text) + 56, x = 320 - w / 2, y = 313 + (1 - k) * 12, h = 36;
+        p.fill(C.navy); p.stroke(C.yellow); p.strokeWeight(2.5);
+        poly([[x, y], [x + w, y], [x + w + 12, y + h / 2], [x + w, y + h], [x, y + h], [x - 12, y + h / 2]]);
+        p.noStroke(); fa(C.white, 255 * k); p.textAlign(p.CENTER, p.CENTER); p.text(text, 320, y + h / 2 + 1);
+      }
+
+      /* ---------- 角色：脚底中心 (x, y)，u = 尺寸单位，o = 动作 ---------- */
+      // NB 博士：白大褂、额头钴蓝护目镜、圆眼镜、橙底 NB 徽章、翘呆毛。o.pose = wave / point / sweat / thumb / think
+      function doctor(x, y, u, o) {
+        var t = now, pose = o.pose || '';
+        p.push(); p.translate(x, y + (pose === 'thumb' ? -Math.abs(Math.sin(t * 6)) * u * 0.6 : 0));
+        p.noStroke(); fa(C.ink, 90); p.ellipse(0, 0, 9 * u, 1.6 * u);
+        p.fill('#2b4c7e'); ink(2.5); p.rect(-1.7 * u, -3.2 * u, 1.3 * u, 3 * u, 2); p.rect(0.4 * u, -3.2 * u, 1.3 * u, 3 * u, 2);
+        p.fill(C.white); p.ellipse(-1.1 * u, -0.2 * u, 2.2 * u, 1 * u); p.ellipse(1.1 * u, -0.2 * u, 2.2 * u, 1 * u);
+        // 两只胳膊（白袖子）：hand 是手的位置
+        function arm(sx, hx, hy) {
+          ink(1.5 * u); p.line(sx, -8.6 * u, hx, hy);
+          p.stroke(C.white); p.strokeWeight(1.5 * u - 5); p.line(sx, -8.6 * u, hx, hy);
+          p.fill(C.skin); ink(2.5); p.circle(hx, hy, 1.4 * u);
+        }
+        var wv = Math.sin(t * 9) * 0.7 * u;
+        var L = pose === 'wave' ? [-4.6 * u + wv, -12.6 * u] : pose === 'sweat' ? [-4.8 * u, -11.4 * u] : [-3.9 * u, -5.2 * u];
+        var R = pose === 'point' ? [6.6 * u, -9.4 * u] : pose === 'thumb' ? [5 * u, -11.6 * u] : pose === 'think' ? [1.2 * u, -10.3 * u]
+          : pose === 'sweat' ? [4.8 * u, -11.4 * u] : [3.9 * u, -5.2 * u];
+        arm(-2.8 * u, L[0], L[1]);
+        if (pose !== 'think') arm(2.8 * u, R[0], R[1]);
+        p.fill(C.white); ink(3); poly([[-3 * u, -9.4 * u], [3 * u, -9.4 * u], [3.7 * u, -2.6 * u], [-3.7 * u, -2.6 * u]]);
+        p.line(0, -7.2 * u, 0, -2.6 * u);
+        p.fill(C.blue); ink(2); poly([[-1 * u, -9.4 * u], [1 * u, -9.4 * u], [0, -7.2 * u]]);
+        p.fill(C.orange); poly([[0, -9 * u], [-1.1 * u, -9.6 * u], [-1.1 * u, -8.4 * u]]); poly([[0, -9 * u], [1.1 * u, -9.6 * u], [1.1 * u, -8.4 * u]]);
+        p.fill(C.orange); ink(2.2); p.rect(0.5 * u, -6.6 * u, 2.4 * u, 1.5 * u, 3);
+        p.noStroke(); p.fill(C.white); p.textSize(1.05 * u); p.textStyle(p.BOLD); p.textAlign(p.CENTER, p.CENTER); p.text('NB', 1.7 * u, -5.8 * u);
+        // 头
+        p.fill(C.skin); ink(3); p.circle(0, -12.4 * u, 5.8 * u);
+        p.fill('#24304c'); p.arc(0, -12.9 * u, 6.2 * u, 5.4 * u, p.PI, p.TWO_PI, p.CHORD);
+        p.noFill(); ink(2.4); p.arc(0.9 * u, -16.1 * u, 1.6 * u, 1.6 * u, p.PI * 0.9, p.PI * 2.1);    // 呆毛
+        p.stroke(C.ink); p.strokeWeight(2); p.line(-3 * u, -14.3 * u, 3 * u, -14.3 * u);
+        p.fill(C.blue); ink(2.2); p.circle(-1.2 * u, -14.4 * u, 2 * u); p.circle(1.2 * u, -14.4 * u, 2 * u);   // 护目镜
+        p.noStroke(); p.fill('#9cc3ff'); p.circle(-1.45 * u, -14.7 * u, 0.6 * u); p.circle(0.95 * u, -14.7 * u, 0.6 * u);
+        p.noFill(); p.stroke(C.orange); p.strokeWeight(2.2); p.circle(-1.25 * u, -12.2 * u, 1.9 * u); p.circle(1.25 * u, -12.2 * u, 1.9 * u);   // 圆眼镜
+        p.noStroke(); p.fill(C.ink); p.circle(-1.25 * u, -12.2 * u, 0.55 * u); p.circle(1.25 * u, -12.2 * u, 0.55 * u);
+        p.noFill(); ink(2);
+        if (pose === 'sweat') p.ellipse(0, -10.6 * u, 1 * u, 0.7 * u);
+        else if (pose === 'think') p.line(-0.5 * u, -10.7 * u, 0.6 * u, -10.8 * u);
+        else p.arc(0, -11 * u, 1.6 * u, 1 * u, 0.1, p.PI - 0.1);
+        if (pose === 'think') arm(2.8 * u, R[0], R[1]);
+        if (pose === 'thumb') { p.fill(C.skin); ink(2.2); p.rect(R[0] - 0.3 * u, R[1] - 1.5 * u, 0.6 * u, 1.1 * u, 2); }
+        if (pose === 'point') { p.fill(C.skin); ink(2.2); p.rect(R[0] + 0.4 * u, R[1] - 0.25 * u, 1.1 * u, 0.5 * u, 2); }
+        if (pose === 'sweat') {
+          var dy = (t * 1.5 % 1) * u * 1.5;
+          p.fill('#8ec5ff'); ink(2); p.ellipse(3.6 * u, -14.6 * u + dy, 0.9 * u, 1.3 * u); p.ellipse(-3.7 * u, -13.6 * u + dy * 0.7, 0.8 * u, 1.1 * u);
+        }
+        p.pop();
+      }
+      // 蓝色小怪兽：钴蓝圆胖身子、一排小白牙、小短腿、头顶小冠。o.mode = cheer / dizzy / reach（o.to = 手要够到的点）
+      function monster(x, y, u, o) {
+        var t = now, m = o.mode || '';
+        var jump = m === 'cheer' ? Math.abs(Math.sin(t * 8)) * 2.2 * u : Math.abs(Math.sin(t * 2.4)) * 0.3 * u;
+        p.noStroke(); fa(C.ink, 90); p.ellipse(x, y, 9 * u, 1.5 * u);
+        p.push(); p.translate(x, y - jump);
+        if (m === 'dizzy') p.rotate(Math.sin(t * 7) * 0.16);
+        p.fill(C.blueD); ink(2.5); p.rect(-2.6 * u, -1.8 * u, 1.6 * u, 1.8 * u, 3); p.rect(1 * u, -1.8 * u, 1.6 * u, 1.8 * u, 3);
+        var aL = m === 'cheer' ? [-6 * u, -10 * u] : [-5.6 * u, -4.8 * u];
+        var aR = m === 'cheer' ? [6 * u, -10 * u] : [5.6 * u, -4.8 * u];
+        if (m === 'reach' && o.to) aL = [o.to[0] - x, o.to[1] - (y - jump)];
+        function limb(hx, hy) { ink(1.3 * u + 5); p.line(0, -6 * u, hx, hy); p.stroke(C.blue); p.strokeWeight(1.3 * u); p.line(0, -6 * u, hx, hy); p.fill(C.blue); ink(2.4); p.circle(hx, hy, 1.5 * u); }
+        limb(aL[0], aL[1]); limb(aR[0], aR[1]);
+        p.fill(C.blue); ink(3.5); p.rect(-4.4 * u, -10.4 * u, 8.8 * u, 8.8 * u, 3.4 * u);
+        p.fill(C.yellow); ink(2.4); poly([[-2.2 * u, -10.2 * u], [-2.4 * u, -12.6 * u], [-1.1 * u, -11.3 * u], [0, -13 * u], [1.1 * u, -11.3 * u], [2.4 * u, -12.6 * u], [2.2 * u, -10.2 * u]]);
+        if (m === 'dizzy') {
+          p.noFill(); ink(2);
+          for (var e = -1; e <= 1; e += 2) { p.arc(e * 1.6 * u, -7.6 * u, 2 * u, 2 * u, t * 6, t * 6 + 4.5); p.arc(e * 1.6 * u, -7.6 * u, 1 * u, 1 * u, t * 6 + 2, t * 6 + 6); }
+          for (var s = 0; s < 3; s++) { var a = t * 4 + s * 2.1; spark(Math.cos(a) * 4.6 * u, -12.6 * u + Math.sin(a) * 1.2 * u, 0.8 * u); }
+        } else {
+          p.fill(C.white); ink(2.2); p.circle(-1.6 * u, -7.6 * u, 2.3 * u); p.circle(1.6 * u, -7.6 * u, 2.3 * u);
+          p.noStroke(); p.fill(C.ink); var lk = m === 'reach' ? -0.4 * u : 0;
+          p.circle(-1.6 * u + lk, -7.5 * u, 1 * u); p.circle(1.6 * u + lk, -7.5 * u, 1 * u);
+        }
+        var mh = m === 'cheer' ? 2.8 * u : 2 * u;
+        p.fill('#5b1f2e'); ink(2.4); p.rect(-2.8 * u, -5.4 * u, 5.6 * u, mh, 0.8 * u);
+        p.fill(C.white); p.strokeWeight(1.6);
+        for (var i = 0; i < 5; i++) { var tx = -2.8 * u + (i + 0.5) * 1.12 * u; poly([[tx - 0.45 * u, -5.4 * u], [tx + 0.45 * u, -5.4 * u], [tx, -4.6 * u]]); }
+        p.pop();
+      }
+
+      /* ---------- 纸飞机与真飞机 ---------- */
+      // 正面（站在出手的孩子身后看：屏幕左边就是飞机的左翅膀）。aL / aR = 翼尖往下压的角度（负 = 往上抬）；lift = 两只翅膀下的托力箭头长度
+      function tipOf(cx, cy, L, a, side, roll) {
+        var x = side * (3 + L * Math.cos(a)), y = L * Math.sin(a);
+        return [cx + x * Math.cos(roll) - y * Math.sin(roll), cy + x * Math.sin(roll) + y * Math.cos(roll)];
+      }
+      function frontPlane(cx, cy, L, aL, aR, roll, lift) {
+        p.push(); p.translate(cx, cy); p.rotate(roll);
+        if (lift) for (var s = -1; s <= 1; s += 2) {
+          var a = s < 0 ? aL : aR, len = s < 0 ? lift[0] : lift[1], d = 3 + L * 0.62;
+          arrow(s * d * Math.cos(a), d * Math.sin(a) + 7, len, 11, 0, C.yellow);
+        }
+        p.fill(C.shade); ink(3); poly([[-8, -2], [8, -2], [0, L * 0.38]]);
+        for (var side = -1; side <= 1; side += 2) {
+          var an = side < 0 ? aL : aR, ca = Math.cos(an), sa = Math.sin(an);
+          var tx = side * (3 + L * ca), ty = L * sa;
+          p.fill(C.paper); ink(3); poly([[side * 3, -3], [tx, ty - 2], [tx + side * 1, ty + 3], [side * 3, 6]]);
+          p.stroke(C.white); p.strokeWeight(2); p.line(side * 8, 0, side * (3 + L * 0.85 * ca), L * 0.85 * sa - 0.5);
+        }
+        p.pop();
+      }
+      // 俯视的尖头飞镖（和游戏里同款剪影）：ang = 机头朝向（0 = 朝上），sx = 左右压扁（摇摆）
+      function dart(x, y, ang, sx, k) {
+        p.push(); p.translate(x, y); p.rotate(ang); p.scale((sx || 1) * (k === undefined ? 1 : k), k === undefined ? 1 : k);
+        p.fill(C.paper); ink(2.6); poly([[0, -17], [11, 11], [0, 6], [-11, 11]]);
+        p.stroke(C.shade); p.strokeWeight(2); p.line(0, -13, 0, 5);
+        p.pop();
+      }
+      // 真飞机正面剪影：机身圆、两只长翅膀、两台发动机、竖尾翼。flash = 两只翅膀同时闪同一个颜色
+      function jet(cx, cy, s, flash) {
+        p.push(); p.translate(cx, cy); p.scale(s);
+        p.fill(C.white); ink(3); p.rect(-5, -58, 10, 44, 4);
+        p.rect(-46, -32, 92, 8, 4);
+        var wc = flash ? C.yellow : C.white;
+        p.fill(wc); poly([[-14, -2], [-128, -14], [-128, -7], [-14, 12]]); poly([[14, -2], [128, -14], [128, -7], [14, 12]]);
+        p.fill('#c9d6ea'); p.circle(-58, 14, 22); p.circle(58, 14, 22);
+        p.fill(C.ink); p.noStroke(); p.circle(-58, 14, 10); p.circle(58, 14, 10);
+        p.fill(C.white); ink(3.5); p.circle(0, 0, 40);
+        p.fill(C.blue); ink(2.2); p.rect(-11, -10, 9, 7, 3); p.rect(2, -10, 9, 7, 3);
+        p.noStroke(); p.fill('#c9d6ea'); p.circle(0, 7, 10);
+        p.pop();
+      }
+
+      /* ---------- 画板 ---------- */
+      function board(b) { p.fill(C.cream); ink(3.5); p.rect(b.x, b.y, b.w, b.h, 14); }
+      function refLine(b, y, k) {
+        if (k <= 0) return;
+        p.stroke(C.blue); p.strokeWeight(2.2); dash(true);
+        p.line(b.x + 14, y, b.x + 14 + (b.w - 28) * k, y); dash(false);
+      }
+      // 正面那两拍：一边低 vs 一样高；liftK > 0 时翅膀下长出托力箭头（第 2 拍）
+      function frontPair(beat, bt, slide) {
+        var t1 = beat === 1 ? bt : 9, t2 = beat === 2 ? bt : beat > 2 ? 9 : 0;
+        var sweep = eo((t1 - 0.45) / 0.6), grow = eo(t2 / 0.5), breath = Math.sin(now * 4) * 3 * grow;
+        var cyL = BL.y + 84, cyR = BR.y + 84, L = 90;
+        // 左：飞机的左翅膀压低 BENT；第 2 拍左短右长 → 机身向低的一边歪（物理里往低的那边滚转）
+        var roll = -0.16 * eo(t2 / 0.9) + Math.sin(now * 3) * 0.03 * grow;
+        var tipHi = tipOf(BR.x + BR.w / 2, cyR, L, 0, 1, 0)[1] - 1;
+        p.push(); p.translate(-slide, 0);
+        refLine(BL, tipHi, sweep);
+        frontPlane(BL.x + BL.w / 2, cyL, L, BENT, 0, roll, grow > 0 ? [22 * grow, (52 + breath * 0.3) * grow] : null);
+        if (sweep > 0.95 && grow === 0) { var lo = tipOf(BL.x + BL.w / 2, cyL, L, BENT, -1, 0); p.stroke(C.red); p.strokeWeight(2.5); p.line(lo[0], tipHi + 4, lo[0], lo[1] - 4); }
+        p.pop(); p.push(); p.translate(slide, 0);
+        refLine(BR, tipHi, sweep);
+        frontPlane(BR.x + BR.w / 2, cyR, L, 0, 0, 0, grow > 0 ? [(44 + breath) * grow, (44 + breath) * grow] : null);
+        p.pop();
+      }
+      // 俯视那一拍：下方出手、上方教室门。u = 这一拍的进度
+      function room(b, sh) {
+        var cx = b.x + b.w / 2, dw = 23;
+        p.push(); p.translate(sh, 0);
+        p.stroke('#9c937a'); p.strokeWeight(2); dash(true); p.line(b.x + 30, b.y + b.h - 14, b.x + b.w - 30, b.y + b.h - 14); dash(false);
+        ink(6); p.line(b.x + 9, b.y + 30, b.x + 9, b.y + b.h - 8); p.line(b.x + b.w - 9, b.y + 30, b.x + b.w - 9, b.y + b.h - 8);   // 两边侧墙
+        p.line(b.x + 9, b.y + 30, cx - dw, b.y + 30); p.line(cx + dw, b.y + 30, b.x + b.w - 9, b.y + 30);                            // 前墙 + 门洞
+        p.fill(C.blue); ink(2.5); p.rect(cx - dw - 5, b.y + 25, 7, 10, 2); p.rect(cx + dw - 2, b.y + 25, 7, 10, 2);
+        p.stroke(C.blueD); p.strokeWeight(4); p.line(cx - dw, b.y + 30, cx - dw - 12, b.y + 12);                                          // 开着的门
+        p.pop();
+      }
+      function topPair(u, bt, bd) {
+        // 拐弯方向和游戏物理一致：physics.js 里 wingL = -12°（左翅膀压低）平投，滚转往左，落点 z = -2.14（偏左、出不了门）；
+        // 两边一样高 z = 0、穿过门。（node -e 直接 require('./src/physics.js') 跑 simulate 得到）所以左板的飞机往左拐、撞左墙
+        var fR = cl(u / 0.62), fL = cl(u / 0.8), crashT = 0.8 * bd;
+        var shake = bt >= crashT && bt < crashT + 0.2 ? Math.sin(now * 95) * 3 * (1 - (bt - crashT) / 0.2) : 0;
+        room(BL, shake); room(BR, 0);
+        var y0L = BL.y + BL.h - 26, cxL = BL.x + BL.w / 2;
+        var pathL = function (s) { return [cxL - 102 * s * s + Math.sin(s * 15) * 4 * s, y0L - 92 * s]; };
+        var y0R = BR.y + BR.h - 26, cxR = BR.x + BR.w / 2, travel = y0R - (BR.y + 30);
+        // 轨迹虚线
+        p.noFill(); p.stroke('#7aa6ea'); p.strokeWeight(2.4); dash(true);
+        p.beginShape(); for (var i = 0; i <= 20; i++) { var q = pathL(fL * i / 20); p.vertex(q[0] + shake, q[1]); } p.endShape();
+        p.line(cxR, y0R, cxR, y0R - travel * eio(fR)); dash(false);
+        // 左：边摇边拐
+        var P = pathL(fL), d = 0.001, Q = pathL(Math.min(1, fL + d)), Q0 = pathL(Math.max(0, fL - d));
+        var heading = Math.atan2(Q[0] - Q0[0], Q0[1] - Q[1]);
+        if (fL < 1) dart(P[0], P[1], heading, 0.62 + 0.38 * Math.abs(Math.cos(now * 11)));
+        else { dart(P[0] + shake + 4, P[1] + 6, heading - 0.5, 0.8); p.stroke(C.red); p.strokeWeight(2.5); for (var j = 0; j < 3; j++) { var a = -2.2 + j * 0.7; p.line(P[0] + 4 + Math.cos(a) * 12, P[1] + Math.sin(a) * 12, P[0] + 4 + Math.cos(a) * 20, P[1] + Math.sin(a) * 20); } }
+        // 偏航读数：每变一次轻轻放大一下
+        var deg = Math.round(Math.abs(heading) * 180 / Math.PI / 5) * 5;
+        if (deg !== st.yaw) { st.yaw = deg; st.yawAt = now; }
+        var pop = 1 + 0.25 * Math.max(0, 1 - (now - st.yawAt) / 0.15);
+        badge(BL.x + BL.w - 46 + shake, BL.y + 16, '偏了 ' + deg + '°', pop, C.blue);
+        badge(BR.x + BR.w - 46, BR.y + 16, '偏了 0°', 1, C.blue);
+        // 右：笔直出门
+        var yR = y0R - travel * eio(fR);
+        if (fR < 1) dart(cxR, yR, 0, 1);
+        else dart(cxR, yR - 10 * eo((bt - 0.62 * bd) / 0.25), 0, 1, 1 - eo((bt - 0.62 * bd) / 0.3));
+        if (fR >= 1) once('door', 'stamp');
+        if (fL >= 1) once('wall', 'wall');
+        sticker(cxR, BR.y + 70, '出门啦', C.green, cl((bt - 0.62 * bd) / 0.25), -0.1, 16, 'tick');
+        sticker(BL.x + 70 + shake, P[1] + 34, '撞墙', C.red, cl((bt - crashT) / 0.25), 0.12, 16);
+      }
+      function badge(x, y, s, k, col) {
+        p.push(); p.translate(x, y); p.scale(k); p.textSize(13); p.textStyle(p.BOLD);
+        var w = p.textWidth(s) + 16; p.fill(col); ink(2.5); p.rect(-w / 2, -11, w, 22, 11);
+        p.noStroke(); p.fill(C.white); p.textAlign(p.CENTER, p.CENTER); p.text(s, 0, 0.5); p.pop();
+      }
+      function lerpBox(a, b, k) { return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, w: a.w + (b.w - a.w) * k, h: a.h + (b.h - a.h) * k }; }
+
+      /* ---------- 每帧 ---------- */
+      function frame() {
+        now = p.millis() / 1000;
+        var c = clock() || { line: -1 };
+        var B = MG.beat(CARD, c), beat = B.beat, bt = B.bt;
+        var tO = c.line < 0 ? -1 : c.line === 0 && !c.done ? c.t : 99;    // 开演后过了几秒（-1 = 幕还合着）
+        if (beat < 3) st.hit = {};
+        p.push(); p.scale(p.width / W);
+        stage();
+        var docX = tO < 0 ? -40 : -40 + 96 * eo(tO / 0.6);
+        var mk = eo((tO - 0.1) / 0.5), monX = 690 - 112 * mk, monY = 300 - Math.sin(Math.PI * mk) * 34;
+        var dpose = '', mon = { mode: '' };
+        if (beat >= 1 && beat <= 4) {
+          var slide = beat === 1 ? (1 - back(bt / 0.55)) * 380 : 0, merge = beat === 4 ? eio((bt - 0.45) / 0.45) : 0;
+          var bl = lerpBox(BL, BC, merge), br = lerpBox(BR, BC, merge);
+          bl.x -= slide; br.x += slide;
+          board(bl); if (merge < 1) board(br);
+          var labelK = beat === 1 ? cl((bt - 0.3) / 0.25) : 1, labelK2 = beat === 1 ? cl((bt - 0.45) / 0.25) : 1;
+          if (merge < 0.35) {
+            if (beat <= 2) frontPair(beat, bt, slide);
+            if (beat >= 3) topPair(beat === 3 ? B.u : 1, beat === 3 ? bt : 99, beat === 3 ? B.bd : 1);
+            sticker(BL.x + 46 - slide, BL.y + 16, '一边低', C.red, labelK, -0.08, 15);
+            sticker(BR.x + 46 + slide, BR.y + 16, '一样高', C.green, labelK2, -0.08, 15);
+          }
+          if (beat === 4) {
+            var jk = back((bt - 0.9) / 0.35), ax = eo((bt - 1.2) / 0.4), fl = (bt > 1.6 && bt < 1.85) || (bt > 2.05 && bt < 2.3);
+            if (jk > 0) {
+              jet(320, 156, 0.95 * jk, fl);
+              if (ax > 0) { p.stroke(C.red); p.strokeWeight(2.4); dash(true); p.line(320, 70, 320, 70 + 166 * ax); dash(false); }
+            }
+            sticker(320, 228, '一模一样', C.blue, cl((bt - 1.7) / 0.25), -0.06, 16);
+          }
+          dpose = beat === 1 ? (tO < 1.1 ? 'wave' : 'point') : beat === 2 ? 'point'
+            : beat === 3 ? (B.u >= 0.8 ? 'sweat' : 'point') : bt < 0.9 ? 'sweat' : 'thumb';
+          mon.mode = beat === 3 ? (B.u >= 0.8 ? 'dizzy' : B.u >= 0.62 ? 'cheer' : '') : beat === 4 ? (bt < 0.8 ? 'dizzy' : 'cheer') : '';
+        } else if (beat === 5) {
+          // 最后一问：小怪兽把一边翼尖轻轻抬高一点；两边方向箭头交替闪、正中一个大问号——不给答案
+          board(BC);
+          var wk = eo((bt - 0.3) / 0.6), lift = -0.17 * eo((bt - 0.9) / 0.6), cy = 150, L = 92;
+          var pk = bt < 0.25 ? 1 : back((bt - 0.2) / 0.35);
+          if (bt < 0.25) jet(320, 156, 0.95 * (1 - eo(bt / 0.25)), false);
+          else frontPlane(320, cy, L * pk, 0, lift, 0, null);
+          var alt = Math.floor(now * 2.2) % 2, ak = eo((bt - 1.2) / 0.3);
+          if (ak > 0) {
+            arrow(320 - 30 - 64 * ak, cy + 54, 64 * ak, 13, -Math.PI / 2, alt ? C.yellow : C.cream);
+            arrow(320 + 30 + 64 * ak, cy + 54, 64 * ak, 13, Math.PI / 2, alt ? C.cream : C.yellow);
+            qmark(320, cy + 52, 24, C.red);                     // 「← ？ →」
+          }
+          var qk = cl((bt - 0.8) / 0.25);
+          if (qk > 0) {
+            p.push(); p.translate(320, 92 + Math.sin(now * 3) * 2); p.scale(back(qk));
+            p.fill(C.red); ink(3.5); p.circle(0, 0, 50); qmark(0, 1, 34, C.white); p.pop();
+          }
+          monX = 578 - 108 * eio(bt / 0.6); monY = 300;
+          var tip = tipOf(320, cy, L * pk, lift, 1, 0);
+          mon = bt > 0.6 ? { mode: 'reach', to: [tip[0] + 4, tip[1] + 8] } : { mode: '' };
+          dpose = 'think';
+        }
+        doctor(docX, 300, 6.6, { pose: dpose });
+        monster(monX, monY, 6, mon);
+        curtain(tO < 0 ? 0 : eio(tO / 0.6));
+        banner(tO);
+        subtitle(B.text, bt);
+        p.pop();
+      }
+    };
+  };
+
+  // 最小的测试 sketch：画一个圆和一行字（格 1 验收用）
+  MG.testSketch = function (p) {
+    p.setup = function () { p.createCanvas(200, 100); };
+    p.draw = function () { p.background(43, 42, 92); p.fill('#f6c933'); p.circle(50, 50, 60); p.fill(255); p.textSize(20); p.text('p5 ' + p.VERSION, 90, 56); };
+  };
+
+  root.MG = MG;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+(function () {
+  var stage = document.getElementById('stage'), msg = document.getElementById('msg'), h = null, t0 = 0;
+  if (!window.p5) { msg.textContent = '官方 p5 没加载到，请检查网络'; document.getElementById('again').style.display = 'none'; return; }
+  msg.textContent = 'p5 ' + p5.prototype.VERSION;
+  // 假时钟：正文 11.4 秒 → 停 0.26 秒 → 提问 5.7 秒 → 停在最后一帧（和游戏里童声时钟同一个格式）
+  function clock() {
+    var t = (performance.now() - t0) / 1000;
+    if (t < 11.4) return { line: 0, t: t, dur: 11.4, done: false };
+    t -= 11.66;
+    if (t < 0) return { line: 0, t: 11.4, dur: 11.4, done: false };
+    if (t < 5.7) return { line: 1, t: t, dur: 5.7, done: false };
+    return { line: 1, t: 5.7, dur: 5.7, done: true };
+  }
+  function play() {
+    if (h) h.remove();
+    t0 = performance.now();
+    h = MG.run(MG.wingSketch(clock), stage, function () { msg.textContent = '小剧场出错了（见控制台）'; });
+  }
+  document.getElementById('again').onclick = play;
+  play();
+})();
+</script></body></html>
