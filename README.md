@@ -6,3 +6,5 @@
 - `纸飞机回家.html`：后段打包结果（源码：私有仓库 nbxiaokeshiyan-paper-airplane-home）
 
 更新：在各自源码目录 `node build.mjs`，把生成的 HTML 拷到这里（前段改名 index.html）再推送。
+
+- 知识点小剧场节目单入口：打开 index.html 后在地址后加 #mg，五张卡可直接点开看。
