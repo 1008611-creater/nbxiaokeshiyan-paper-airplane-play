@@ -175,6 +175,12 @@
              background: rgba(40,24,12,0.35); color: var(--ink); border: 2px solid rgba(251,243,228,0.85); }
   #bookBtn svg { width: 22px; height: 22px; }
   body.hasbook #bookBtn { display: inline-flex; }
+  #freeBtn { pointer-events: auto; appearance: none; font: inherit; font-size: 16px; font-weight: 700; letter-spacing: 0.12em; cursor: pointer; order: 2;
+             display: inline-flex; align-items: center; gap: 10px; padding: 10px 24px; min-height: 48px; border-radius: 999px;
+             background: rgba(40,24,12,0.35); color: var(--ink); border: 2px solid rgba(251,243,228,0.85); }
+  #freeBtn svg { width: 22px; height: 22px; }
+  #freeBtn:active { transform: scale(0.97); }
+  #freeBtn:focus-visible { outline: 3px solid var(--accent-fg); outline-offset: 3px; }
   #bookBtn:active { transform: scale(0.97); }
   #bookBtn:focus-visible { outline: 3px solid var(--accent-fg); outline-offset: 3px; }
   #book { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: var(--scrim); padding: 16px; z-index: 6;
@@ -317,8 +323,8 @@
     #book .nm input { min-height: 44px; padding: 8px 12px; }
     #book .paper:not(.wide) > .btns { grid-column: 1 / -1; position: sticky; bottom: 0; background: var(--surface); margin: 6px -18px 0; padding: 10px 18px 12px; }
     #book .paper:not(.wide) > .tag { justify-self: start; }
-    /* 下课画面：计数小图缩小，「再上一次课」「纸飞机图鉴」并排，整组放得进 390px 高 */
-    #end { display: grid; grid-template-columns: auto auto; justify-content: center; align-content: end; justify-items: center; gap: 10px 14px;
+    /* 下课画面：计数小图缩小，「自由试飞」「纸飞机图鉴」「再上一次课」一行并排，整组放得进 390px 高 */
+    #end { display: grid; grid-template-columns: auto auto auto; justify-content: center; align-content: end; justify-items: center; gap: 10px 14px;
            padding-bottom: max(88px, calc(env(safe-area-inset-bottom) + 76px)); }
     #end.on { display: grid; }
     #tally { grid-column: 1 / -1; width: 220px; height: 78px; }
@@ -344,7 +350,7 @@
   #next:active { transform: scale(0.97); }
   #next:focus-visible { outline: 3px solid var(--accent-fg); outline-offset: 3px; }
   /* 有课后实践时，它是主按钮；「再上一次课」退成描边 */
-  body.suite #again { order: 2; background: rgba(40,24,12,0.35); color: var(--ink); border: 2px solid rgba(251,243,228,0.85); box-shadow: none; font-size: 16px; }
+  body.suite #again { order: 4; background: rgba(40,24,12,0.35); color: var(--ink); border: 2px solid rgba(251,243,228,0.85); box-shadow: none; font-size: 16px; }
   body.suite #next { display: inline-flex; order: 1; }
   #title .sub2 { margin: -12px 0 0; color: var(--ink); font-size: 16px; letter-spacing: 0.3em; text-shadow: 0 1px 6px rgba(30,16,6,0.7); }
   @media (max-width: 560px) { #record { font-size: 12px; min-width: 0; padding: 8px 10px; } #step { font-size: 14px; } }
@@ -372,6 +378,7 @@
 <div id="end"><canvas id="tally" width="520" height="184"></canvas>
   <button id="again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 11 22 3 15 21 11 13z"/><path d="M11 13 22 3"/></svg>再上一次课</button>
   <button id="bookBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></svg>纸飞机图鉴</button>
+  <button id="freeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 19c3-9 9-13 18-12"/><path d="M16 4l5 3-4 4"/></svg>自由试飞</button>
   <a id="next" href="纸飞机回家.html"><small>课后实践</small>把纸飞机送回家 →</a></div>
 <div id="step"></div>
 <div id="deg"></div>
@@ -4188,7 +4195,8 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
       var next = function () {
         if (stage === 'angle') N.then('angle_ask');
         else if (stage === 'wing') { N.then(S.bent === 'L' ? 'bend_l' : 'bend_r'); ctx.lookAtWing(); N.then('door_ask'); }
-        else if (stage === 'free') { N.then('free_go'); N.then('free_tip'); ctx.showDone(); }
+        else if (stage === 'free' && prev === 'wing' && S.mode !== 'book') ctx.endClass();   // 飞出门：看完「想一想」直接下课，自由试飞放到下课页上可选
+        else if (stage === 'free') { N.then('free_go'); if (!S.classOver) N.then('free_tip'); ctx.showDone(); }
       };
       var go = function () {
         if (showCard) {
@@ -4764,6 +4772,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   var elDone = document.getElementById('done');
   var elRecord = document.getElementById('record');
   var elBookBtn = document.getElementById('bookBtn');
+  var elFreeBtn = document.getElementById('freeBtn');
 
   /* ---------------- 渲染器 ---------------- */
   var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
@@ -5178,6 +5187,9 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   }
   function finish() {
     if (S.mode === 'book') { elDone.className = ''; elRecord.className = ''; openBook(); return; }
+    // 已经下过课（从下课页点了「自由试飞」）：点「返回」只回到下课页，不再响铃、不再记一局
+    if (S.classOver) { S.phase = 'end'; S.phaseT = 0; elDone.className = ''; elRecord.className = ''; elEnd.className = 'on'; return; }
+    S.classOver = true; elDone.textContent = '返回';
     book.markLit('dart'); document.body.classList.add('hasbook');
     S.duskAnim = { from: round().sun, to: Math.min(0.6, round().sun + 0.3), t: 0 }; SFX.schoolBell();   // 放学：窗外的光暖一点、斜一点，放学铃响
     S.phase = 'end'; S.phaseT = 0; elDone.className = ''; elRecord.className = '';
@@ -5234,12 +5246,18 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     });
   }
   elBookBtn.addEventListener('click', function () { SFX.unlock(); openBook(); });
+  // 下课页上的「自由试飞」：飞出门以后的三个去向之一（D2：自由试飞 / 图鉴 / 课后实践放在同一页，都是可选）
+  elFreeBtn.addEventListener('click', function () {
+    if (S.phase !== 'end') return;
+    SFX.unlock(); elEnd.className = ''; S.records = []; drawRecords(); S.nextStage = 'free'; startRewind();
+  });
 
   function restart(kind) {
     if (S.phase === 'title' || S.phase === 'intro') return;
     S.mode = kind ? 'book' : 'class';
     plane.setKind(kind || 'dart'); book.hidePanel(); book.close();
     elEnd.className = ''; elDone.className = ''; elRecord.className = ''; elConfirm.className = '';
+    S.classOver = false; elDone.textContent = '下课';
     S.setup = freshSetup(); S.bent = false; S.fixedOnce = false; S.throws = 0; S.flagMoved = false; S.predictX = C.FLAG_X; S.records = []; S.nextStage = null;
     plane.resetMarks(); plane.setBend(false, 'R'); plane.setOldTally(SV.lastTally || 0); applySetup(true);
     world.clearMarks(); world.setFlag(C.FLAG_X, false); world.showGoal(false); trail.visible = false;
@@ -5559,7 +5577,8 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     demoFold: function () { if (S.phase === 'fold' && !S.foldAnim) S.foldAnim = { from: plane.fold.p, to: 1, t: 0, dur: 1.4, demo: true }; },
     flagDemo: function (off) { world.setFlag(PH.clamp((S.flagDemoBase === undefined ? (S.flagDemoBase = world.flag.position.x) : S.flagDemoBase) + off, SPOT.x + 0.8, SPOT.x + 7)); if (off === 0) S.flagDemoBase = undefined; },
     showDone: function () { elDone.className = 'on'; },
-    planeName: function (k) { try { return book.info(k).name; } catch (e) { return null; } }   // 小剧场第四段「你的<机型名>」
+    planeName: function (k) { try { return book.info(k).name; } catch (e) { return null; } },   // 小剧场第四段「你的<机型名>」
+    endClass: function () { finish(); }
   });
 
   /* ---------------- 起步 ---------------- */
