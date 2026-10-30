@@ -248,6 +248,14 @@
   #book .bc.mine .bi { display: block; min-height: 0; }   /* 手机上别的卡藏说明，自己设计的要留着部件组合 */
   #book .bn { overflow-wrap: anywhere; }
   #book .gh { grid-column: 1 / -1; margin-top: 6px; }   /* 「真实机型」通栏小标题 */
+  /* 图鉴扩充后（隐藏机型、真实机型）一屏放不下：第一行仍是课上四种 +「我的设计」（主线要解锁的入口），隐藏机型、真实机型、自己设计的往下排 */
+  #book .paper.wide .grid > * { order: 3; }
+  #book .paper.wide .grid > .bc:nth-child(-n+4) { order: 0; }
+  #book .paper.wide .grid > .bc.my:not(.mine) { order: 1; }
+  #book .paper.wide .grid > .gh { order: 2; }
+  #book .paper.wide .grid > .bc.hid { order: 4; }   /* 隐藏机型不是真实机型：排在真实机型后面 */
+  @media (min-width: 900px) and (min-height: 521px) { #book .paper.wide { width: min(94vw, 960px); } #book .paper.wide .grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }   /* 宽屏也是一行五张：四种 +「我的设计」 */
+  #book .paper.wide .gh::after { content: '往下滑，还有更多 ↓'; margin-left: 10px; font-size: 13px; font-weight: 700; color: var(--muted); }
   #book .bn small.on { display: block; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
   #book .pr { font-size: 13px; line-height: 1.45; text-align: center; color: var(--accent); }
   #book .nw { white-space: nowrap; }
