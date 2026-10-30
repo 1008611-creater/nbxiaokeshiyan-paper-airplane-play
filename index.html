@@ -919,7 +919,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     function rnd(seed) { var s = seed; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
     function canvasTex(w, h, draw, rep) {
       var c = document.createElement('canvas'); c.width = w; c.height = h;
-      draw(c.getContext('2d'), w, h);
+      draw(c.getContext('2d', { willReadFrequently: true }), w, h);
       var t = new THREE.CanvasTexture(c);
       t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
       if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); }
@@ -1138,7 +1138,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     /* ---------------- 程序纹理 ---------------- */
     function canvasTex(w, h, draw, repeat) {
       var c = document.createElement('canvas'); c.width = w; c.height = h;
-      var g = c.getContext('2d'); draw(g, w, h);
+      var g = c.getContext('2d', { willReadFrequently: true }); draw(g, w, h);
       var t = new THREE.CanvasTexture(c);
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = 4;
@@ -1336,18 +1336,15 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       }, [2, 1]);
       TX.mint = canvasTex(1024, 512, function (g, w, h) {
         g.fillStyle = PAL.mint; g.fillRect(0, 0, w, h);
-        LK.underpaint(g, w, h, PAL.mint, 5, 40, 160, 0.05);
-        LK.brushPass(g, w, h, PAL.mint, 7, 700, 220, 26, 0, 0.22, 0.08);            // 横向刷的油漆，鬃毛痕清楚
-        var r = rnd(9), i;
-        for (i = 0; i < 18; i++) {                                                    // 上沿掉漆，露出底下的奶油色
-          g.fillStyle = hexA(PAL.cream, 0.85); g.beginPath(); g.ellipse(r() * w, 4 + r() * 10, 4 + r() * 10, 2 + r() * 4, r(), 0, 6.283); g.fill();
-        }
-        for (i = 0; i < 26; i++) {                                                    // 下半截的鞋印和磕碰
-          g.fillStyle = 'rgba(40,55,48,' + (0.08 + r() * 0.12) + ')'; g.beginPath(); g.ellipse(r() * w, h * (0.55 + r() * 0.4), 10 + r() * 30, 4 + r() * 8, r() * 3, 0, 6.283); g.fill();
-        }
-        g.fillStyle = 'rgba(255,255,255,0.14)'; g.fillRect(0, 0, w, 8);
-        g.fillStyle = 'rgba(30,50,40,0.28)'; g.fillRect(0, h - 16, w, 16);
+        LK.underpaint(g, w, h, PAL.mint, 5, 36, 180, 0.04);
+        LK.brushPass(g, w, h, PAL.mint, 7, 520, 240, 26, 0, 0.16, 0.04);            // 横向平刷的油漆，干净无草状斑点
+        // 墙裙顶沿与底沿收成干净平线，不留草状笔触
+        g.fillStyle = PAL.mint; g.fillRect(0, 0, w, 16);
+        g.fillStyle = hexA(PAL.mintDark, 0.30); g.fillRect(0, 0, w, 6);
+        g.fillStyle = 'rgba(30,50,40,0.26)'; g.fillRect(0, h - 14, w, 14);
       }, [3, 1]);
+      TX.mint.wrapT = THREE.ClampToEdgeWrapping;
+      TX.wall.wrapT = THREE.ClampToEdgeWrapping;
       TX.frameWood = LK.paintedWood('#8c5a33', 71);
       TX.ceil = canvasTex(512, 512, function (g, w, h) {
         g.fillStyle = '#dccbb2'; g.fillRect(0, 0, w, h);
@@ -1465,52 +1462,104 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     W.sample.desks = section('课桌椅讲台', function () {
       if (!MD || !MD.has('desk')) throw new Error('没有课桌模型数据');
       var ghostM = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
-      // 主角桌：同一件模型；在纸飞机落点往下量一刀，整套课桌 y 向统一缩放到桌面顶 = CFG.DESK.top
+      // 程序圆角木桌面板：浅木色 #dca868 + 沿桌面长边细木纹 + 四边 10–15% 压暗封边，粗糙度 0.68
+      var deskTopTex = LK.paintedWood(PAL.deskTop, 41);
+      (function () {
+        var c = deskTopTex.image, g = c.getContext('2d'), w = c.width, h = c.height, r = LK.rnd(47), i, x, y;
+        // 盖掉 paintedWood 两侧的掉漆浅斑，保证桌面封边干净平整
+        g.fillStyle = PAL.deskTop;
+        g.fillRect(0, 0, 26, h); g.fillRect(w - 26, 0, 26, h);
+        LK.underpaint(g, w, h, PAL.deskTop, 43, 12, 110, 0.04);
+        g.lineCap = 'round';
+        for (i = 0; i < 64; i++) {
+          x = 12 + r() * (w - 24);
+          var dark = r() < 0.65;
+          g.strokeStyle = LK.hexA(LK.shade(PAL.deskTop, dark ? -0.07 - r() * 0.04 : 0.04 + r() * 0.03), 0.16 + r() * 0.14);
+          g.lineWidth = 0.8 + r() * 1.4;
+          var amp = 1.2 + r() * 2.5, ph = r() * 6.28;
+          g.beginPath();
+          for (y = 0; y <= h; y += 16) {
+            var xx = x + Math.sin(y / 90 + ph) * amp;
+            if (y === 0) g.moveTo(xx, y); else g.lineTo(xx, y);
+          }
+          g.stroke();
+        }
+        var edgeDark = LK.shade(PAL.deskTop, -0.13), edgeInner = LK.shade(PAL.deskTop, -0.08);
+        g.save();
+        g.strokeStyle = LK.hexA(edgeDark, 0.72); g.lineWidth = 22;
+        g.beginPath(); LK.rrect(g, 7, 7, w - 14, h - 14, 28); g.stroke();
+        g.strokeStyle = LK.hexA(edgeInner, 0.38); g.lineWidth = 10;
+        g.beginPath(); LK.rrect(g, 20, 20, w - 40, h - 40, 22); g.stroke();
+        g.restore();
+        deskTopTex.needsUpdate = true;
+      })();
+      var deskTopM = LK.painted({ map: deskTopTex, roughness: 0.68, metalness: 0 });
+      // 基于 LK.rbox 裁掉不可见底面与下倒角，保留顶面与四边圆角封边（每张桌面板 42 个三角面 <= 60）
+      var deskTopGeo = (function () {
+        var raw = LK.rbox(0.45, 0.024, 0.625, 0.008);
+        var P = raw.attributes.position, N = raw.attributes.normal, U = raw.attributes.uv;
+        var pos = [], nor = [], uv = [];
+        for (var i = 0; i < P.count; i += 3) {
+          if (P.getY(i) <= 0.001 || P.getY(i + 1) <= 0.001 || P.getY(i + 2) <= 0.001) continue;
+          for (var k = 0; k < 3; k++) {
+            var idx = i + k, py = P.getY(idx);
+            pos.push(P.getX(idx), py < 0.006 ? -0.012 : py, P.getZ(idx));
+            nor.push(N.getX(idx), N.getY(idx), N.getZ(idx));
+            uv.push(U.getX(idx), U.getY(idx));
+          }
+        }
+        var g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+        g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+        g.computeBoundingSphere(); g.computeBoundingBox();
+        return g;
+      })();
+      function addDeskBoard(x, z, mat) {
+        var b = new THREE.Mesh(deskTopGeo, mat || deskTopM);
+        b.position.set(x + 0.032, C.DESK.top - 0.012, z - 0.008);
+        b.castShadow = false; b.receiveShadow = true;
+        tgt.add(b);
+        return b;
+      }
+      // 主角桌：同一件模型；整套课桌 y 向缩放到程序桌面板顶面之下，顶面由程序桌面板精确盖在 CFG.DESK.top
       var hero = model('desk', C.DESK.x - 0.15, 0, C.DESK.z, 0);
       if (!hero) throw new Error('课桌模型解码失败');
-      // Tripo 桌面是低模斜面（纸底下高低差约 1.4 cm，纸会一半陷进去）：只给主角桌复制一份几何，
-      // 把桌面朝上那层顶点压平到桌面最高点（同一位置的侧面顶点一起抬，不开缝），纸就平平地躺在桌上
-      hero.geometry = (function (g) {
-        var P = g.attributes.position, N = g.attributes.normal, i, key, top = -1, up = {};
-        function k(j) { return Math.round(P.getX(j) * 1e4) + ',' + Math.round(P.getY(j) * 1e4) + ',' + Math.round(P.getZ(j) * 1e4); }
-        for (i = 0; i < P.count; i++) if (P.getX(i) > -0.1 && P.getY(i) > 0.6 && N.getY(i) > 0.5) { up[k(i)] = true; top = Math.max(top, P.getY(i)); }
-        if (top < 0) return g;
-        for (i = 0; i < P.count; i++) {
-          key = k(i); if (!up[key]) continue;
-          if (N.getY(i) > 0.5) N.setXYZ(i, 0, 1, 0);
-          P.setY(i, top);
-        }
-        P.needsUpdate = N.needsUpdate = true; g.computeBoundingSphere(); g.computeBoundingBox(); return g;
-      })(hero.geometry.clone());
       var ray = new THREE.Raycaster(new THREE.Vector3(C.DESK.x, 2, C.DESK.z), new THREE.Vector3(0, -1, 0));
       hero.updateMatrixWorld(true);
       var hit = ray.intersectObject(hero)[0];
-      var SY = hit ? C.DESK.top / hit.point.y : 1;
+      var SY = hit ? (C.DESK.top - 0.018) / hit.point.y : 1;
       hero.scale.y = SY; hero.updateMatrixWorld(true);
-      hit = ray.intersectObject(hero)[0];
-      W.heroDeskTop = hit ? hit.point.y : C.DESK.top;
+      W.heroDeskTop = C.DESK.top;
+      var heroBoardM = deskTopM;
       // 走查表 D1：默认和其他桌完全一样；改判时改文件顶 HERO_DESK，主角桌换一份乘色、去饱和的材质
       if (HERO_DESK.color.toLowerCase() !== '#ffffff' || HERO_DESK.desat > 0) {
         var hm = hero.material.clone(); hm.color.set(HERO_DESK.color);
-        if (HERO_DESK.desat > 0) hm.onBeforeCompile = function (sh) {
-          sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>',
-            'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(dot(gl_FragColor.rgb, vec3(0.3,0.59,0.11))), ' + HERO_DESK.desat.toFixed(3) + ');\n#include <dithering_fragment>');
-        };
+        heroBoardM = deskTopM.clone(); heroBoardM.color.set(HERO_DESK.color);
+        if (HERO_DESK.desat > 0) {
+          var desatFn = function (sh) {
+            sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>',
+              'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(dot(gl_FragColor.rgb, vec3(0.3,0.59,0.11))), ' + HERO_DESK.desat.toFixed(3) + ');\n#include <dithering_fragment>');
+          };
+          hm.onBeforeCompile = desatFn; heroBoardM.onBeforeCompile = desatFn;
+        }
         hero.material = hm;
       }
-      // 主角桌的阴影替身
-      box(C.DESK.x - 0.35, C.DESK.x + 0.35, 0.72, C.DESK.top, C.DESK.z - 0.28, C.DESK.z + 0.28, ghostM, true, false);
-      box(C.DESK.x - 0.33, C.DESK.x - 0.3, 0, 0.72, C.DESK.z - 0.25, C.DESK.z + 0.25, ghostM, true, false);
-      box(C.DESK.x + 0.3, C.DESK.x + 0.33, 0, 0.72, C.DESK.z - 0.25, C.DESK.z + 0.25, ghostM, true, false);
-      hero.castShadow = false;
-      // 其余 16 张：两列，中间留过道；同一缩放，成套
+      addDeskBoard(C.DESK.x, C.DESK.z, heroBoardM);
+      // 主角桌的阴影替身（顶面下移 1 cm 到 C.DESK.top - 0.01，与桌面板错开不再共面）
+      box(C.DESK.x - 0.35, C.DESK.x + 0.35, 0.71, C.DESK.top - 0.01, C.DESK.z - 0.28, C.DESK.z + 0.28, ghostM, true, false);
+      box(C.DESK.x - 0.33, C.DESK.x - 0.3, 0, 0.71, C.DESK.z - 0.25, C.DESK.z + 0.25, ghostM, true, false);
+      box(C.DESK.x + 0.3, C.DESK.x + 0.33, 0, 0.71, C.DESK.z - 0.25, C.DESK.z + 0.25, ghostM, true, false);
+      hero.castShadow = false; hero.userData.dynamic = true;
+      // 其余 16 张：两列，中间留过道；同一缩放，成套盖上程序桌面板，阴影替身同步下移 1 cm
       [-7.0, -5.6, -4.2, -2.8].forEach(function (x) {
         [-2.4, -1.5, 1.5, 2.4].forEach(function (z) {
           var dm = model('desk', x - 0.15, 0, z, 0); if (!dm) throw new Error('课桌模型解码失败');
-          dm.scale.y = SY; dm.castShadow = false;
-          box(x - 0.3, x + 0.3, 0.72, 0.76, z - 0.22, z + 0.22, ghostM, true, false);
-          box(x - 0.28, x - 0.25, 0, 0.72, z - 0.2, z - 0.17, ghostM, true, false);
-          box(x + 0.25, x + 0.28, 0, 0.72, z + 0.17, z + 0.2, ghostM, true, false);
+          dm.scale.y = SY; dm.castShadow = false; dm.userData.dynamic = true;
+          addDeskBoard(x, z, deskTopM);
+          box(x - 0.3, x + 0.3, 0.71, C.DESK.top - 0.01, z - 0.22, z + 0.22, ghostM, true, false);
+          box(x - 0.28, x - 0.25, 0, 0.71, z - 0.2, z - 0.17, ghostM, true, false);
+          box(x + 0.25, x + 0.28, 0, 0.71, z + 0.17, z + 0.2, ghostM, true, false);
           box(x - 0.6, x - 0.35, 0.42, 0.45, z - 0.17, z + 0.17, ghostM, true, false);
           box(x - 0.62, x - 0.6, 0.45, 0.85, z - 0.17, z + 0.17, ghostM, true, false);
           W.desks.push(dm);
@@ -1537,48 +1586,44 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       box(-1.4, -0.35, 0, 0.18, -3.4, -0.9, M.concrete);                  // 讲台
       W.heroDeskTop = C.DESK.top;
     });
-    /* ================= 纸下的软影：和纸俯视轮廓同形的一片暖灰软影（ACES 下紫褐发紫，改暖灰），纸在桌上才有，离开桌面淡出 ================= */
+    /* ================= 纸下的软影：纸网格本身压扁到桌面上，以纸的中心往外放大画两圈（放 2.5% 的深一圈 + 放 6% 的淡一圈），形状永远跟纸一样 =================
+     * 以前是一张模糊的长方形 / 飞机形贴图：折掉一角后影子还是整张纸，缺角那块发黑。现在直接用纸的网格，折到哪步影子就是哪步的样子。
+     * 影子在桌面之上、纸面最低点之下（纸在 top + 0.001），纸本身盖住中间，只在纸边外透出几毫米接触软影。
+     * 折过的纸有好几层，压扁后叠在一起：写深度、深度测试用「严格小于」，同一高度只画第一层，叠层不会越叠越黑；淡的那圈后画，只落在深的那圈之外。
+     * 暖灰（ACES 下紫褐发紫，改暖灰）；纸在桌上才有，离开桌面 12 cm 内淡出。 */
     var PS = null;
     W.sample.paperShadow = section('纸下软影', function () {
-      function soft(draw) {
-        return LK.canvasTex(256, 128, function (g, w, h) {
-          g.fillStyle = '#fff';
-          if ('filter' in g) { g.filter = 'blur(7px)'; draw(g, w, h); }
-          else { g.shadowColor = '#fff'; g.shadowBlur = 14; g.shadowOffsetX = 1000; g.translate(-1000, 0); draw(g, w, h); }   // 不认 filter 的浏览器用投影模糊
-        });
-      }
-      TX.planeShadow = soft(function (g, w, h) {   // 样板间的飞机俯视轮廓：机头朝右
-        g.beginPath(); g.moveTo(w * 0.95, h * 0.5); g.lineTo(w * 0.08, h * 0.1); g.lineTo(w * 0.2, h * 0.5); g.lineTo(w * 0.08, h * 0.9); g.closePath(); g.fill();
+      PS = [[1.025, 0.26], [1.06, 0.12]].map(function (r, k) {
+        var m = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: '#4a3d33', transparent: true, opacity: r[1], side: THREE.DoubleSide, depthFunc: THREE.LessDepth, polygonOffset: true, polygonOffsetFactor: -0.2, polygonOffsetUnits: -1 }));
+        m.matrixAutoUpdate = false; m.frustumCulled = false; m.renderOrder = 1 + k; m.visible = false; m.userData.dynamic = true; m.userData.grow = r[0]; m.userData.op = r[1];
+        m.castShadow = m.receiveShadow = false; tgt.add(m); return m;
       });
-      TX.sheetShadow = soft(function (g, w, h) { g.fillRect(w * 0.06, h * 0.1, w * 0.88, h * 0.8); });   // 还没折好：一张纸的方形软影
-      var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: TX.planeShadow, color: '#4a3d33', transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 }));
-      m.rotation.order = 'XYZ'; m.rotation.x = -Math.PI / 2; m.renderOrder = 1; m.visible = false; m.userData.dynamic = true; m.castShadow = m.receiveShadow = false;
-      tgt.add(m); PS = m; W.paperShadow = m;
+      W.paperShadow = PS[0];
     });
-    var psInv = new THREE.Matrix4(), psYaw = new THREE.Matrix4(), psV = new THREE.Vector3();
+    var psFlat = new THREE.Matrix4(), psStep = new THREE.Matrix4(), psV = new THREE.Vector3(), psC = new THREE.Vector3();
     W.look = function (camera, plane) {
       if (!PS || !plane || !plane.mesh || !plane.rig) return;
       var rig = plane.rig, mesh = plane.mesh, top = W.heroDeskTop || C.DESK.top;
-      if (Math.abs(rig.position.x - C.DESK.x) > 0.6 || Math.abs(rig.position.z - C.DESK.z) > 0.6 || rig.position.y - top > 0.4) { PS.visible = false; return; }
+      function hide() { PS[0].visible = PS[1].visible = false; }
+      if (!rig.visible || !mesh.visible || Math.abs(rig.position.x - C.DESK.x) > 0.6 || Math.abs(rig.position.z - C.DESK.z) > 0.6 || rig.position.y - top > 0.4) { hide(); return; }
       rig.updateMatrixWorld(true);
-      var yaw = rig.rotation.y;
-      psYaw.makeRotationY(yaw).setPosition(rig.position.x, 0, rig.position.z); psInv.copy(psYaw).invert();
-      var P = mesh.geometry.attributes.position, n = Math.min(P.count, mesh.geometry.drawRange.count);
-      var x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, y0 = 1e9;
-      for (var i = 0; i < n; i++) {
-        psV.fromBufferAttribute(P, i).applyMatrix4(mesh.matrixWorld);
-        if (psV.y < y0) y0 = psV.y;
-        psV.y = 0; psV.applyMatrix4(psInv);
-        if (psV.x < x0) x0 = psV.x; if (psV.x > x1) x1 = psV.x; if (psV.z < z0) z0 = psV.z; if (psV.z > z1) z1 = psV.z;
-      }
+      var P = mesh.geometry.attributes.position, n = Math.min(P.count, mesh.geometry.drawRange.count), y0 = 1e9;
+      psC.set(0, 0, 0);
+      for (var i = 0; i < n; i++) { psV.fromBufferAttribute(P, i).applyMatrix4(mesh.matrixWorld); if (psV.y < y0) y0 = psV.y; psC.x += psV.x; psC.z += psV.z; }
       var fade = n ? Math.max(0, Math.min(1, 1 - (y0 - top) / 0.12)) : 0;
-      PS.visible = fade > 0.01; if (!PS.visible) return;
-      var map = plane.foldDone && plane.foldDone() ? TX.planeShadow : TX.sheetShadow;
-      if (PS.material.map !== map) { PS.material.map = map; PS.material.needsUpdate = true; }
-      PS.material.opacity = 0.5 * fade;
-      psV.set((x0 + x1) / 2, 0, (z0 + z1) / 2).applyMatrix4(psYaw);
-      PS.position.set(psV.x, top + 0.004, psV.z); PS.rotation.z = yaw;
-      PS.scale.set((x1 - x0) * 1.1 + 0.03, (z1 - z0) * 1.2 + 0.03, 1);
+      if (fade <= 0.01) { hide(); return; }
+      psC.multiplyScalar(1 / n);
+      var py = Math.max(top + 0.0002, Math.min(top + 0.00035, y0 - 0.0005));
+      // 世界坐标里：y 压成 0，以纸的中心为圆心在水平面里放大 grow 倍，抬到 py；最后换回影子父节点的局部坐标
+      PS.forEach(function (m) {
+        var g = m.userData.grow;
+        m.parent.updateMatrixWorld(true);
+        psFlat.makeTranslation(-psC.x, 0, -psC.z).premultiply(psStep.makeScale(g, 0, g)).premultiply(psStep.makeTranslation(psC.x, py, psC.z));
+        m.matrix.copy(m.parent.matrixWorld).invert().multiply(psFlat).multiply(mesh.matrixWorld);
+        m.matrixWorldNeedsUpdate = true;
+        if (m.geometry !== mesh.geometry) m.geometry = mesh.geometry;
+        m.material.opacity = m.userData.op * fade; m.visible = true;
+      });
     };
 
     /* ================= 日光灯、广播大喇叭、吊扇、天花水渍（样板间第 428–442、515–539 行） ================= */
@@ -1746,13 +1791,13 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       box(-9.3, 6.2, 3.3, 3.8, -3.8, 3.8, M.concrete);
       shell(6.15, 9.5, GY, 3.3, -3.8, 3.8);                                 // 走廊尽头是楼梯间
 
-      // 院子
+      // 院子（在四楼教室地面 y=0 以下 12 米，太阳向下照，院子物体不向四楼室内投阴影，省去约 8700 个无效阴影遍三角面）
       var ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), M.ground);
       ground.rotation.x = -Math.PI / 2; ground.position.y = GY - 0.01; ground.receiveShadow = true; group.add(ground);
-      box(-10, 40, GY, GY + 0.35, 12.3, 13.6, M.concrete);                 // 花坛沿
+      box(-10, 40, GY, GY + 0.35, 12.3, 13.6, M.concrete, false, true);                 // 花坛沿
       for (var i = 0; i < 26; i++) {
         var bush = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), i % 2 ? M.leaf : M.leaf2);
-        bush.position.set(-9 + i * 1.9, GY + 0.55, 12.95); bush.scale.set(1.2, 0.75, 0.9); bush.castShadow = true; bush.receiveShadow = true; group.add(bush);
+        bush.position.set(-9 + i * 1.9, GY + 0.55, 12.95); bush.scale.set(1.2, 0.75, 0.9); bush.castShadow = false; bush.receiveShadow = true; group.add(bush);
       }
       function tree(x, z, s) {
         var t = new THREE.Group();
@@ -1763,22 +1808,22 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
           cr.position.set(Math.sin(k * 2.1) * 0.8 * s, (3.3 + (k % 3) * 0.5) * s, Math.cos(k * 2.1) * 0.8 * s);
           t.add(cr);
         }
-        t.traverse(function (o) { o.castShadow = true; o.receiveShadow = true; });
+        t.traverse(function (o) { o.castShadow = false; o.receiveShadow = true; });
         t.position.set(x, GY, z); group.add(t);
         t.updateMatrixWorld(true); t.children.slice().forEach(function (o) { group.attach(o); }); group.remove(t);   // 拆到世界坐标，交给 mergeStatic 按材质合并（少画几十次）
       }
       tree(6, 17, 1.2); tree(24, 16, 1.4); tree(2, 24, 1.1); tree(28, 25, 1.3); tree(-6, 18, 1.3);
       // 校门：两根门柱 + 铁栅栏
-      box(10.5, 11.3, GY, GY + 2.6, 26.6, 27.4, M.concrete); box(17.7, 18.5, GY, GY + 2.6, 26.6, 27.4, M.concrete);
+      box(10.5, 11.3, GY, GY + 2.6, 26.6, 27.4, M.concrete, false, true); box(17.7, 18.5, GY, GY + 2.6, 26.6, 27.4, M.concrete, false, true);
       for (var fx = -30; fx < 60; fx += 0.35) {
         if (fx > 11.3 && fx < 17.7) continue;
-        box(fx, fx + 0.04, GY, GY + 1.8, 26.98, 27.02, M.metal, true, false);
+        box(fx, fx + 0.04, GY, GY + 1.8, 26.98, 27.02, M.metal, false, false);
       }
-      box(-30, 10.5, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal); box(18.5, 60, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal);
+      box(-30, 10.5, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal, false, false); box(18.5, 60, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal, false, false);
       // 路灯（傍晚会亮）
       W.lamps = [];
       [[9.5, 29], [20, 29], [-4, 29], [32, 29]].forEach(function (p) {
-        box(p[0] - 0.06, p[0] + 0.06, GY, GY + 4.2, p[1] - 0.06, p[1] + 0.06, M.metal);
+        box(p[0] - 0.06, p[0] + 0.06, GY, GY + 4.2, p[1] - 0.06, p[1] + 0.06, M.metal, false, false);
         var head = box(p[0] - 0.25, p[0] + 0.25, GY + 4.1, GY + 4.25, p[1] - 0.15, p[1] + 0.15, M.lampGlow, false, false);
         W.lamps.push(head);
       });
@@ -1978,6 +2023,13 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     var cA = new THREE.Color(), cB = new THREE.Color();
     function mixHex(a, b, t, out) { cA.setHex(a); cB.setHex(b); return out.copy(cA).lerp(cB, t); }
     W.dusk = 0;
+    // 光空间正交基（与 DirectionalLightShadow 相机朝向完全一致，用于把阴影中心对齐到纹素网格，防镜头移动时影子爬动）
+    var sunLz = new THREE.Vector3(), sunLx = new THREE.Vector3(), sunLy = new THREE.Vector3(), worldUp = new THREE.Vector3(0, 1, 0);
+    function updateSunBasis() {
+      sunLz.copy(W.sunNow).normalize();
+      sunLx.crossVectors(worldUp, sunLz).normalize();
+      sunLy.crossVectors(sunLz, sunLx).normalize();
+    }
     W.setDusk = function (t) {
       W.dusk = t;
       mixHex(GOLD.sun, BLUE.sun, t, sun.color);
@@ -2002,17 +2054,45 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       var d = SUN_DIR.clone(); d.y = 0.25 - 0.17 * t; d.normalize();
       if (skyU) skyU.sunDir.value.copy(d);
       W.sunNow = d;
+      updateSunBasis();
     };
     W.sunNow = SUN_DIR.clone();
     W.setDusk(0);
 
+    /* ---------------- 分机位阴影相机 + 光空间纹素网格对齐 ---------------- */
+    // 折纸 / 拿起特写 ±2.0 m；先猜 / 出手位 ±6.0 m；开场 / 飞行 / 结算 ±10.0 m
+    var SHADOW_HALF = { fold: 2.0, lift: 2.0, predict: 6.0, toAim: 6.0, aim: 6.0, fly: 10.0, settle: 10.0, rewind: 8.0, intro: 10.0, title: 10.0, end: 10.0 };
+    var shadowR = 2.0;
+    function syncShadowCam() {
+      var mapSz = sun.shadow.mapSize.x || 1024;
+      var sc = sun.shadow.camera;
+      if (sc.right !== shadowR) {
+        sc.left = -shadowR; sc.right = shadowR; sc.top = shadowR; sc.bottom = -shadowR;
+        sc.updateProjectionMatrix();
+      }
+      var texel = (2 * shadowR) / mapSz;
+      // 14.4° 掠射角下按当前纹素尺寸自适应 bias / normalBias，三档都不出痤疮条纹
+      var q = W.quality || 'high';
+      sun.shadow.bias = q === 'low' ? -Math.max(0.00065, texel * 0.11) : q === 'mid' ? -Math.max(0.00045, texel * 0.08) : -Math.max(0.00032, texel * 0.06);
+      sun.shadow.normalBias = q === 'low' ? Math.max(0.022, texel * 2.6) : q === 'mid' ? Math.max(0.016, texel * 2.0) : Math.max(0.012, texel * 1.6);
+      return texel;
+    }
+
     /* ---------------- 每帧 ---------------- */
     var tmp = new THREE.Vector3();
-    W.update = function (dt, focus, time) {
-      // 阴影相机跟着镜头关注的地方
-      tmp.copy(focus);
+    W.update = function (dt, focus, time, phase) {
+      var wantR = SHADOW_HALF[phase] || 6.0;
+      var maxStep = Math.max(0, dt) * 25;
+      if (Math.abs(wantR - shadowR) <= maxStep) shadowR = wantR;
+      else shadowR += (wantR > shadowR ? maxStep : -maxStep);
+      var texel = syncShadowCam();
+      // 在光空间 (sunLx, sunLy, sunLz) 内把阴影相机中心取整到纹素网格，消除镜头/焦点移动时的亚纹素游走
+      var u = Math.round(focus.dot(sunLx) / texel) * texel;
+      var v = Math.round(focus.dot(sunLy) / texel) * texel;
+      var w = -4.5 * sunLz.x + 0.8 * sunLz.y;
+      tmp.set(0, 0, 0).addScaledVector(sunLx, u).addScaledVector(sunLy, v).addScaledVector(sunLz, w);
       sun.target.position.copy(tmp);
-      sun.position.copy(tmp).addScaledVector(W.sunNow, 40);
+      sun.position.copy(tmp).addScaledVector(sunLz, 40);
       beamMat.uniforms.time.value = time;
       goalMat.opacity += ((goalOn ? 0.75 + 0.2 * Math.sin(time * 3) : 0) - goalMat.opacity) * Math.min(1, dt * 4);
       cloth.rotation.y = Math.sin(time * 2.2) * 0.12;
@@ -2084,6 +2164,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
         if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
       }
       W.quality = q;
+      syncShadowCam();
       fillVis();
     };
     W.sun = sun;
@@ -2110,13 +2191,13 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
 
     /* ---------- 纸面贴图：作业本的淡蓝横线，u 沿机身（尾→头），v 沿翼展（左→右） ---------- */
     var cv = document.createElement('canvas'); cv.width = 512; cv.height = 512;
-    var g = cv.getContext('2d');
+    var g = cv.getContext('2d', { willReadFrequently: true });
     var fiber = document.createElement('canvas'); fiber.width = 512; fiber.height = 512;
     var fiberBack = document.createElement('canvas'); fiberBack.width = 512; fiberBack.height = 512;
     var cvB = document.createElement('canvas'); cvB.width = 512; cvB.height = 512;
-    var gB = cvB.getContext('2d');
+    var gB = cvB.getContext('2d', { willReadFrequently: true });
     (function () {
-      var f = fiber.getContext('2d');
+      var f = fiber.getContext('2d', { willReadFrequently: true });
       f.fillStyle = '#f6f1e5'; f.fillRect(0, 0, 512, 512);
       var s = 9;
       function r() { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }
@@ -2704,11 +2785,11 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       seg(th, [0, 0, 0], [0.024, 0.008, -0.014], 0.0085, 0.0075, skin);
       seg(th, [0.024, 0.008, -0.014], [0.046, 0.017, -0.03], 0.0075, 0.0068, skin);
       knob(th, [0.046, 0.017, -0.03], 0.0068, skin);
-      // 另外三根手指蜷着
+      // 另外三根手指蜷着（桌面伸手时关节稍抬，手指尖不穿进桌面）
       for (var i = 0; i < 3; i++) {
-        var z = 0.002 + i * 0.013;
-        seg(h, [-0.03, -0.03, z], [-0.016, -0.042, z + 0.002], 0.0068, 0.0062, skin);
-        knob(h, [-0.016, -0.042, z + 0.002], 0.0062, skin);
+        var z = 0.002 + i * 0.013, y0 = -0.025 + i * 0.002, y1 = -0.032 + i * 0.004;
+        seg(h, [-0.03, y0, z], [-0.016, y1, z + 0.002], 0.0068, 0.0062, skin);
+        knob(h, [-0.016, y1, z + 0.002], 0.0062, skin);
       }
       // 手腕
       seg(h, [-0.07, -0.03, 0.014], [-0.11, -0.04, 0.02], 0.016, 0.017, skin, 7);
@@ -2728,10 +2809,10 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     /* ---------- 右手：捏着机身下面那道折缝 ---------- */
     var right = makeHand(true);
     var rightRoot = new THREE.Group(); rightRoot.add(right);
-    // 手腕往右后下方伸出去，从屏幕右下角进画
-    var R_WRIST_DIR = new THREE.Vector3(-0.78, -0.42, 0.46).normalize();
+    // 手腕往右后下方伸出去，从屏幕右下角进画（右手、白袖口、蓝校服袖完整入画）
+    var R_WRIST_DIR = new THREE.Vector3(-0.80, -0.24, 0.52).normalize();
     right.quaternion.setFromUnitVectors(new THREE.Vector3(-1, 0, 0), R_WRIST_DIR);
-    right.position.set(-0.02, -0.022, 0);
+    right.position.set(-0.015, -0.021, 0.004);
     plane.body.add(rightRoot);
 
     /* ---------- 左手：捏机头 / 掰翅膀时伸过来 ---------- */
@@ -2742,6 +2823,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
 
     var st = { mode: 'hold', t: 0, enter: 1, swing: null, leftVis: 0, breath: 0, breathT: 0, breathing: false, rightOn: true };
     A.st = st;
+    A.right = right; A.rightRoot = rightRoot;
     var tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), q = new THREE.Quaternion();
 
     // 扔出去：右手留在原地，前挥一下再收走
@@ -2773,15 +2855,25 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       st.t += dt;
       var out = null;
       if (st.mode === 'hold') {
-        st.enter = Math.min(1, st.enter + dt / 0.35);
-        var e = 1 - Math.pow(1 - st.enter, 3);
-        var p = s.power || 0;
-        // 进画：从右后下方滑进来；蓄力：手腕往后扳
-        tmp.copy(R_WRIST_DIR).multiplyScalar((1 - e) * 0.35);
-        rightRoot.position.copy(tmp);
-        rightRoot.rotation.set(0, 0, -p * 0.35);
-        pinchPose(right, s.dragKind === 'pull' ? 0 : 0.05 + 0.03 * Math.sin(st.t * 2));
-        rightRoot.visible = st.rightOn;
+        var pk = s.pickup;
+        if (pk) {
+          st.enter = pk.enter;
+          var d = pk.desk || 0, slide = 1 - pk.enter;
+          rightRoot.position.set(0.012 * d - 0.14 * slide, 0.015 * d + 0.010 * slide, -0.006 * d + 0.16 * slide);
+          rightRoot.rotation.set(-0.22 * d, 0.12 * d, -0.52 * d);
+          pinchPose(right, pk.open);
+          rightRoot.visible = st.rightOn;
+        } else {
+          st.enter = Math.min(1, st.enter + dt / 0.35);
+          var e = 1 - Math.pow(1 - st.enter, 3);
+          var p = s.power || 0;
+          // 进画：从右后下方滑进来；蓄力：手腕往后扳
+          tmp.copy(R_WRIST_DIR).multiplyScalar((1 - e) * 0.35);
+          rightRoot.position.copy(tmp);
+          rightRoot.rotation.set(0, 0, -p * 0.35);
+          pinchPose(right, s.dragKind === 'pull' ? 0 : 0.05 + 0.03 * Math.sin(st.t * 2));
+          rightRoot.visible = st.rightOn;
+        }
         // 哈气
         if (st.breathing) {
           st.breathT += dt;
@@ -4790,7 +4882,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.08;
+  renderer.toneMappingExposure = 1.05;
 
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(CFG.CAM.FOV, root.innerWidth / root.innerHeight, 0.02, 600);
@@ -4834,9 +4926,9 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   function rightOf(yaw, out) { return (out || new THREE.Vector3()).set(-Math.sin(yaw), 0, Math.cos(yaw)); }
   var _up = new THREE.Vector3();
   function aimPose(spot, outPos, outLook) {
-    var f = fwdOf(spot.yaw), asp = camera.aspect, back = asp < 1 ? 0.62 + (1 - asp) * 0.5 : 0.62;
-    outPos.set(spot.x, spot.y, spot.z).addScaledVector(f, -back).add(_up.set(0, 0.27, 0));
-    outLook.set(spot.x, spot.y, spot.z).addScaledVector(f, 0.6).add(_up.set(0, -0.02, 0));
+    var f = fwdOf(spot.yaw), asp = camera.aspect, back = asp < 1 ? 0.62 + (1 - asp) * 0.5 : 0.64;
+    outPos.set(spot.x, spot.y, spot.z).addScaledVector(f, -back).add(_up.set(0, 0.25, 0));
+    outLook.set(spot.x, spot.y, spot.z).addScaledVector(f, 0.6).add(_up.set(0, -0.05, 0));
     return asp < 1 ? 64 : CFG.CAM.FOV;
   }
   function foldPose(outPos, outLook) {
@@ -4847,8 +4939,8 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   }
   function predictPose(outPos, outLook) {
     var asp = camera.aspect;
-    outPos.set(SPOT.x - (asp < 1 ? 1.3 : 0.8), asp < 1 ? 2.3 : 1.95, 0);
-    outLook.set(SPOT.x + 3.0, 0.05, 0);
+    outPos.set(SPOT.x - (asp < 1 ? 1.3 : 0.8), asp < 1 ? 2.3 : 1.9, 0);
+    outLook.set(SPOT.x + 2.8, 0.18, 0);
     return asp < 1 ? 66 : 54;
   }
   var fovTarget = CFG.CAM.FOV;
@@ -4868,10 +4960,12 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
 
   var STAGE_DOTS = { test: [], flat: [], angle: ['nose'], wing: ['nose', 'wingL', 'wingR'], free: ['nose', 'wingL', 'wingR'] };
   function enterAim() {
+    var held = arm.st && arm.st.mode === 'hold' && arm.st.rightOn && arm.st.enter > 0.95;
     S.spot = SPOT; S.aim = 0; S.power = 0;
     S.phase = 'aim'; S.phaseT = 0; S.idle = 0;
     placeAtSpot(SPOT);
     arm.onAim(); arm.setRight(true);
+    if (held) arm.st.enter = 1;
     if (S.nextStage) { var ns = S.nextStage; S.nextStage = null; setStage(ns); }
     if (S.stage === 'test') {
       // 图鉴的标准试飞：机头、翅膀按这一投的规定摆好，孩子只管拉、放
@@ -4941,9 +5035,13 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     showStep();
     G.onFold(i, plane.FOLDS[i + 1].line);
   }
+  /* 两段必须同值 */
+  var PICKUP_BEAT = { enterDur: 0.4, pinchDur: 0.22, liftDur: 1.23, pressY: 0.001, arcY: 0.14, overY: 0.01, camLag: 0.15 };
   function startLift() {
     S.phase = 'lift'; S.phaseT = 0;
-    S.liftFrom = null;   // 先在桌上停一拍（LIFT_HOLD），停完那一刻再记起点
+    S.liftFrom = null; S.pinchSfx = false;   // 先伸手到桌上捏住，再提起展开
+    plane.showDots(false, S.t);
+    arm.onAim(); arm.setRight(true);
     SFX.throw(0.1); SFX.chime();   // 折好了
   }
 
@@ -5169,7 +5267,8 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   elTitle.addEventListener('pointerdown', function (e) { e.stopPropagation(); onDown(e); });
   elAgain.addEventListener('click', function () { SFX.unlock(); restart(); });
   elConfirm.addEventListener('click', function () {
-    if (!S.flagMoved || S.phase !== 'predict') return;
+    if (S.phase !== 'predict') return;
+    S.flagMoved = true;
     SFX.snap(); elConfirm.className = ''; elStep.className = '';
     S.predictX = world.flag.position.x;
     say('你猜：' + fmt(S.predictX - SPOT.x) + ' 米', 2.2);
@@ -5278,7 +5377,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   var last = performance.now();
   var frames = 0, fpsT = 0, lowFps = 0, tuned = false, paused = false, mgRenderT = 0;
   function loop(now) {
-    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    var dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
     if (paused) { requestAnimationFrame(loop); return; }
     tick(dt);
     // MG 小剧场 / 节目单开着时，后面的 3D 场景被挡住：每 0.5 秒才渲染一次，帧预算留给小剧场（游戏逻辑照常 tick）
@@ -5343,6 +5442,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         var fv = foldPose(tmpV, tmpV2);
         k = 1 - Math.exp(-dt * 4);
         camPos.lerp(tmpV, k); camLook.lerp(tmpV2, k); fovTarget = fv;
+        if (camPos.distanceToSquared(tmpV) < 1e-6) { camPos.copy(tmpV); camLook.copy(tmpV2); }
         if (S.foldAnim) {
           var A = S.foldAnim; A.t += dt;
           var ua = Math.min(1, A.t / (A.dur || 1.2)), ea = ua < 0.5 ? 2 * ua * ua : 1 - Math.pow(-2 * ua + 2, 2) / 2;
@@ -5360,21 +5460,42 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         break;
       }
       case 'lift': {
-        var LIFT_HOLD = 0.45;
-        if (S.phaseT < LIFT_HOLD) { placeOnDesk(); arm.update(dt, { power: 0, dragKind: null, camLocal: camLocal(), dotLocal: dotLocalFn }); break; }
+        var PK = PICKUP_BEAT, tEnter = PK.enterDur, tPinch = tEnter + PK.pinchDur;
+        if (S.phaseT < tEnter) {
+          var ue = S.phaseT / tEnter, ee = easeOut(ue);
+          placeOnDesk();
+          arm.update(dt, { power: 0, dragKind: null, camLocal: camLocal(), dotLocal: dotLocalFn, pickup: { enter: ee, open: 0.55 - 0.20 * ee, desk: 1 } });
+          break;
+        }
+        if (S.phaseT < tPinch) {
+          var up = (S.phaseT - tEnter) / PK.pinchDur, ep = easeOut(up);
+          if (!S.pinchSfx) { S.pinchSfx = true; SFX.crinkle(0.25); }
+          placeOnDesk();
+          plane.rig.position.y -= Math.sin(up * Math.PI) * PK.pressY;
+          arm.update(dt, { power: 0, dragKind: null, camLocal: camLocal(), dotLocal: dotLocalFn, pickup: { enter: 1, open: 0.35 * (1 - ep) + 0.03, desk: 1 } });
+          break;
+        }
         if (!S.liftFrom) S.liftFrom = { pos: plane.rig.position.clone(), q: plane.rig.quaternion.clone(), cp: camPos.clone(), cl: camLook.clone() };
-        var lu = Math.min(1, (S.phaseT - LIFT_HOLD) / 1.4), le = ease(lu), m = S.liftFrom;
+        var lu = Math.min(1, (S.phaseT - tPinch) / PK.liftDur), le = ease(lu), m = S.liftFrom;
         tmpV.set(SPOT.x, SPOT.y, SPOT.z);
         plane.rig.position.copy(m.pos).lerp(tmpV, le);
-        plane.rig.position.y += Math.sin(lu * Math.PI) * 0.15;
+        var yPeak = SPOT.y + PK.overY;
+        if (lu < 0.72) {
+          var kUp = ease(lu / 0.72);
+          plane.rig.position.y = m.pos.y + (yPeak - m.pos.y) * kUp + Math.sin(lu / 0.72 * Math.PI) * (PK.arcY * 0.08);
+        } else {
+          var kDn = ease((lu - 0.72) / 0.28);
+          plane.rig.position.y = yPeak + (SPOT.y - yPeak) * kDn;
+        }
         tmpQ.setFromEuler(new THREE.Euler(0, -SPOT.yaw, 0, 'YZX'));
         plane.rig.quaternion.copy(m.q).slerp(tmpQ, le);
-        plane.setOpen(ease(PH.clamp((lu - 0.3) / 0.7, 0, 1)));   // 先拿起来，再展开机翼
+        plane.setOpen(ease(PH.clamp((lu - 0.22) / 0.72, 0, 1)));   // 边提起来边展开机翼
         var pv = predictPose(tmpV, tmpV2);
-        camPos.copy(m.cp).lerp(tmpV, le); camLook.copy(m.cl).lerp(tmpV2, le); fovTarget = pv;
-        arm.update(dt, { power: 0, dragKind: null, camLocal: camLocal(), dotLocal: dotLocalFn });
+        var cu = PH.clamp((S.phaseT - tPinch - PK.camLag) / (PK.liftDur - PK.camLag), 0, 1), ce = ease(cu);
+        camPos.copy(m.cp).lerp(tmpV, ce); camLook.copy(m.cl).lerp(tmpV2, ce); fovTarget = pv;
+        arm.update(dt, { power: 0, dragKind: null, camLocal: camLocal(), dotLocal: dotLocalFn, pickup: { enter: 1, open: 0.03, desk: 1 - le } });
         if (lu >= 1) {
-          placeAtSpot(SPOT); arm.onAim(); arm.setRight(true);
+          placeAtSpot(SPOT); arm.onAim(); arm.setRight(true); arm.st.enter = 1;
           if (S.mode === 'book') { bookGuess(); }
           else {
             S.phase = 'predict'; S.phaseT = 0; S.flagMoved = false;
@@ -5524,12 +5645,16 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     if (shakeAmt > 0) shakeAmt = Math.max(0, shakeAmt - dt * 2.5);
     plane.update(dt, flutter);
     if (S.duskAnim) { var DA = S.duskAnim; DA.t = Math.min(1, DA.t + dt / 2.4); world.setDusk(DA.from + (DA.to - DA.from) * ease(DA.t)); if (DA.t >= 1) S.duskAnim = null; }
-    world.update(dt, focusPoint(), S.t);
+    world.update(dt, focusPoint(), S.t, S.phase);
     camera.fov += (fovTarget - camera.fov) * Math.min(1, dt * 3);
     camera.updateProjectionMatrix();
   }
   var shakeAmt = 0;
-  function focusPoint() { return S.phase === 'title' || S.phase === 'intro' ? tmpV2.set(-4, 0.8, 0) : plane.rig.position; }
+  function focusPoint() {
+    if (S.phase === 'title' || S.phase === 'intro') return tmpV2.set(-4, 0.8, 0);
+    if (S.phase === 'fold' || S.phase === 'lift') return tmpV2.set(-6.5, 0.8, 0);
+    return plane.rig.position;
+  }
 
   function chaseCam(dt, F) {
     var p = plane.rig.position, f = fwdOf(F.psi);
@@ -5594,10 +5719,12 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   if (/^https?:/.test(root.location.protocol)) document.body.classList.add('suite');
   (function () {
     var forced = (/[?&]q=(high|mid|low)/.exec(root.location.search) || [])[1];
+    var gl = renderer.getContext(), dbg = gl && gl.getExtension('WEBGL_debug_renderer_info');
+    var sw = dbg && /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '');
     var mobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && Math.min(root.innerWidth, root.innerHeight) < 900);
-    var weak = (navigator.hardwareConcurrency || 8) <= 4;
-    applyQuality(forced || (mobile ? (weak ? 'low' : 'mid') : 'high'));
-    if (forced) tuned = true;
+    var weak = (navigator.hardwareConcurrency || 8) <= 4 || sw;
+    applyQuality(forced || (sw ? 'low' : mobile ? (weak ? 'low' : 'mid') : 'high'));
+    if (forced || sw) tuned = true;
   })();
   if (SV.seen) Object.assign(G.st.seenCards, SV.seen);
   plane.setOldTally(SV.lastTally || 0);
@@ -5660,9 +5787,11 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
 
   /* ---------------- 调试接口（给无头探针用） ---------------- */
   root.PAPER = {
-    S: S,
+    S: S, plane: plane, arm: arm, world: world, camera: camera, camPos: camPos, camLook: camLook,
     api: {
-      foldScreen: function () { var f = dotScreen('fold'), t = screenOf(plane.body.localToWorld(plane.foldTargetLocal(tmpV))); return { sx: Math.round(f.x), sy: Math.round(f.y), tx: Math.round(t.x), ty: Math.round(t.y), step: plane.foldStep(), flipping: plane.flipping() }; },
+      pause: function (on) { paused = !!on; tuned = true; return paused; },
+      render: render,
+      foldScreen: function () { plane.update(0, 0); render(); var f = dotScreen('fold'), t = screenOf(plane.body.localToWorld(plane.foldTargetLocal(tmpV))); return { sx: Math.round(f.x), sy: Math.round(f.y), tx: Math.round(t.x), ty: Math.round(t.y), step: plane.foldStep(), flipping: plane.flipping() }; },
       // 换一种飞机重新折（图鉴用）
       openBook: function () { openBook(); return book.state(); },
       pickBook: function (k) { restart(k); return S.mode; },
@@ -5678,13 +5807,12 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
           line: elLine.className === 'on' ? elLine.textContent : '', guide: G.debug()
         };
       },
-      skipIntro: function () { if (S.phase === 'title') beginIntro(); S.phaseT = 99; tick(0.016); tick(0.016); return this.snapshot(); },
+      skipIntro: function () { if (S.phase === 'title') beginIntro(); S.phaseT = 99; tick(0.016); tick(0.016); fovTarget = foldPose(camPos, camLook); camera.fov = fovTarget; camera.updateProjectionMatrix(); render(); return this.snapshot(); },
       finishFold: function () { if (S.phase !== 'fold') return false; plane.finishFoldInstant(); plane.showRing(false); elStep.className = ''; startLift(); return true; },
       setSetup: function (o) { Object.assign(S.setup, o); applySetup(true); return S.setup; },
       throwNow: function (power, aim) { if (S.phase !== 'aim') return false; S.power = power; S.aim = aim || 0; doThrow(); return true; },
-      advance: function (sec) { var n = Math.round(sec * 60); for (var i = 0; i < n; i++) tick(1 / 60); render(); return this.snapshot(); },
+      advance: function (sec, noRender) { var n = Math.round(sec * 60); for (var i = 0; i < n; i++) tick(1 / 60); if (!noRender) render(); return this.snapshot(); },
       mute: function (on) { G.N.muted = !!on; return true; },
-      perf: function () { render(); var r = renderer.info.render, m = renderer.info.memory; return { tris: r.triangles, calls: r.calls, geo: m.geometries, tex: m.textures, quality: S.quality, dpr: renderer.getPixelRatio() }; },   // 这一帧（含阴影）画了多少三角形
       screen: function (name) {
         render();
         if (name === 'foldTarget') return screenOf(plane.body.localToWorld(plane.foldTargetLocal(new THREE.Vector3())));
@@ -5696,7 +5824,9 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
       mgMenu: function () { return S.mgMenu ? [].map.call(document.querySelectorAll('#mgmenu [data-mg]'), function (b) { return b.getAttribute('data-mg'); }) : null; },
       mgState: function () { return G.mgState(); },
       mgStep: function (dt) { return G.mgStep(dt); },
-      closeCard: function () { var b = document.querySelector('#card button.pri'); if (b) b.click(); return !!b; }
+      closeCard: function () { var b = document.querySelector('#card button.pri'); if (b) b.click(); return !!b; },
+      perf: function () { render(); var i = renderer.info.render; var total = 0, meshes = 0; scene.traverse(function (o) { if (o.isMesh && o.geometry && o.geometry.attributes.position) { meshes++; var g = o.geometry; total += (g.index ? g.index.count : g.attributes.position.count) / 3; } }); var m = renderer.info.memory; return { quality: S.quality, calls: i.calls, triangles: i.triangles, tris: i.triangles, geo: m.geometries, tex: m.textures, dpr: renderer.getPixelRatio(), sceneTriangles: Math.round(total), sceneMeshes: meshes, merge: world.mergeStats, armTris: arm.triangles() }; },
+      quality: function (q) { applyQuality(q); tuned = true; return q; }
     }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
