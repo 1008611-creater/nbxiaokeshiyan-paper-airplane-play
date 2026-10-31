@@ -2529,10 +2529,12 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     var _o = [0, 0, 0];
     // 斜的机身折线（肚脐飞机）：翅膀绕一条斜线转。把翅膀上的点拆成沿折线的 s 和离折线的 r，只转 r 和层高（转完 y 也会动），
     // 再和机身一起绕中线转 an——折线是直的时候，算出来和 to3 一模一样
+    // 叠层间距：平放在桌上要一层 EPS 才不闪；打开成飞机以后各层贴紧到两成，不然十几层摞出近 1 cm 厚，脊线和翼根成了一条宽白边
+    function thin() { return 1 - 0.8 * shape.open; }
     function to3s(x, y, h, out, z) {
       var a = Math.abs(x), left = z ? z.left : x < 0, sgn = left ? -1 : 1, T = shape.hTop;
       var an = left ? shape.aL : shape.aR, b = left ? shape.bL : shape.bR;
-      var ca = Math.cos(an), sa = Math.sin(an), hh = h - T, u = a, d = a - (KS[1] + (KS[0] - KS[1]) * (y + L / 2) / (NOSE_Y + L / 2));
+      var ca = Math.cos(an), sa = Math.sin(an), hh = (h - T) * thin(), u = a, d = a - (KS[1] + (KS[0] - KS[1]) * (y + L / 2) / (NOSE_Y + L / 2));
       var inWing = z ? z.wing > 0 : d > 1e-7;
       if (inWing) {
         var cb = Math.cos(b), sb = Math.sin(b), s = d * HT[0], r = -d * HT[1], R = r * cb + hh * sb;
@@ -2553,7 +2555,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       if (KS) return to3s(x, y, h, out, z);
       var a = Math.abs(x), left = z ? z.left : x < 0, sgn = left ? -1 : 1, T = shape.hTop;
       var an = left ? shape.aL : shape.aR, b = left ? shape.bL : shape.bR;
-      var ca = Math.cos(an), sa = Math.sin(an), hh = h - T, px, py;
+      var ca = Math.cos(an), sa = Math.sin(an), hh = (h - T) * thin(), px, py;
       if (z ? z.wing === 0 : a <= K + 1e-7) { px = a * ca - hh * sa; py = T + a * sa + hh * ca; }
       else {
         var w = an - b, cw = Math.cos(w), sw = Math.sin(w), d = a - K;
@@ -2613,6 +2615,22 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     rig.add(body); body.add(mesh); scene.add(rig);
     rig.rotation.order = 'YZX'; body.rotation.order = 'YZX';
     var tri = [0, 0, 0];
+    // 折线上的缝：两个不同段的面片、同一层、有一条完全重合的边（切开前是同一张纸）
+    var seams = { of: null, list: [] };
+    function buildSeams() {
+      seams.of = facets; seams.list = [];
+      var edges = [];
+      facets.forEach(function (fc) {
+        var z = fc.zone || (fc.zone = facetZone(fc)), pl = fc.poly;
+        for (var i = 0; i < pl.length; i++) { var p1 = pl[i], p2 = pl[(i + 1) % pl.length]; edges.push({ fc: fc, z: z, p1: p1, p2: p2, v1: apply(fc.T, p1), v2: apply(fc.T, p2) }); }
+      });
+      function same(a, b) { return Math.abs(a[0] - b[0]) < 1e-7 && Math.abs(a[1] - b[1]) < 1e-7; }
+      for (var i = 0; i < edges.length; i++) for (var j = i + 1; j < edges.length; j++) {
+        var A = edges[i], B = edges[j];
+        if (A.fc === B.fc || Math.abs(A.fc.h - B.fc.h) > 1e-9 || (A.z.left === B.z.left && A.z.wing === B.z.wing)) continue;
+        if (same(A.v1, B.v2) && same(A.v2, B.v1) || same(A.v1, B.v1) && same(A.v2, B.v2)) seams.list.push({ v1: A.v1, v2: A.v2, p1: A.p1, p2: A.p2, h: A.fc.h, za: A.z, zb: B.z });
+      }
+    }
     function build() {
       var n = 0;
       for (var f = 0; f < facets.length; f++) {
@@ -2622,6 +2640,21 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
             vert(fc, p, tri);
             pos[n * 3] = tri[0]; pos[n * 3 + 1] = tri[1]; pos[n * 3 + 2] = tri[2];
             uv[n * 2] = p[1] / L + 0.5; uv[n * 2 + 1] = 1 - (p[0] / W + 0.5);
+            n++;
+          });
+        }
+      }
+      // 立体折的时候，脊线和翼折线两边按各自那一段转，同一层纸在折线上分成两条边、中间隔着叠层厚度；补一条窄面把它们连上，就是纸在折线处的弯
+      var F = FOLDS[fold.i];
+      if (!(F && F.P)) {
+        if (seams.of !== facets) buildSeams();
+        for (var q = 0; q < seams.list.length && n < MAXV - 6; q++) {
+          var sm = seams.list[q], c = [];
+          [[sm.v1, sm.za], [sm.v2, sm.za], [sm.v2, sm.zb], [sm.v1, sm.zb]].forEach(function (e) { c.push(to3(e[0][0], e[0][1], sm.h, [0, 0, 0], e[1])); });
+          [0, 1, 2, 0, 2, 3].forEach(function (k) {
+            var pt = c[k], src = k === 1 || k === 2 ? sm.p2 : sm.p1;
+            pos[n * 3] = pt[0]; pos[n * 3 + 1] = pt[1]; pos[n * 3 + 2] = pt[2];
+            uv[n * 2] = src[1] / L + 0.5; uv[n * 2 + 1] = 1 - (src[0] / W + 0.5);
             n++;
           });
         }
