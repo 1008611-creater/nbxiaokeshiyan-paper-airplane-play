@@ -1127,7 +1127,9 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
   function create(THREE, scene, renderer) {
     var C = root.CFG.COURSE;
     var W = {};
-    var SUN_DIR = new THREE.Vector3(0.12, 0.25, 1).normalize();   // 从物体指向太阳
+    // 从物体指向太阳。高度角约 38°（以前 0.25 ≈ 14°）：太低时阳光从 0.9 m 的窗台进来要走 3.6 m 才落地，靠窗半边的地面和桌子全在墙影里、
+    // 光斑反倒落在离窗远的左边，假光柱也平平地伸进教室盖在窗边墙上。38° 时窗光落在靠窗半边（z ≈ 0.4–2.5），窗边桌子见光
+    var SUN_Y = 0.8, SUN_DIR = new THREE.Vector3(0.12, SUN_Y, 1).normalize();
     // 走查表 D1（待老大裁决）：主角课桌和后段一样，是同一件 Tripo 模型、同一种材质。
     // 默认和其他桌完全一样（乘色 #ffffff、去饱和 0）；改判就改这两个数（上一轮是 #e8d6c0 + 0.14），主角桌会换一份乘色、去饱和的材质
     var HERO_DESK = { color: '#ffffff', desat: 0 };
@@ -1604,7 +1606,11 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     W.look = function (camera, plane) {
       if (!PS || !plane || !plane.mesh || !plane.rig) return;
       var rig = plane.rig, mesh = plane.mesh, top = W.heroDeskTop || C.DESK.top;
-      function hide() { PS[0].visible = PS[1].visible = false; }
+      // 纸躺在桌上时不进真实阴影（不投也不接）：折纸近景阴影相机 ±2 m、纹素约 2 mm，太阳掠射 14°，
+      // 折起来的几层纸只隔零点几毫米，翘起一点就在下层投出一块块发蓝的影子（看着像褶皱），竖起的机身还会拖一条长黑影。
+      // 桌上的接触影由下面这片跟纸形的软影负责；纸离开桌面就恢复真实阴影
+      function realShadow(on) { if (mesh.receiveShadow !== on) { mesh.castShadow = mesh.receiveShadow = on; mesh.material.needsUpdate = true; } }
+      function hide() { PS[0].visible = PS[1].visible = false; realShadow(true); }
       if (!rig.visible || !mesh.visible || Math.abs(rig.position.x - C.DESK.x) > 0.6 || Math.abs(rig.position.z - C.DESK.z) > 0.6 || rig.position.y - top > 0.4) { hide(); return; }
       rig.updateMatrixWorld(true);
       var P = mesh.geometry.attributes.position, n = Math.min(P.count, mesh.geometry.drawRange.count), y0 = 1e9;
@@ -1613,6 +1619,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       var fade = n ? Math.max(0, Math.min(1, 1 - (y0 - top) / 0.12)) : 0;
       if (fade <= 0.01) { hide(); return; }
       psC.multiplyScalar(1 / n);
+      realShadow(false);
       var py = Math.max(top + 0.0002, Math.min(top + 0.00035, y0 - 0.0005));
       // 世界坐标里：y 压成 0，以纸的中心为圆心在水平面里放大 grow 倍，抬到 py；最后换回影子父节点的局部坐标
       PS.forEach(function (m) {
@@ -1923,13 +1930,13 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     scene.fog = new THREE.Fog(0xe9b27f, 40, 190);
 
     /* ---------------- 天色：投得越多天越暗（金色 → 蓝色两套参数，照后段 world.js:624–625） ---------------- */
-    var GOLD = { top: 0x3d5a8a, mid: 0xe7a76c, hor: 0xf6c58a, sun: 0xffc38a, sunI: 3.2, hemi: 0.75, fog: 0xe9b27f, beam: 0.16 };
+    var GOLD = { top: 0x3d5a8a, mid: 0xe7a76c, hor: 0xf6c58a, sun: 0xffc38a, sunI: 3.2, hemi: 0.75, fog: 0xe9b27f, beam: 0.08 };   // 光柱减半：斜看过去光柱侧面整片叠在窗边墙上，墙像被太阳照亮
     var BLUE = { top: 0x1b2340, mid: 0x5b5577, hor: 0xc77a5c, sun: 0xd0654a, sunI: 0.7, hemi: 0.42, fog: 0x4c4a63, beam: 0.04 };
 
     /* ---------------- 光柱（加色体积感） ---------------- */
     var beamMat = new THREE.ShaderMaterial({
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
-      uniforms: { col: { value: new THREE.Color(0xffb46a) }, amt: { value: 0.16 }, time: { value: 0 } },
+      uniforms: { col: { value: new THREE.Color(0xffb46a) }, amt: { value: 0.08 }, time: { value: 0 } },
       vertexShader: 'attribute float fade; varying float vf; varying vec3 wp; void main(){ vf = fade; vec4 w = modelMatrix*vec4(position,1.0); wp = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }',
       fragmentShader: 'uniform vec3 col; uniform float amt; uniform float time; varying float vf; varying vec3 wp; void main(){ float n = 0.85 + 0.15*sin(wp.x*3.1+wp.z*2.3+time*0.6); float near = smoothstep(0.4, 2.2, distance(cameraPosition, wp)); gl_FragColor = vec4(col * amt * vf * vf * n * near, 1.0); }'
     });
@@ -2051,7 +2058,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       M.lampGlow.emissiveIntensity = 3 * Math.max(0, (t - 0.5) / 0.5);
       W.farMats.forEach(function (m) { m.emissiveIntensity = 1.6 * lightsOn; });
       // 太阳慢慢往下沉
-      var d = SUN_DIR.clone(); d.y = 0.25 - 0.17 * t; d.normalize();
+      var d = new THREE.Vector3(0.12, SUN_Y - 0.45 * t, 1).normalize();   // 傍晚沉到约 19°
       if (skyU) skyU.sunDir.value.copy(d);
       W.sunNow = d;
       updateSunBasis();
@@ -5787,7 +5794,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
 
   /* ---------------- 调试接口（给无头探针用） ---------------- */
   root.PAPER = {
-    S: S, plane: plane, arm: arm, world: world, camera: camera, camPos: camPos, camLook: camLook,
+    S: S, scene: scene, plane: plane, arm: arm, world: world, camera: camera, camPos: camPos, camLook: camLook,
     api: {
       pause: function (on) { paused = !!on; tuned = true; return paused; },
       render: render,
@@ -5804,6 +5811,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
           phase: S.phase, stage: S.stage, throws: S.throws, runs: S.runs, bent: S.bent, fold: plane.foldStep(),
           setup: JSON.parse(JSON.stringify(S.setup)), predictX: S.predictX,
           plane: plane.rig.position.toArray().map(function (v) { return +v.toFixed(2); }),
+          cam: camera.position.toArray().map(function (v) { return +v.toFixed(3); }),
           line: elLine.className === 'on' ? elLine.textContent : '', guide: G.debug()
         };
       },
