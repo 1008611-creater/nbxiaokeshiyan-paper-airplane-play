@@ -62,7 +62,7 @@
   .sub.on { opacity: 1; transform: none; }
   body.carding .sub { opacity: 0 !important; }
   /* 卡片：设计系统的弹窗——米白纸面、白边、软阴影；课本原话放在金色「发现」区 */
-  #card { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: var(--scrim); padding: 16px; z-index: 5;
+  #card { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: var(--scrim); padding: 16px; z-index: 8;
           backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
   #card.on { display: flex; }
   @keyframes cardIn { from { opacity: 0; } to { opacity: 1; } }
@@ -100,7 +100,7 @@
   #card .paper.mg .mgstart:active { transform: translate(-50%, -48%); box-shadow: 0 2px 0 #1b1f3b; }
   @media (max-height: 520px) { #card .paper.mg { width: min(96vw, 744px, calc((100vh - 98px) * 16 / 9 + 24px)); padding: 8px 10px 0; } #card .paper.mg > .btns { margin-top: 6px; padding: 6px 0 8px; } }
   /* MG 第二轮：#mg 剧场节目单（幕布合着，上面五张贴纸按钮）——只加不改 */
-  #mgmenu { position: fixed; inset: 0; z-index: 6; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 16px;
+  #mgmenu { position: fixed; inset: 0; z-index: 7; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 16px;
     background: repeating-linear-gradient(90deg, #B8323F 0 46px, #A92B38 46px 52px, #7A1C2B 52px 56px); }
   #mgmenu.on { display: flex; animation: cardIn 0.3s ease; }
   #mgmenu .mt { font-size: clamp(18px, 3.6vw, 26px); font-weight: 900; color: #FFFDF8; background: #1F2A5C; border: 3px solid #E8B23A; border-radius: 10px; padding: 8px 22px; letter-spacing: 0.06em; }
@@ -181,6 +181,12 @@
   #freeBtn svg { width: 22px; height: 22px; }
   #freeBtn:active { transform: scale(0.97); }
   #freeBtn:focus-visible { outline: 3px solid var(--accent-fg); outline-offset: 3px; }
+  #mgBtn { pointer-events: auto; appearance: none; font: inherit; font-size: 16px; font-weight: 700; letter-spacing: 0.12em; cursor: pointer; order: 4;
+           display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; min-height: 48px; border-radius: 999px;
+           background: rgba(40,24,12,0.35); color: var(--ink); border: 2px solid rgba(251,243,228,0.85); }
+  #mgBtn svg { width: 22px; height: 22px; }
+  #mgBtn:active { transform: scale(0.97); }
+  #mgBtn:focus-visible { outline: 3px solid var(--accent-fg); outline-offset: 3px; }
   #bookBtn:active { transform: scale(0.97); }
   #bookBtn:focus-visible { outline: 3px solid var(--accent-fg); outline-offset: 3px; }
   #book { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: var(--scrim); padding: 16px; z-index: 6;
@@ -334,10 +340,11 @@
     #book .nm input { min-height: 44px; padding: 8px 12px; }
     #book .paper:not(.wide) > .btns { grid-column: 1 / -1; position: sticky; bottom: 0; background: var(--surface); margin: 6px -18px 0; padding: 10px 18px 12px; }
     #book .paper:not(.wide) > .tag { justify-self: start; }
-    /* 下课画面：计数小图缩小，「自由试飞」「纸飞机图鉴」「再上一次课」一行并排，整组放得进 390px 高 */
-    #end { display: grid; grid-template-columns: auto auto auto; justify-content: center; align-content: end; justify-items: center; gap: 10px 14px;
+    /* 下课画面：计数小图缩小，「自由试飞」「纸飞机图鉴」「知识剧场」「再上一次课」一行并排，整组放得进 390px 高 */
+    #end { display: grid; grid-template-columns: repeat(4, auto); justify-content: center; align-content: end; justify-items: center; gap: 10px 12px;
            padding-bottom: max(88px, calc(env(safe-area-inset-bottom) + 76px)); }
     #end.on { display: grid; }
+    #end button { padding: 10px 16px; font-size: 15px; }
     #tally { grid-column: 1 / -1; width: 220px; height: 78px; }
     #next { grid-column: 1 / -1; }
     /* 关与关之间的「想一想 / 课本里说」卡片：左字右图，按钮钉在底下 */
@@ -361,7 +368,7 @@
   #next:active { transform: scale(0.97); }
   #next:focus-visible { outline: 3px solid var(--accent-fg); outline-offset: 3px; }
   /* 有课后实践时，它是主按钮；「再上一次课」退成描边 */
-  body.suite #again { order: 4; background: rgba(40,24,12,0.35); color: var(--ink); border: 2px solid rgba(251,243,228,0.85); box-shadow: none; font-size: 16px; }
+  body.suite #again { order: 5; background: rgba(40,24,12,0.35); color: var(--ink); border: 2px solid rgba(251,243,228,0.85); box-shadow: none; font-size: 16px; }
   body.suite #next { display: inline-flex; order: 1; }
   #title .sub2 { margin: -12px 0 0; color: var(--ink); font-size: 16px; letter-spacing: 0.3em; text-shadow: 0 1px 6px rgba(30,16,6,0.7); }
   @media (max-width: 560px) { #record { font-size: 12px; min-width: 0; padding: 8px 10px; } #step { font-size: 14px; } }
@@ -390,6 +397,7 @@
   <button id="again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 11 22 3 15 21 11 13z"/><path d="M11 13 22 3"/></svg>再上一次课</button>
   <button id="bookBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></svg>纸飞机图鉴</button>
   <button id="freeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 19c3-9 9-13 18-12"/><path d="M16 4l5 3-4 4"/></svg>自由试飞</button>
+  <button id="mgBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>知识剧场</button>
   <a id="next" href="纸飞机回家.html"><small>课后实践</small>把纸飞机送回家 →</a></div>
 <div id="step"></div>
 <div id="deg"></div>
@@ -4401,7 +4409,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     G.onSnap = function () { if (S.bent && st.stage === 'wing') N.say('snap'); };
     // 放在网上（整套）时，下课的最后一句就是去课后实践：和后段开场那句连起来读
     G.onEnd = function () { hideRescue(); st.stage = 'done'; if (document.body.classList.contains('suite')) N.say('practice'); else { N.say('end'); N.then('again'); } };
-    G.reset = function () { mgStop(); st.rescued = {}; st.noseMoreSaid = false; st.flagSaid = false; st.stage = null; st.fails = 0; st.tier = 0; hideRescue(); N.stop(); if (st.card) { st.card = null; elCard.className = ''; document.body.classList.remove('carding'); } };
+    G.reset = function () { mgStop(); st.rescued = {}; st.seenCards = {}; st.noseMoreSaid = false; st.flagSaid = false; st.stage = null; st.fails = 0; st.tier = 0; hideRescue(); N.stop(); if (st.card) { st.card = null; elCard.className = ''; document.body.classList.remove('carding'); } };
     G.blocking = function () { return !!st.card || !!st.rescue; };
     G.rescueDone = function () { if (st.rescue && st.rescue.kind === 'fold') { st.rescue = null; st.rescued[st.stage] = true; elHand.style.opacity = 0; } };
 
@@ -4727,7 +4735,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         '<div class="big">收集了 ' + B.collected() + ' / ' + ORDER.length + ' 种' +
         (REAL_ORDER.length ? ' <span class="nw">· 真实机型 ' + B.collectedReal() + ' / ' + REAL_ORDER.length + '</span>' : '') + (myList().length ? ' <span class="nw">· 我的设计 ' + myList().length + ' 架</span>' : '') +
         (cs ? ' <span class="nw">· 隐藏款 ' + (save.lit[HIDDEN] ? 1 : 0) + ' / 1</span>' : '') + '</div></div>' +
-        '<div class="hb"><a class="nx" href="纸飞机回家.html">课后实践：纸飞机回家 →</a><button data-act="close">回到教室</button></div></div><div class="grid">';
+        '<div class="hb"><button data-act="mg">知识剧场</button><a class="nx" href="纸飞机回家.html">课后实践：纸飞机回家 →</a><button data-act="close">回到教室</button></div></div><div class="grid">';
       function card(k, real) {
         var lit = !!save.lit[k], s = stars(k), I = INFO[k], h = '';
         // 课上那架（平头镖）送回过家：盖一枚「送回家了」印记（课后实践的存档，只读）
@@ -4784,6 +4792,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         var b = e.target.closest && e.target.closest('button'); if (!b || b.disabled) return;
         var act = b.getAttribute('data-act');
         if (act === 'close') { B.close(); opts.onClose(); }
+        if (act === 'mg' && opts.onMg) { opts.sfx && opts.sfx(); opts.onMg(); }
         if (act === 'fold') { B.close(); opts.onPick(b.getAttribute('data-kind')); }
         if (act === 'design') { opts.sfx && opts.sfx(); B.openDesign(); }
       };
@@ -4930,6 +4939,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   var elRecord = document.getElementById('record');
   var elBookBtn = document.getElementById('bookBtn');
   var elFreeBtn = document.getElementById('freeBtn');
+  var elMgBtn = document.getElementById('mgBtn');
 
   /* ---------------- 渲染器 ---------------- */
   var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
@@ -5373,6 +5383,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     sfx: function () { SFX.snap(); },
     onSave: function (b) { SV.book = b; writeSave(SV); },
     onPick: function (k) { restart(k); },
+    onMg: function () { mgMenu(true); },
     say: function (id) { G.say(id); },
     onClose: function () {
       if (S.homeBook) {   // 从课后实践「回到教室」直接进的图鉴：关上回到标题
@@ -5410,6 +5421,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     });
   }
   elBookBtn.addEventListener('click', function () { SFX.unlock(); openBook(); });
+  if (elMgBtn) elMgBtn.addEventListener('click', function () { SFX.unlock(); mgMenu(true); });
   // 下课页上的「自由试飞」：飞出门以后的三个去向之一（D2：自由试飞 / 图鉴 / 课后实践放在同一页，都是可选）
   elFreeBtn.addEventListener('click', function () {
     if (S.phase !== 'end') return;
@@ -5783,7 +5795,6 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     applyQuality(forced || (sw ? 'low' : mobile ? (weak ? 'low' : 'mid') : 'high'));
     if (forced || sw) tuned = true;
   })();
-  if (SV.seen) Object.assign(G.st.seenCards, SV.seen);
   plane.setOldTally(SV.lastTally || 0);
   applySetup(true);
   world.setDusk(round().sun);
@@ -5809,8 +5820,10 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         SFX.unlock();
         if (id === 'home') {
           mgMenu(false);
-          try { root.history.replaceState(null, '', root.location.pathname + root.location.search); } catch (er) {}
-          S.t = 0; elTitle.className = '';
+          if (/^#mg/.test(root.location.hash)) {
+            try { root.history.replaceState(null, '', root.location.pathname + root.location.search); } catch (er) {}
+          }
+          if (S.phase === 'title') { S.t = 0; elTitle.className = ''; }
           return;
         }
         mgMenu(false);
