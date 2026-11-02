@@ -274,6 +274,7 @@
   #book .tr { font-size: 13px; line-height: 1.45; color: var(--foreground); }
   #book .tr b { display: inline-block; margin-right: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--on-step-chip); background: var(--step-chip); border-radius: 999px; padding: 0 7px; }
   #book .tr .qm { font-weight: 600; font-size: 12px; }
+  #book .tr .q { display: none; }
   #book details.fs { font-size: 12px; color: var(--muted); }
   #book details.fs summary { cursor: pointer; font-weight: 700; color: var(--accent); list-style: none; min-height: 24px; display: flex; align-items: center; }
   #book details.fs summary::-webkit-details-marker { display: none; }
@@ -312,13 +313,15 @@
     /* 图鉴总览：四种 +「我的设计」排一行，卡片收紧，「折出来试试」不用滚就点得到（走查 W1） */
     #book .paper.wide .grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 6px; }
     #book .paper.wide .bc { padding: 8px 10px; gap: 3px; border-radius: 16px; }
-    #book .paper.wide .bc svg { width: 40px; height: 48px; }
+    #book .paper.wide .bc svg { width: 34px; height: 40px; }
     #book .paper.wide .bn { font-size: 15px; }
     #book .paper.wide .bi { display: none; }
     #book .paper.wide .bc.my .bi { display: block; font-size: 12px; line-height: 1.4; min-height: 0; text-align: center; }   /* 自己设计的卡写着部件组合，「还没解锁」写着还差几种 */
-    #book .paper.wide .rows .r { min-height: 19px; font-size: 12px; gap: 4px; }
+    #book .paper.wide .rows .r { min-height: 17px; font-size: 12px; gap: 4px; }   /* 剪影和这几行收紧，省出问题句那一行（D3），「真实机型」小标题仍露头 */
     #book .paper.wide .tr { font-size: 11px; line-height: 1.35; }
     #book .paper.wide .tr b { display: none; }
+    #book .paper.wide .tr .qm.hasq { display: none; }
+    #book .paper.wide .tr .q { display: block; color: var(--accent); font-weight: 600; }   /* 问题句是「想知道」的钩子（走查 D3） */
     #book .paper.wide details.fs { font-size: 11px; }
     #book .paper.wide .bc.hid .bi { display: block; font-size: 11px; line-height: 1.35; min-height: 0; text-align: center; }
     #book .paper.wide .bc button { margin-top: auto; padding-left: 6px; padding-right: 6px; }
@@ -4670,7 +4673,9 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     // 有名字的查 INFO；自己设计的叫「我的设计」，说明由部件拼出来
     // 飞行特点：试飞点亮以后才写出来（先猜、再试，不剧透）
     function traitRow(kind, lit) {
-      return '<div class="tr">' + (lit ? '<b>飞行特点</b>' + traitOf(kind) : '<b>飞行特点</b><span class="qm">试飞以后就知道</span>') + '</div>';
+      // 没点亮时：手机横屏总览把说明藏了，问题句（INFO.q）就放在这一行替掉「试飞以后就知道」（走查 D3，11-01 定）
+      var q = !lit && INFO[kind] && INFO[kind].q;
+      return '<div class="tr">' + (lit ? '<b>飞行特点</b>' + traitOf(kind) : '<b>飞行特点</b><span class="qm' + (q ? ' hasq' : '') + '">试飞以后就知道</span>' + (q ? '<span class="q">' + q + '</span>' : '')) + '</div>';
     }
     // 还没解锁的隐藏款：一个问号剪影
     function svgLocked() {
