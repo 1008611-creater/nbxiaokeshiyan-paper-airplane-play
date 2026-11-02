@@ -194,6 +194,61 @@
     #card .paper > .tag { justify-self: start; }
     #card .paper > .btns { grid-column: 1 / -1; position: sticky; bottom: 0; background: var(--surface); margin: 8px -20px 0; padding: 10px 20px 12px; }
   }
+  /* 切换机型：左上角一枚纸色小签，点开可换 6 款真实机型 + 中村锁 + 4 款课上机型 + 我的设计 */
+  #planePick { position: fixed; left: max(14px, env(safe-area-inset-left)); top: max(12px, env(safe-area-inset-top)); z-index: 4;
+               display: none; align-items: center; gap: 7px; appearance: none; font: inherit; font-size: 14px; font-weight: 700;
+               letter-spacing: 0.05em; color: var(--stage-ink); background: var(--stage-glass); border: 1px solid var(--bevel);
+               border-radius: 999px; padding: 6px 14px 6px 10px; min-height: 40px; cursor: pointer; box-shadow: var(--shadow-float); }
+  #planePick.on { display: inline-flex; }
+  body.challenging #planePick { top: max(54px, calc(env(safe-area-inset-top) + 42px)); }
+  body.carding #planePick, body.prizing #planePick, body.modaling #planePick { display: none !important; }
+  body.modaling .sub, body.modaling #line, body.modaling #hand { opacity: 0 !important; }
+  #planePick svg { width: 20px; height: 22px; flex: none; }
+  #planePick svg .pl { fill: #f6f1e5; stroke: var(--accent); stroke-width: 5; stroke-linejoin: round; }
+  #planePick .ch { font-size: 12px; color: var(--accent); font-weight: 800; margin-left: 2px; }
+  #planeModal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: var(--scrim);
+                padding: 14px; z-index: 12; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+  #planeModal.on { display: flex; }
+  #planeModal .paper { width: min(94vw, 760px); max-height: calc(100vh - 28px); overflow: auto; box-sizing: border-box;
+                       background: var(--surface); color: var(--foreground); border-radius: 26px; padding: 18px 20px 16px;
+                       border: 1px solid var(--bevel); box-shadow: var(--shadow-dialog); animation: paperIn 0.2s var(--ease-director) both; }
+  #planeModal .hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  #planeModal .ttl { font-size: 19px; font-weight: 800; letter-spacing: 0.08em; }
+  #planeModal .close { appearance: none; font: inherit; font-size: 14px; font-weight: 700; padding: 6px 14px; border-radius: 999px;
+                       min-height: 36px; border: 1px solid var(--bevel); background: var(--tile); color: var(--tile-ink); cursor: pointer; }
+  #planeModal .sec { font-size: 13px; font-weight: 800; letter-spacing: 0.1em; color: var(--on-step-chip); background: var(--step-chip);
+                     display: inline-block; border-radius: 999px; padding: 2px 11px; margin: 8px 0 8px; }
+  #planeModal .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin-bottom: 6px; }
+  #planeModal .item { appearance: none; font: inherit; text-align: left; display: flex; gap: 10px; align-items: center; padding: 10px 12px;
+                      border-radius: 16px; border: 1.5px solid var(--line); background: #ffffff; color: var(--foreground); cursor: pointer;
+                      box-shadow: 0 2px 6px rgba(22,48,41,0.06); transition: transform 0.12s ease, border-color 0.12s ease; }
+  #planeModal .item.cur { border-color: var(--accent); background: var(--finding-wash); box-shadow: inset 0 0 0 1px var(--accent); }
+  #planeModal .item.locked { background: #f2eee4; border-style: dashed; opacity: 0.78; }
+  #planeModal .item.locked svg .pl { fill: #d8d3c8; stroke: #7b8a88; }
+  #planeModal .item.locked svg .kl { stroke: #7b8a88; }
+  #planeModal .item:active { transform: scale(0.98); }
+  #planeModal .item svg { width: 42px; height: 50px; flex: none; }
+  #planeModal .item svg .pl { fill: #f6f1e5; stroke: var(--accent); stroke-width: 3.2; stroke-linejoin: round; }
+  #planeModal .item svg .kl { fill: none; stroke: var(--accent); stroke-width: 2.0; opacity: 0.8; }
+  #planeModal .item .meta { min-width: 0; flex: 1; }
+  #planeModal .item .nm { font-size: 15px; font-weight: 800; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  #planeModal .item .og { font-size: 11px; font-weight: 600; color: var(--muted); }
+  #planeModal .item .lk { font-size: 11px; font-weight: 700; color: var(--rescue-ink); background: var(--rescue-wash); padding: 1px 7px; border-radius: 999px; }
+  #planeModal .item .pt { font-size: 12px; font-weight: 700; color: var(--accent); margin: 2px 0; }
+  #planeModal .item .tr { font-size: 12px; line-height: 1.38; color: var(--muted); }
+  @media (max-height: 520px) {
+    #planeModal { padding: 8px; }
+    #planeModal .paper { width: min(96vw, 820px); max-height: calc(100vh - 16px); padding: 10px 14px 12px; border-radius: 20px; }
+    #planeModal .hd { margin-bottom: 4px; }
+    #planeModal .ttl { font-size: 16px; }
+    #planeModal .sec { font-size: 12px; margin: 4px 0 5px; padding: 2px 9px; }
+    #planeModal .grid { grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 4px; }
+    #planeModal .item { padding: 6px 8px; gap: 7px; border-radius: 12px; }
+    #planeModal .item svg { width: 32px; height: 38px; }
+    #planeModal .item .nm { font-size: 13px; gap: 4px; }
+    #planeModal .item .pt { font-size: 11px; margin: 1px 0; }
+    #planeModal .item .tr { font-size: 11px; line-height: 1.25; }
+  }
 </style>
 </head>
 <body>
@@ -203,6 +258,8 @@
 <div id="ghost"></div>
 <div id="breath"></div>
 <div id="sub" class="sub"></div>
+<button id="planePick" type="button" aria-label="切换纸飞机机型"><svg viewBox="0 0 100 120" aria-hidden="true"><path id="planePickPath" class="pl" d="M50 6 L53 9 L88 112 L56 112 L50 116 L44 112 L12 112 L47 9 Z"/></svg><span id="planePickName">平头镖</span><span class="ch">换机型</span></button>
+<div id="planeModal" role="dialog" aria-label="选择纸飞机机型"><div class="paper"><div class="hd"><span class="ttl">选择纸飞机机型</span><button id="planeModalClose" class="close" type="button">选好了</button></div><div id="planeModalBody"></div></div></div>
 <svg id="hand" viewBox="0 0 48 48"><defs><linearGradient id="handG" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#ffe066"/><stop offset="1" stop-color="#f5a524"/></linearGradient></defs><path d="M17 26V9a3.5 3.5 0 0 1 7 0v13l1.5-.5V18a3.2 3.2 0 0 1 6.4 0v4.6l1.2-.3a3 3 0 0 1 5.9.7v2.4l.6-.1a2.8 2.8 0 0 1 5.4 1v6.2c0 6.9-5.6 12.5-12.5 12.5h-3.2c-4.5 0-8.6-2.4-10.8-6.3L11 31.4a3.2 3.2 0 0 1 5.6-3.1z" fill="url(#handG)" stroke="#1f3a5f" stroke-width="2.4" stroke-linejoin="round"/><path d="M19.5 10.5v8" stroke="#fff6cc" stroke-width="1.6" stroke-linecap="round" opacity="0.8"/></svg>
 <button id="rescue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"/></svg>帮我演示这一步</button>
 <div id="card"></div>
@@ -280,7 +337,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       DRAFT: { x0: 13.6, x1: 15.4, z0: 7.4, zw: 12.15, z1: 13.4, vz: 2.5, lift: 4, yc: 1.6, rideFull: 0.2, spill: 9, spillL: 8 },
       FALL_Y: -0.5,
       FENCE_Z: 27,
-      DESK: { x: -7, z: 0.6 },
+      DESK: { x: -7, z: 0, top: 0.76 },
       LAND_SPOT: { x: 14.5, y: 1.3, z: -0.2, yaw: Math.PI / 2 },
       WINDOW_SPOT: { x: 14.5, y: 1.2, z: 12.2, yaw: Math.PI / 2 },
       BASKET: { x: 14.5, y: -12 + 0.92, z: 20.6, r: 1.5 },       // 爸爸和他自行车的车筐
@@ -291,17 +348,106 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       }
     },
     CAM: { FOV: 52 },
-    // 一次成功挑战：回到四楼教室，从自己课桌旁的第一扇窗，一投进爸爸的车筐。
-    // 只有挑战那一投才用这里的几何（PHYS.launch 的 opt.course === 'challenge'）；主线的 COURSE 一个数不动。
-    // 物理只多一个窗洞和一块窗外空域：不加风、不放大车筐、不放宽判定，进没进筐还是同一个 step() 算的
+    // 一次成功挑战：站在走廊尽头那扇窗前，但出手方向朝侧面偏开车筐（偏左 0.6 弧度 ≈ 34.4°）。
+    // 只有挑战那一投才用这里的配置（PHYS.launch 的 opt.course === 'challenge'）；主线的 COURSE 一个数不动。
+    // 两翼一样高 0 种能进，孩子必须让两翼一高一低，飞机才能斜飞拐进车筐；0/1/2 枚回形针均有丰富进筐扔法
     CHALLENGE: {
-      // 第一扇窗（world.js 朝院子的窗：x −8.2…−6.4、窗台 0.9、窗顶 2.6、墙在 z 3.6），不是地面
-      WINDOW: { id: 'cwin', x0: -8.2, x1: -6.4, y0: 0.9, y1: 2.6, z0: 3.5, z1: 3.8, floor: false },
-      // 窗外到院子的上空：东边到对面那栋楼的外墙（world.js shell x 12.6）为止，南边接上主线的 out（z 12.3）
-      YARD: { id: 'yard', x0: -12, x1: 12.6, y0: -12, y1: 30, z0: 3.8, z1: 12.3, floor: true },
-      // 趴在窗台前出手：窗洞中点、手的高度，正对车筐（COURSE.BASKET 的 x 14.5、z 20.6）
-      SPOT: { x: -7.3, y: 1.3, z: 3.65, yaw: Math.atan2(20.6 - 3.65, 14.5 + 7.3) },
+      // 尽头窗洞与窗外院子空域（与主线 win / out 对齐，供 physics.js roomOf/floorOf 读取）
+      WINDOW: { id: 'cwin', x0: 13.9, x1: 15.1, y0: 0.9, y1: 2.3, z0: 12.0, z1: 12.3, floor: false },
+      YARD: { id: 'yard', x0: -12, x1: 42, y0: -12, y1: 30, z0: 12.3, z1: 70, floor: true },
+      // 趴在尽头窗台前出手：与 COURSE.WINDOW_SPOT 同点，出手方向朝侧面偏左 0.6 rad（约 34.4°）
+      SPOT: { x: 14.5, y: 1.2, z: 12.2, yaw: Math.PI / 2 - 0.6 },
       MIN_RUNS: 1          // 送回家一次以后才邀请
+    },
+    // 图鉴全机型适配（6 款真实机型 + 1 款隐藏真机 + 4 款课上标准机型 + 我的设计部件组合）。
+    // 每款机型拥有独立的气动参数（aero / setup）与三维折纸外形参数（shape），且全部通过天井/湿走廊/尽头窗/挑战四道卡点校验
+    PLANES: {
+      // ---- 真实机型（6 款，折法有据可查，气动与外形各自独立）----
+      raven: {
+        name: '渡鸦', orig: 'Raven', group: 'real', parts: '锁片机头 · 窄翼 · 平翼尖',
+        trait: '短机身三角翼，锁片压头，滑翔与转向均衡灵敏',
+        aero: { CL_K: 0.876, CD0: 0.057, CDI: 0.108, STALL: 15.2, K_ALPHA: 50, K_Q: 8.0, K_ROLL: 0.275, K_ROLLS: 3.0 },
+        setup: { TRIM0: 0.82 },
+        shape: { len: 0.76, span: 1.12, noseCut: 0.04, elbowU: 0.35, mark: 'raven' }
+      },
+      harrier: {
+        name: '鹞式', orig: 'Harrier', group: 'real', parts: '信封锁片 · 宽翼 · 平翼尖',
+        trait: '信封折法锁住机头，翼面宽大，升力充沛、拐弯灵敏',
+        aero: { CL_K: 0.884, CD0: 0.056, CDI: 0.106, STALL: 15.8, K_ALPHA: 54, K_Q: 8.6, K_ROLL: 0.285, K_ROLLS: 2.75 },
+        setup: { TRIM0: 0.76 },
+        shape: { len: 0.78, span: 1.16, noseCut: 0.05, elbowU: 0.38, mark: 'harrier' }
+      },
+      heavy: {
+        name: '重头镖', orig: 'Heavy-Nosed Plane', group: 'real', parts: '三折厚平头 · 窄翼 · 平翼尖',
+        trait: '机头来回压折三层，重心靠前，大迎角不易失速、破风极稳',
+        aero: { CL_K: 0.838, CD0: 0.060, CDI: 0.126, STALL: 17.2, VT: 4.42, K_ALPHA: 62, K_Q: 9.5, K_ROLL: 0.25, K_ROLLS: 3.25 },
+        setup: { TRIM0: 0.58 },
+        shape: { len: 0.76, span: 1.08, noseCut: 0.18, elbowU: 0.52, mark: 'heavy' }
+      },
+      bulldog: {
+        name: '斗牛犬镖', orig: 'Bulldog Dart', group: 'real', parts: '背折短平头 · 窄翼 · 平翼尖',
+        trait: '两角往背面折出宽扁短鼻头，俯仰阻尼大、飞行扎实',
+        aero: { CL_K: 0.848, CD0: 0.061, CDI: 0.123, STALL: 16.8, VT: 4.38, K_ALPHA: 58, K_Q: 9.2, K_ROLL: 0.265, K_ROLLS: 3.15 },
+        setup: { TRIM0: 0.62 },
+        shape: { len: 0.86, span: 1.08, noseCut: 0.22, elbowU: 0.30, mark: 'bulldog' }
+      },
+      hunting: {
+        name: '狩猎号', orig: 'Hunting Flight', group: 'real', parts: '卷条厚头 · 宽翼 · 翼尖上翘',
+        trait: '机头卷成厚条、宽翼配竖立小翼，又稳又直还能远滑',
+        aero: { CL_K: 0.878, CD0: 0.057, CDI: 0.108, STALL: 16.2, K_ALPHA: 55, K_Q: 8.8, K_ROLL: 0.235, K_ROLLD: 5.0, K_ROLLS: 3.6 },
+        setup: { TRIM0: 0.72 },
+        shape: { len: 0.85, span: 1.14, noseCut: 0.14, elbowU: 0.52, winglet: 0.022, mark: 'hunting' }
+      },
+      heso: {
+        name: '肚脐飞机', orig: 'へそヒコーキ', group: 'real', parts: '肚脐锁片 · 斜折宽翼 · 平翼尖',
+        trait: '小尖翻回压成「肚脐」锁住机头，斜折宽翼滑翔轻盈柔和',
+        aero: { CL_K: 0.882, CD0: 0.056, CDI: 0.107, STALL: 16.0, K_ALPHA: 53, K_Q: 8.5, K_ROLL: 0.27, K_ROLLS: 2.9 },
+        setup: { TRIM0: 0.78 },
+        shape: { len: 0.77, span: 1.14, noseCut: 0.12, elbowU: 0.42, mark: 'heso' }
+      },
+      // ---- 隐藏真机（1 款）----
+      nakamura: {
+        name: '中村锁', orig: 'Nakamura Lock', group: 'hidden', parts: '中村锁片 · 宽翼 · 平翼尖',
+        trait: '日本名家中村荣志设计，机头多层锁死、宽翼远飞滑翔',
+        aero: { CL_K: 0.888, CD0: 0.056, CDI: 0.106, STALL: 15.6, K_ALPHA: 52, K_Q: 8.4, K_ROLL: 0.255, K_ROLLS: 3.15 },
+        setup: { TRIM0: 0.80 },
+        shape: { len: 0.90, span: 1.15, noseCut: 0.10, elbowU: 0.56, mark: 'nakamura' }
+      },
+      // ---- 课上标准机型（4 款）----
+      dart: {
+        name: '平头镖', orig: '', group: 'class', parts: '尖头折平 · 窄翼 · 平翼尖',
+        trait: '科学课上折的基准机，机头轻快，抬太高容易失速',
+        aero: {}, setup: {},
+        shape: { len: 1.0, span: 1.0, noseCut: 0, elbowU: 0, mark: 'dart' }
+      },
+      glider: {
+        name: '宽翼滑翔机', orig: '', group: 'class', parts: '尖头折平 · 宽翼 · 平翼尖',
+        trait: '只折两角留出宽大机翼，升阻比高，滑得最远',
+        aero: { CL_K: 0.892, CD0: 0.055, CDI: 0.104, STALL: 14.8, K_ROLL: 0.28, K_ROLLS: 2.85 },
+        setup: { TRIM0: 0.85 },
+        shape: { len: 0.98, span: 1.16, noseCut: 0, elbowU: 0.62, mark: 'glider' }
+      },
+      flat: {
+        name: '平头稳稳机', orig: '', group: 'class', parts: '平头 · 窄翼 · 平翼尖',
+        trait: '机头整块往下折成平厚鼻，抬过头也不容易失速栽头',
+        aero: { CL_K: 0.845, CD0: 0.063, CDI: 0.125, STALL: 16.5, K_ALPHA: 56, K_Q: 9.0, K_ROLL: 0.27, K_ROLLS: 3.1 },
+        setup: { TRIM0: 0.65 },
+        shape: { len: 0.86, span: 1.04, noseCut: 0.16, elbowU: 0.45, mark: 'flat' }
+      },
+      winglet: {
+        name: '翘翼机', orig: '', group: 'class', parts: '尖头折平 · 窄翼 · 翼尖上翘',
+        trait: '两侧翼尖竖起小翼，滚转回正力强，飞得更直',
+        aero: { CL_K: 0.86, CD0: 0.061, CDI: 0.115, STALL: 14.2, K_ROLL: 0.24, K_ROLLD: 4.8, K_ROLLS: 3.5 },
+        setup: { TRIM0: 0.95 },
+        shape: { len: 1.0, span: 1.0, noseCut: 0, elbowU: 0, winglet: 0.02, mark: 'winglet' }
+      }
+    },
+    PLANE_ORDER: ['raven', 'harrier', 'heavy', 'bulldog', 'hunting', 'heso', 'nakamura', 'dart', 'glider', 'flat', 'winglet'],
+    // 「我的设计」部件增量（my:机头-机翼-翼尖）
+    PART_MOD: {
+      nose: { tip: {}, flat: { CL_K: -0.015, CD0: 0.002, STALL: 2.5, K_ALPHA: 10, K_Q: 1.5, TRIM0: -0.30 } },
+      wing: { narrow: {}, wide: { CL_K: 0.024, CD0: -0.004, CDI: -0.014, K_ROLL: 0.015, K_ROLLS: -0.15, TRIM0: -0.10 } },
+      tip:  { flat: {}, up: { CD0: 0.001, K_ROLL: -0.02, K_ROLLD: 0.6, K_ROLLS: 0.5 } }
     }
   };
   root.CFG = CFG;
@@ -329,27 +475,63 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 
+  // 图鉴机型气动参数：默认 dart 与原版逐位一致；真实机型/标准机型查 CFG.PLANES，自研机型 my:nose-wing-tip 按部件叠加
+  var _aeroCache = {}, _setupCache = {};
+  function aeroOf(setup) {
+    var k = (setup && setup.kind) || 'dart';
+    if (k === 'dart' || !CFG.PLANES) return A;
+    if (_aeroCache[k]) return _aeroCache[k];
+    var o = Object.assign({}, A);
+    if (CFG.PLANES[k] && CFG.PLANES[k].aero) {
+      Object.assign(o, CFG.PLANES[k].aero);
+    } else if (/^my:(tip|flat)-(narrow|wide)-(flat|up)$/.test(k) && CFG.PART_MOD) {
+      var p = k.slice(3).split('-'), PM = CFG.PART_MOD;
+      [PM.nose[p[0]], PM.wing[p[1]], PM.tip[p[2]]].forEach(function (d) {
+        for (var m in d) if (m in o) o[m] += d[m];
+      });
+    }
+    return (_aeroCache[k] = o);
+  }
+  function setupCfgOf(setup) {
+    var k = (setup && setup.kind) || 'dart';
+    if (k === 'dart' || !CFG.PLANES) return S;
+    if (_setupCache[k]) return _setupCache[k];
+    var o = Object.assign({}, S);
+    if (CFG.PLANES[k] && CFG.PLANES[k].setup) {
+      Object.assign(o, CFG.PLANES[k].setup);
+    } else if (/^my:(tip|flat)-(narrow|wide)-(flat|up)$/.test(k) && CFG.PART_MOD) {
+      var p = k.slice(3).split('-'), PM = CFG.PART_MOD;
+      [PM.nose[p[0]], PM.wing[p[1]], PM.tip[p[2]]].forEach(function (d) {
+        for (var m in d) if (m in o) o[m] += d[m];
+      });
+    }
+    return (_setupCache[k] = o);
+  }
+
   // 回形针压在机头上，机头再怎么捏也抬不过它：夹一枚就往下扎，夹两枚就栽头
   // 湿树叶不是回形针，但压在机头上的效果一样：算作一枚
   function noseLoad(setup) { return (setup.clips || 0) + (setup.leaf ? S.LEAF_CLIPS : 0); }
   function trimAlpha(setup) {
+    var sc = setupCfgOf(setup);
     var c = noseLoad(setup);
-    var a = S.TRIM0 + S.TRIM_PER_PITCH * setup.pitch - S.CLIP_SOFT * c;
-    if (c > 0) a = Math.min(a, S.CLIP_CAP - S.TRIM_PER_CLIP * (c - 1));
+    var a = sc.TRIM0 + sc.TRIM_PER_PITCH * setup.pitch - sc.CLIP_SOFT * c;
+    if (c > 0) a = Math.min(a, sc.CLIP_CAP - sc.TRIM_PER_CLIP * (c - 1));
     return a;
   }
   function wingDelta(setup) { return (setup.wingL || 0) - (setup.wingR || 0); }
-  function massOf(setup) { return 1 + A.MASS_CLIP * noseLoad(setup); }
+  function massOf(setup) { return 1 + aeroOf(setup).MASS_CLIP * noseLoad(setup); }
 
-  // 迎角（度）→ 升力系数。14° 以上失速，升力掉、阻力涨
-  function CL(a) {
-    if (a > A.STALL) return Math.max(0.35, A.CLA * A.STALL - 0.045 * (a - A.STALL));
+  // 迎角（度）→ 升力系数。失速角以上升力掉、阻力涨
+  function CL(a, ak) {
+    ak = ak || A;
+    if (a > ak.STALL) return Math.max(0.35, ak.CLA * ak.STALL - 0.045 * (a - ak.STALL));
     if (a < -10) return -0.7;
-    return A.CLA * a;
+    return ak.CLA * a;
   }
-  function CD(a, cl) {
-    var d = A.CD0 + A.CDI * cl * cl;
-    if (a > A.STALL) d += 0.03 * (a - A.STALL);
+  function CD(a, cl, ak) {
+    ak = ak || A;
+    var d = ak.CD0 + ak.CDI * cl * cl;
+    if (a > ak.STALL) d += 0.03 * (a - ak.STALL);
     if (a < -6) d += 0.02 * (-6 - a);
     return d;
   }
@@ -448,24 +630,25 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     var st = f.setup, m = massOf(st);
 
     if (f.mode === 'fly') {
+      var ak = aeroOf(st);
       var V = Math.max(0.35, f.V);
       var alpha = (f.phi - f.gam) / DEG;
-      var cl = CL(alpha), cd = CD(alpha, cl) + flutterDrag(V);
+      var cl = CL(alpha, ak), cd = CD(alpha, cl, ak) + flutterDrag(V);
       var v2 = V * V;
-      var L = A.CL_K * cl * v2 / m;
-      var D = A.CD_K * cd * v2 / m;
-      var aero = Math.max(0.12, v2 / (A.VT * A.VT));
+      var L = ak.CL_K * cl * v2 / m;
+      var D = ak.CD_K * cd * v2 / m;
+      var aero = Math.max(0.12, v2 / (ak.VT * ak.VT));
 
       // 俯仰：机身被气流往配平迎角上拉
       var at = trimAlpha(st);
-      f.q += (-A.K_ALPHA * Math.min(aero, 4) * (alpha - at) * DEG - A.K_Q * f.q) * dt;
+      f.q += (-ak.K_ALPHA * Math.min(aero, 4) * (alpha - at) * DEG - ak.K_Q * f.q) * dt;
       // 速度很慢时（失速）机头自己往下掉
       if (V < 2.2) f.q -= (2.2 - V) * 1.6 * dt;
       f.phi += f.q * dt;
 
       // 滚转：两翼高低差
       var dl = wingDelta(st);
-      f.p += (A.K_ROLL * dl * Math.min(aero, 3) - A.K_ROLLD * f.p - A.K_ROLLS * f.mu * (Math.abs(dl) > 0.5 ? 0.25 : 1)) * dt;
+      f.p += (ak.K_ROLL * dl * Math.min(aero, 3) - ak.K_ROLLD * f.p - ak.K_ROLLS * f.mu * (Math.abs(dl) > 0.5 ? 0.25 : 1)) * dt;
       f.mu += f.p * dt;
       f.mu = clamp(f.mu, -1.45, 1.45);
 
@@ -613,7 +796,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
 
   root.PHYS = {
     launch: launch, step: step, simulate: simulate, resolve: resolve,
-    trimAlpha: trimAlpha, noseLoad: noseLoad, wingDelta: wingDelta, CL: CL, roomAt: roomAt, floorBelow: floorBelow,
+    trimAlpha: trimAlpha, noseLoad: noseLoad, wingDelta: wingDelta, aeroOf: aeroOf, setupCfgOf: setupCfgOf, CL: CL, roomAt: roomAt, floorBelow: floorBelow,
     updraftAt: updraftAt, draftAt: draftAt, clamp: clamp
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.PHYS;
@@ -857,16 +1040,171 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
 (function (root) {
   'use strict';
 
+  var PAL = {
+    cream: '#ece2cc', creamShade: '#e6cfa8', mint: '#6f9c86', mintDark: '#3f6f58',
+    floor: '#a97a55', floorDark: '#7f5638', deskTop: '#dca868', metal: '#466f62',
+    board: '#3d5a50', chalk: '#f6f2e6', red: '#d34a3c', ink: '#3a2f45',
+    skyTop: '#9d8fd0', skyMid: '#f7a98a', skyLow: '#ffd59a'
+  };
+
+  function createLook(THREE) {
+    var L = { PAL: PAL };
+    function rnd(seed) { var s = seed; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+    function canvasTex(w, h, draw, rep) {
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      draw(c.getContext('2d', { willReadFrequently: true }), w, h);
+      var t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+      if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); }
+      return t;
+    }
+    function hexA(hex, a) { var n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; }
+    var _hsl = {};
+    function shade(hex, k) {
+      var c = new THREE.Color(hex); c.getHSL(_hsl);
+      c.setHSL(_hsl.h + k * 0.02, _hsl.s, Math.min(1, Math.max(0, _hsl.l + k))); return '#' + c.getHexString();
+    }
+    function rrect(g, x, y, w, h, r) { if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+    function strokes(g, w, h, base, n, seed, len, alpha, angle) {
+      var r = rnd(seed);
+      for (var i = 0; i < n; i++) {
+        var k = (r() - 0.5) * 0.09;
+        g.fillStyle = hexA(shade(base, k), alpha * (0.4 + r() * 0.6));
+        g.save(); g.translate(r() * w, r() * h); g.rotate(angle + (r() - 0.5) * 0.35);
+        var Ln = len * (0.5 + r()), H = Ln * (0.08 + r() * 0.12);
+        g.beginPath(); g.ellipse(0, 0, Ln, H, 0, 0, 6.283); g.fill(); g.restore();
+      }
+    }
+    function bristle(g, x, y, len, wid, ang, col, a, r) {
+      g.save(); g.translate(x, y); g.rotate(ang); g.lineCap = 'round';
+      var n = Math.max(3, wid / 2.2 | 0), bend = (r() - 0.5) * len * 0.12;
+      for (var k = 0; k < n; k++) {
+        var off = (k / (n - 1) - 0.5) * wid, l = len * (0.75 + r() * 0.25), s0 = r() * len * 0.1;
+        g.strokeStyle = hexA(col, a * (0.35 + r() * 0.65)); g.lineWidth = 1 + r() * 2.2;
+        g.beginPath(); g.moveTo(-len / 2 + s0, off); g.quadraticCurveTo(0, off + bend, -len / 2 + l, off + bend * 0.4); g.stroke();
+      }
+      g.restore();
+    }
+    function underpaint(g, w, h, base, seed, n, size, k) {
+      var r = rnd(seed);
+      for (var i = 0; i < n; i++) {
+        var x = r() * w, y = r() * h, rad = size * (0.5 + r()), t = r(), c;
+        if (t < 0.33) c = shade(base, k);
+        else if (t < 0.66) c = shade(base, -k);
+        else { var cc = new THREE.Color(base); cc.offsetHSL(r() < 0.5 ? 0.03 : -0.03, 0.05, 0); c = '#' + cc.getHexString(); }
+        var gr = g.createRadialGradient(x, y, 0, x, y, rad); gr.addColorStop(0, hexA(c, 0.5)); gr.addColorStop(1, hexA(c, 0));
+        g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+      }
+    }
+    function brushPass(g, w, h, base, seed, n, len, wid, ang, a, spread) {
+      var r = rnd(seed);
+      for (var i = 0; i < n; i++) bristle(g, r() * w, r() * h, len * (0.6 + r() * 0.8), wid * (0.6 + r() * 0.8), ang + (r() - 0.5) * spread, shade(base, (r() - 0.5) * 0.12), a, r);
+    }
+    function paintedWood(base, seed, rep) {
+      return canvasTex(512, 512, function (g, w, h) {
+        g.fillStyle = base; g.fillRect(0, 0, w, h);
+        underpaint(g, w, h, base, seed, 24, 120, 0.06);
+        brushPass(g, w, h, base, seed + 1, 260, 260, 18, Math.PI / 2, 0.3, 0.06);
+        var r = rnd(seed + 2);
+        for (var i = 0; i < 40; i++) {
+          var x = r() < 0.5 ? r() * 18 : w - r() * 18, y = r() * h;
+          g.fillStyle = hexA(shade(base, 0.18), 0.6); g.beginPath(); g.ellipse(x, y, 3 + r() * 6, 6 + r() * 14, 0, 0, 6.283); g.fill();
+        }
+      }, rep);
+    }
+    L.rnd = rnd; L.canvasTex = canvasTex; L.hexA = hexA; L.shade = shade; L.rrect = rrect;
+    L.strokes = strokes; L.bristle = bristle; L.underpaint = underpaint; L.brushPass = brushPass; L.paintedWood = paintedWood;
+    function painted(params) {
+      var o = { roughness: 0.82, metalness: 0 }, k;
+      for (k in params) o[k] = params[k];
+      return new THREE.MeshStandardMaterial(o);
+    }
+    var pcache = {};
+    function paintedC(params) {
+      var key = JSON.stringify(params, function (k, v) { return v && v.isTexture ? v.uuid : v; });
+      return pcache[key] || (pcache[key] = painted(params));
+    }
+    L.painted = painted; L.paintedC = paintedC;
+    var _tn = new THREE.Vector3();
+    function rbUv(faceDir, normal, uvAxis, projAxis, radius, sideLength) {
+      var totArc = 2 * Math.PI * radius / 4, center = Math.max(sideLength - 2 * radius, 0), halfArc = Math.PI / 4;
+      _tn.copy(normal); _tn[projAxis] = 0; _tn.normalize();
+      var arcUv = 0.5 * totArc / (totArc + center), arcAng = 1.0 - (_tn.angleTo(faceDir) / halfArc);
+      if (Math.sign(_tn[uvAxis]) === 1) return arcAng * arcUv;
+      return center / (totArc + center) + arcUv + arcUv * (1.0 - arcAng);
+    }
+    function roundedBox(width, height, depth, segments, radius) {
+      segments = segments * 2 + 1;
+      radius = Math.min(width / 2, height / 2, depth / 2, radius);
+      var geo = new THREE.BoxGeometry(1, 1, 1, segments, segments, segments).toNonIndexed();
+      var position = new THREE.Vector3(), normal = new THREE.Vector3(), faceDir = new THREE.Vector3();
+      var box = new THREE.Vector3(width, height, depth).divideScalar(2).subScalar(radius);
+      var positions = geo.attributes.position.array, normals = geo.attributes.normal.array, uvs = geo.attributes.uv.array;
+      var faceTris = positions.length / 6, half = 0.5 / segments;
+      for (var i = 0, j = 0; i < positions.length; i += 3, j += 2) {
+        position.fromArray(positions, i);
+        normal.copy(position);
+        normal.x -= Math.sign(normal.x) * half; normal.y -= Math.sign(normal.y) * half; normal.z -= Math.sign(normal.z) * half;
+        normal.normalize();
+        positions[i] = box.x * Math.sign(position.x) + normal.x * radius;
+        positions[i + 1] = box.y * Math.sign(position.y) + normal.y * radius;
+        positions[i + 2] = box.z * Math.sign(position.z) + normal.z * radius;
+        normals[i] = normal.x; normals[i + 1] = normal.y; normals[i + 2] = normal.z;
+        switch (Math.floor(i / faceTris)) {
+          case 0: faceDir.set(1, 0, 0); uvs[j] = rbUv(faceDir, normal, 'z', 'y', radius, depth); uvs[j + 1] = 1.0 - rbUv(faceDir, normal, 'y', 'z', radius, height); break;
+          case 1: faceDir.set(-1, 0, 0); uvs[j] = 1.0 - rbUv(faceDir, normal, 'z', 'y', radius, depth); uvs[j + 1] = 1.0 - rbUv(faceDir, normal, 'y', 'z', radius, height); break;
+          case 2: faceDir.set(0, 1, 0); uvs[j] = 1.0 - rbUv(faceDir, normal, 'x', 'z', radius, width); uvs[j + 1] = rbUv(faceDir, normal, 'z', 'x', radius, depth); break;
+          case 3: faceDir.set(0, -1, 0); uvs[j] = 1.0 - rbUv(faceDir, normal, 'x', 'z', radius, width); uvs[j + 1] = 1.0 - rbUv(faceDir, normal, 'z', 'x', radius, depth); break;
+          case 4: faceDir.set(0, 0, 1); uvs[j] = 1.0 - rbUv(faceDir, normal, 'x', 'y', radius, width); uvs[j + 1] = 1.0 - rbUv(faceDir, normal, 'y', 'x', radius, height); break;
+          case 5: faceDir.set(0, 0, -1); uvs[j] = rbUv(faceDir, normal, 'x', 'y', radius, width); uvs[j + 1] = 1.0 - rbUv(faceDir, normal, 'y', 'x', radius, height); break;
+        }
+      }
+      return geo;
+    }
+    function wobble(geo, amp, freq, seed) {
+      var p = geo.attributes.position, o = seed * 1.37;
+      for (var i = 0; i < p.count; i++) {
+        var x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        p.setXYZ(i, x + amp * Math.sin(y * freq * 7.1 + z * freq * 3.3 + o), y + amp * 0.6 * Math.sin(x * freq * 5.7 + z * freq * 4.1 + o * 1.7), z + amp * Math.sin(x * freq * 6.3 + y * freq * 2.9 + o * 2.3));
+      }
+      geo.computeVertexNormals(); return geo;
+    }
+    function mergeVertices(geo) {
+      if (geo.index) geo = geo.toNonIndexed();
+      var names = Object.keys(geo.attributes), cnt = geo.attributes.position.count, map = {}, idx = [], next = 0;
+      var outs = names.map(function () { return []; });
+      for (var i = 0; i < cnt; i++) {
+        var key = '';
+        for (var a = 0; a < names.length; a++) { var at = geo.attributes[names[a]]; for (var c = 0; c < at.itemSize; c++) key += Math.round(at.array[i * at.itemSize + c] * 1e4) + ','; }
+        if (map[key] === undefined) {
+          map[key] = next++;
+          for (var b = 0; b < names.length; b++) { var bt = geo.attributes[names[b]]; for (var d = 0; d < bt.itemSize; d++) outs[b].push(bt.array[i * bt.itemSize + d]); }
+        }
+        idx.push(map[key]);
+      }
+      var g = new THREE.BufferGeometry();
+      names.forEach(function (n, k) { g.setAttribute(n, new THREE.Float32BufferAttribute(outs[k], geo.attributes[n].itemSize)); });
+      g.setIndex(idx); return g;
+    }
+    function rbox(w, h, d, r, seg) { return roundedBox(w, h, d, seg || 1, Math.min(r === undefined ? 0.02 : r, w / 2, h / 2, d / 2)); }
+    function rboxW(w, h, d, r, amp, seed) { return wobble(roundedBox(w, h, d, 1, Math.min(r, w / 2, h / 2, d / 2)), amp, 3, seed); }
+    L.roundedBox = roundedBox; L.wobble = wobble; L.mergeVertices = mergeVertices; L.rbox = rbox; L.rboxW = rboxW;
+    return L;
+  }
+
   function create(THREE, scene, renderer) {
     var C = root.CFG.COURSE;
     var W = {};
     var SUN_DIR = new THREE.Vector3(0.12, 0.25, 1).normalize();   // 从物体指向太阳
+    var HERO_DESK = { color: '#ffffff', desat: 0 };
+    var DOOR_OPEN = -2.1;
+    var LK = createLook(THREE);
     W.SUN_DIR = SUN_DIR;
 
     /* ---------------- 程序纹理 ---------------- */
     function canvasTex(w, h, draw, repeat) {
       var c = document.createElement('canvas'); c.width = w; c.height = h;
-      var g = c.getContext('2d'); draw(g, w, h);
+      var g = c.getContext('2d', { willReadFrequently: true }); draw(g, w, h);
       var t = new THREE.CanvasTexture(c);
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = 4;
@@ -970,12 +1308,13 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     }
 
     var group = new THREE.Group(); scene.add(group);
+    var tgt = group;
     function box(x0, x1, y0, y1, z0, z1, mat, cast, recv) {
       var g = new THREE.BoxGeometry(Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0));
       var m = new THREE.Mesh(g, mat);
       m.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
       m.castShadow = cast !== false; m.receiveShadow = recv !== false;
-      group.add(m); return m;
+      tgt.add(m); return m;
     }
     // 一段墙：下半截绿墙裙，上半截米白
     function wall(x0, x1, y0, y1, z0, z1) {
@@ -1018,50 +1357,446 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     function tubeLight(x0, x1, y, z) {
       return box(x0, x1, y - 0.05, y, z - 0.04, z + 0.04, M.tube, false, false);
     }
+    function section(name, build, fallback) {
+      var prev = tgt, sub = new THREE.Group(); tgt = sub;
+      try {
+        if (!LK) throw new Error('look.js 不可用');
+        build();
+        tgt = prev; sub.children.slice().forEach(function (o) { tgt.add(o); });
+        return true;
+      } catch (e) {
+        tgt = prev;
+        console.warn('[样板间] ' + name + ' 没搭起来，退回白膜：', e && e.message);
+        if (fallback) fallback();
+        return false;
+      }
+    }
+    function add(geo, mat, x, y, z, opt) {
+      opt = opt || {};
+      var m = new THREE.Mesh(geo, mat); m.position.set(x, y, z);
+      if (opt.ry) m.rotation.y = opt.ry; if (opt.rx) m.rotation.x = opt.rx; if (opt.rz) m.rotation.z = opt.rz;
+      m.castShadow = opt.cast !== false; m.receiveShadow = opt.recv !== false;
+      (opt.parent || tgt).add(m); return m;
+    }
+    function slab(x0, x1, y0, y1, z0, z1, mat, uvScale) {
+      var g = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0);
+      if (uvScale) { var uv = g.attributes.uv; for (var i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * uvScale[0], uv.getY(i) * uvScale[1]); }
+      return add(g, mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    }
+    var TX = {}, MS = {};
+    function sampleSurfaces() {
+      var canvasTex = LK.canvasTex, rnd = LK.rnd, hexA = LK.hexA, shade = LK.shade, painted = LK.painted;
+      TX.wall = canvasTex(1024, 1024, function (g, w, h) {
+        g.fillStyle = PAL.cream; g.fillRect(0, 0, w, h);
+        LK.underpaint(g, w, h, PAL.cream, 3, 60, 220, 0.05);
+        LK.brushPass(g, w, h, PAL.cream, 4, 1100, 170, 38, 0.25, 0.26, 0.6);
+        LK.brushPass(g, w, h, '#fff6e6', 6, 120, 90, 14, 0.2, 0.22, 0.5);
+        var gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,236,205,0.22)'); gr.addColorStop(1, 'rgba(150,130,150,0.10)');
+        g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      }, [2, 1]);
+      TX.mint = canvasTex(1024, 512, function (g, w, h) {
+        g.fillStyle = PAL.mint; g.fillRect(0, 0, w, h);
+        LK.underpaint(g, w, h, PAL.mint, 5, 36, 180, 0.04);
+        LK.brushPass(g, w, h, PAL.mint, 7, 520, 240, 26, 0, 0.16, 0.04);
+        g.fillStyle = PAL.mint; g.fillRect(0, 0, w, 16);
+        g.fillStyle = hexA(PAL.mintDark, 0.30); g.fillRect(0, 0, w, 6);
+        g.fillStyle = 'rgba(30,50,40,0.26)'; g.fillRect(0, h - 14, w, 14);
+      }, [3, 1]);
+      TX.mint.wrapT = THREE.ClampToEdgeWrapping;
+      TX.wall.wrapT = THREE.ClampToEdgeWrapping;
+      TX.frameWood = LK.paintedWood('#8c5a33', 71);
+      TX.ceil = canvasTex(512, 512, function (g, w, h) {
+        g.fillStyle = '#dccbb2'; g.fillRect(0, 0, h, w);
+        LK.underpaint(g, w, h, '#dccbb2', 12, 30, 140, 0.04);
+        LK.brushPass(g, w, h, '#dccbb2', 14, 260, 120, 24, 0, 0.12, 0.4);
+      }, [3, 3]);
+      TX.floor = canvasTex(1024, 1024, function (g, w, h) {
+        var r = rnd(11), rows = 6;
+        for (var i = 0; i < rows; i++) {
+          var y0 = i * h / rows, x = -r() * 300;
+          while (x < w) {
+            var Ln = 260 + r() * 260, c = shade(PAL.floor, (r() - 0.5) * 0.08);
+            g.fillStyle = c; g.fillRect(x, y0, Ln, h / rows);
+            g.strokeStyle = hexA(PAL.floorDark, 0.35); g.lineWidth = 1.2;
+            for (var k = 0; k < 3; k++) {
+              var yy = y0 + 6 + r() * (h / rows - 12), amp = 2 + r() * 4, ph = r() * 6;
+              g.beginPath(); for (var t = 0; t <= Ln; t += 8) g.lineTo(x + t, yy + Math.sin(t / 40 + ph) * amp); g.stroke();
+            }
+            g.fillStyle = hexA('#5a3018', 0.75); g.fillRect(x, y0, 3, h / rows);
+            x += Ln;
+          }
+          g.fillStyle = hexA('#5a3018', 0.8); g.fillRect(0, y0, w, 3);
+        }
+        LK.strokes(g, w, h, PAL.floor, 900, 13, 120, 0.16, 0);
+      }, [4, 4]);
+      MS.wall = painted({ map: TX.wall }); MS.mint = painted({ map: TX.mint, roughness: 0.55 });
+      MS.floor = painted({ map: TX.floor, roughness: 0.78 }); MS.ceil = painted({ map: TX.ceil }); MS.rail = painted({ color: PAL.mintDark, roughness: 0.4 });
+      MS.frame = painted({ map: TX.frameWood, roughness: 0.55 }); MS.white = painted({ color: '#f4efe4' });
+      MS.glass = new THREE.MeshBasicMaterial({ color: '#ffe8c8', transparent: true, opacity: 0.08, depthWrite: false });
+    }
+    function wallRun(axis, a0, a1, fixed, t, h, holes, sill, top, side) {
+      holes = holes || []; sill = sill === undefined ? 0.9 : sill; top = top === undefined ? 2.6 : top;
+      function W(a, b, y0, y1) {
+        if (b - a < 0.01) return;
+        function mk(yy0, yy1, mat) {
+          var uv = [(b - a) / 2.5, (yy1 - yy0) / (mat === MS.mint ? 1.15 : 2.5)];
+          if (axis === 'x') slab(a, b, yy0, yy1, fixed - t / 2, fixed + t / 2, mat, uv);
+          else slab(fixed - t / 2, fixed + t / 2, yy0, yy1, a, b, mat, uv);
+        }
+        var wy = 1.15;
+        if (y0 < wy) mk(y0, Math.min(y1, wy), MS.mint);
+        if (y1 > wy) mk(Math.max(y0, wy), y1, MS.wall);
+      }
+      var cur = a0;
+      holes.forEach(function (hh) { W(cur, hh[0], 0, h); W(hh[0], hh[1], 0, sill); W(hh[0], hh[1], top, h); cur = hh[1]; });
+      W(cur, a1, 0, h);
+      var sd = side || (fixed > 0 ? -1 : 1), segs = [], c0 = a0;
+      holes.forEach(function (hh) { if (sill < 1.16) { segs.push([c0, hh[0]]); c0 = hh[1]; } });
+      segs.push([c0, a1]);
+      segs.forEach(function (sg) {
+        var u0 = sg[0], u1 = sg[1]; if (u1 - u0 < 0.02) return;
+        if (axis === 'x') add(LK.rbox(u1 - u0, 0.05, 0.03, 0.01), MS.rail, (u0 + u1) / 2, 1.16, fixed + sd * (t / 2 + 0.012), { cast: false });
+        else add(LK.rbox(0.03, 0.05, u1 - u0, 0.01), MS.rail, fixed + sd * (t / 2 + 0.012), 1.16, (u0 + u1) / 2, { cast: false });
+      });
+    }
 
     /* ================= 室内 ================= */
     var T = 0.1;
-    // ---- 教室 ----
-    floorSlab(-9.2, -0.1, -3.7, 3.7, M.wood);
-    box(-9.2, -0.1, 3.2, 3.45, -3.7, 3.7, M.ceil);
-    wallX(-3.7, 3.7, -9.1, T, 3.2);                                     // 后墙
-    box(-8.98, -8.96, 1.2, 2.3, -2.6, 1.8, M.poster, false);           // 黑板报
-    wallZ(-9.2, -0.1, -3.6, T, 3.2);                                    // 走廊侧实墙
-    wallZ(-9.2, -0.1, 3.6, T, 3.2, [[-8.2, -6.4], [-5.6, -3.8], [-3.0, -1.2]], 0.9, 2.6);  // 朝院子的窗
-    // 前墙 + 门
-    wallX(-3.7, -0.6, -0.1, T, 3.2); wallX(0.6, 3.7, -0.1, T, 3.2);
-    box(-0.2, 0.0, 2.1, 3.2, -0.6, 0.6, M.wall);
-var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
+    var X0 = -9.2, X1 = -0.1, Z0 = -3.7, Z1 = 3.7, H = 3.2;
+    var WIN = [[-8.2, -6.4], [-5.6, -3.8], [-3.0, -1.2]];
+    var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     function model(id, x, y, z, ry, sc) {
       var m = MD && MD.mesh(THREE, id); if (!m) return null;
-      m.position.set(x, y, z); m.rotation.y = ry || 0; if (sc) m.scale.setScalar(sc); group.add(m); return m;
+      m.position.set(x, y, z); m.rotation.y = ry || 0; if (sc) m.scale.setScalar(sc); tgt.add(m); return m;
     }
-    // 只进阴影、不画出来的替身：实物模型面多，阴影用几个方块代替
     var ghostM = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
-    box(-0.25, -0.18, 1.0, 2.2, -3.2, -1.0, M.board, false);           // 黑板
-    box(-1.4, -0.35, 0, 0.18, -3.4, -0.9, M.concrete);                  // 讲台的台阶
-    model('podium', -0.95, 0.18, -2.15, Math.PI, 0.95);
-    // 课桌椅：两列，中间留过道
-    W.desks = [];
-        [-7.0, -5.6, -4.2, -2.8].forEach(function (x) {
-      [-2.4, -1.5, 1.5, 2.4].forEach(function (z) {
-        var dm = model('desk', x - 0.15, 0, z, 0), mw = dm ? ghostM : M.wood, mm = dm ? ghostM : M.metal;
-        if (dm) dm.castShadow = false;
-        box(x - 0.3, x + 0.3, 0.72, 0.76, z - 0.22, z + 0.22, mw);
-        box(x - 0.28, x - 0.25, 0, 0.72, z - 0.2, z - 0.17, mm, true, false);
-        box(x + 0.25, x + 0.28, 0, 0.72, z + 0.17, z + 0.2, mm, true, false);
-        box(x - 0.6, x - 0.35, 0.42, 0.45, z - 0.17, z + 0.17, mw);
-        box(x - 0.62, x - 0.6, 0.45, 0.85, z - 0.17, z + 0.17, mw);
-        if (dm) group.children.slice(-5).forEach(function (o) { o.receiveShadow = false; });
+    W.sample = {};
+    // ---- 教室：样板间墙、地、天花、窗 ----
+    W.sample.room = section('墙地天花窗', function () {
+      sampleSurfaces();
+      var floor = slab(X0, X1, -0.25, 0, Z0, Z1, MS.floor, [2.2, 1.8]); floor.castShadow = false;
+      slab(X0, X1, H, H + 0.25, Z0, Z1, MS.ceil);
+      wallRun('x', X0, X1, Z1 - 0.1, 0.2, H, WIN, 0.9, 2.6);
+      wallRun('x', X0, X1, Z0 + 0.1, 0.2, H);
+      wallRun('z', Z0, -0.6, -0.1, 0.2, H, [], 0.9, 2.6, -1); wallRun('z', 0.6, Z1, -0.1, 0.2, H, [], 0.9, 2.6, -1);
+      slab(-0.2, 0.0, 2.1, H, -0.6, 0.6, MS.wall, [0.5, 0.45]);
+      wallRun('z', Z0, Z1, X0 + 0.1, 0.2, H);
+      WIN.forEach(function (wn) {
+        var a = wn[0], b = wn[1], z = Z1 - 0.1, fx = (a + b) / 2, fw = b - a;
+        var nc = { cast: false };
+        add(LK.rboxW(fw + 0.16, 0.08, 0.36, 0.03, 0.003, fx * 10), MS.white, fx, 0.9, z - 0.06, nc);
+        [a, b].forEach(function (x, i) { add(LK.rboxW(0.06, 1.72, 0.24, 0.02, 0.002, fx * 10 + i), MS.white, x + (i ? -0.03 : 0.03), 1.75, z - 0.02, nc); });
+        add(LK.rboxW(fw, 0.06, 0.24, 0.02, 0.002, fx * 10 + 3), MS.white, fx, 2.59, z - 0.02, nc);
+        [a, b].forEach(function (x) { add(LK.rbox(0.09, 1.72, 0.14, 0.02), MS.frame, x + (x === a ? 0.07 : -0.07), 1.75, z + 0.06, nc); });
+        add(LK.rbox(fw, 0.09, 0.14, 0.02), MS.frame, fx, 2.53, z + 0.06, nc); add(LK.rbox(fw, 0.08, 0.14, 0.02), MS.frame, fx, 0.98, z + 0.06, nc);
+        add(LK.rbox(fw, 0.055, 0.1, 0.015), MS.frame, fx, 2.05, z + 0.06, nc);
+        for (var k = 1; k < 3; k++) add(LK.rbox(0.055, 1.6, 0.1, 0.015), MS.frame, a + fw * k / 3, 1.75, z + 0.06, nc);
+        add(new THREE.PlaneGeometry(fw, 1.7), MS.glass, fx, 1.75, z + 0.09, { ry: Math.PI, cast: false, recv: false });
       });
+    }, function () {
+      floorSlab(-9.2, -0.1, -3.7, 3.7, M.wood);
+      box(-9.2, -0.1, 3.2, 3.45, -3.7, 3.7, M.ceil);
+      wallX(-3.7, 3.7, -9.1, T, 3.2);
+      wallZ(-9.2, -0.1, -3.6, T, 3.2);
+      wallZ(-9.2, -0.1, 3.6, T, 3.2, WIN, 0.9, 2.6);
+      wallX(-3.7, -0.6, -0.1, T, 3.2); wallX(0.6, 3.7, -0.1, T, 3.2);
+      box(-0.2, 0.0, 2.1, 3.2, -0.6, 0.6, M.wall);
     });
-    // 孩子自己的桌子在最后面、正中
-    if (!model('desk', -7.15, 0, 0, 0)) {
+    // ---- 课桌椅、讲台：17 张课桌同盖程序圆角木桌面板，阴影替身下移 1 cm ----
+    W.desks = [];
+    W.sample.desks = section('课桌椅讲台', function () {
+      if (!MD || !MD.has('desk')) throw new Error('没有课桌模型数据');
+      var deskTopTex = LK.paintedWood(PAL.deskTop, 41);
+      (function () {
+        var c = deskTopTex.image, g = c.getContext('2d'), w = c.width, h = c.height, r = LK.rnd(47), i, x, y;
+        g.fillStyle = PAL.deskTop;
+        g.fillRect(0, 0, 26, h); g.fillRect(w - 26, 0, 26, h);
+        LK.underpaint(g, w, h, PAL.deskTop, 43, 12, 110, 0.04);
+        g.lineCap = 'round';
+        for (i = 0; i < 64; i++) {
+          x = 12 + r() * (w - 24);
+          var dark = r() < 0.65;
+          g.strokeStyle = LK.hexA(LK.shade(PAL.deskTop, dark ? -0.07 - r() * 0.04 : 0.04 + r() * 0.03), 0.16 + r() * 0.14);
+          g.lineWidth = 0.8 + r() * 1.4;
+          var amp = 1.2 + r() * 2.5, ph = r() * 6.28;
+          g.beginPath();
+          for (y = 0; y <= h; y += 16) {
+            var xx = x + Math.sin(y / 90 + ph) * amp;
+            if (y === 0) g.moveTo(xx, y); else g.lineTo(xx, y);
+          }
+          g.stroke();
+        }
+        var edgeDark = LK.shade(PAL.deskTop, -0.13), edgeInner = LK.shade(PAL.deskTop, -0.08);
+        g.save();
+        g.strokeStyle = LK.hexA(edgeDark, 0.72); g.lineWidth = 22;
+        g.beginPath(); LK.rrect(g, 7, 7, w - 14, h - 14, 28); g.stroke();
+        g.strokeStyle = LK.hexA(edgeInner, 0.38); g.lineWidth = 10;
+        g.beginPath(); LK.rrect(g, 20, 20, w - 40, h - 40, 22); g.stroke();
+        g.restore();
+        deskTopTex.needsUpdate = true;
+      })();
+      var deskTopM = LK.painted({ map: deskTopTex, roughness: 0.68, metalness: 0 });
+      var deskTopGeo = (function () {
+        var raw = LK.rbox(0.45, 0.024, 0.625, 0.008);
+        var P = raw.attributes.position, N = raw.attributes.normal, U = raw.attributes.uv;
+        var pos = [], nor = [], uv = [];
+        for (var i = 0; i < P.count; i += 3) {
+          if (P.getY(i) <= 0.001 || P.getY(i + 1) <= 0.001 || P.getY(i + 2) <= 0.001) continue;
+          for (var k = 0; k < 3; k++) {
+            var idx = i + k, py = P.getY(idx);
+            pos.push(P.getX(idx), py < 0.006 ? -0.012 : py, P.getZ(idx));
+            nor.push(N.getX(idx), N.getY(idx), N.getZ(idx));
+            uv.push(U.getX(idx), U.getY(idx));
+          }
+        }
+        var g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+        g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+        g.computeBoundingSphere(); g.computeBoundingBox();
+        return g;
+      })();
+      var DESK_TOP = C.DESK.top || 0.76;
+      function addDeskBoard(x, z, mat) {
+        var b = new THREE.Mesh(deskTopGeo, mat || deskTopM);
+        b.position.set(x + 0.032, DESK_TOP - 0.012, z - 0.008);
+        b.castShadow = false; b.receiveShadow = true;
+        tgt.add(b);
+        return b;
+      }
+      var hero = model('desk', C.DESK.x - 0.15, 0, C.DESK.z, 0);
+      if (!hero) throw new Error('课桌模型解码失败');
+      var ray = new THREE.Raycaster(new THREE.Vector3(C.DESK.x, 2, C.DESK.z), new THREE.Vector3(0, -1, 0));
+      hero.updateMatrixWorld(true);
+      var hit = ray.intersectObject(hero)[0];
+      var SY = hit ? (DESK_TOP - 0.018) / hit.point.y : 1;
+      hero.scale.y = SY; hero.updateMatrixWorld(true);
+      W.heroDeskTop = DESK_TOP;
+      var heroBoardM = deskTopM;
+      if (HERO_DESK.color.toLowerCase() !== '#ffffff' || HERO_DESK.desat > 0) {
+        var hm = hero.material.clone(); hm.color.set(HERO_DESK.color);
+        heroBoardM = deskTopM.clone(); heroBoardM.color.set(HERO_DESK.color);
+        if (HERO_DESK.desat > 0) {
+          var desatFn = function (sh) {
+            sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>',
+              'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(dot(gl_FragColor.rgb, vec3(0.3,0.59,0.11))), ' + HERO_DESK.desat.toFixed(3) + ');\n#include <dithering_fragment>');
+          };
+          hm.onBeforeCompile = desatFn; heroBoardM.onBeforeCompile = desatFn;
+        }
+        hero.material = hm;
+      }
+      addDeskBoard(C.DESK.x, C.DESK.z, heroBoardM);
+      box(C.DESK.x - 0.35, C.DESK.x + 0.35, 0.71, DESK_TOP - 0.01, C.DESK.z - 0.28, C.DESK.z + 0.28, ghostM, true, false);
+      box(C.DESK.x - 0.33, C.DESK.x - 0.3, 0, 0.71, C.DESK.z - 0.25, C.DESK.z + 0.25, ghostM, true, false);
+      box(C.DESK.x + 0.3, C.DESK.x + 0.33, 0, 0.71, C.DESK.z - 0.25, C.DESK.z + 0.25, ghostM, true, false);
+      hero.castShadow = false; hero.userData.dynamic = true;
+      [-7.0, -5.6, -4.2, -2.8].forEach(function (x) {
+        [-2.4, -1.5, 1.5, 2.4].forEach(function (z) {
+          var dm = model('desk', x - 0.15, 0, z, 0); if (!dm) throw new Error('课桌模型解码失败');
+          dm.scale.y = SY; dm.castShadow = false; dm.userData.dynamic = true;
+          addDeskBoard(x, z, deskTopM);
+          box(x - 0.3, x + 0.3, 0.71, DESK_TOP - 0.01, z - 0.22, z + 0.22, ghostM, true, false);
+          box(x - 0.28, x - 0.25, 0, 0.71, z - 0.2, z - 0.17, ghostM, true, false);
+          box(x + 0.25, x + 0.28, 0, 0.71, z + 0.17, z + 0.2, ghostM, true, false);
+          box(x - 0.6, x - 0.35, 0.42, 0.45, z - 0.17, z + 0.17, ghostM, true, false);
+          box(x - 0.62, x - 0.6, 0.45, 0.85, z - 0.17, z + 0.17, ghostM, true, false);
+          W.desks.push(dm);
+        });
+      });
+      box(-1.4, -0.35, 0, 0.18, -3.4, -0.9, M.concrete);
+      model('podium', -0.95, 0.18, -2.15, Math.PI, 0.95);
+    }, function () {
+      W.desks = [];
+      [-7.0, -5.6, -4.2, -2.8].forEach(function (x) {
+        [-2.4, -1.5, 1.5, 2.4].forEach(function (z) {
+          box(x - 0.3, x + 0.3, 0.72, 0.76, z - 0.22, z + 0.22, M.wood);
+          box(x - 0.28, x - 0.25, 0, 0.72, z - 0.2, z - 0.17, M.metal, true, false);
+          box(x + 0.25, x + 0.28, 0, 0.72, z + 0.17, z + 0.2, M.metal, true, false);
+          box(x - 0.6, x - 0.35, 0.42, 0.45, z - 0.17, z + 0.17, M.wood);
+          box(x - 0.62, x - 0.6, 0.45, 0.85, z - 0.17, z + 0.17, M.wood);
+        });
+      });
       box(-7.35, -6.65, 0.72, 0.76, -0.28, 0.28, M.wood);
       box(-7.33, -7.3, 0, 0.72, -0.25, 0.25, M.metal); box(-6.7, -6.67, 0, 0.72, -0.25, 0.25, M.metal);
-    }
-    tubeLight(-8.2, -6.6, 3.18, -1.2); tubeLight(-8.2, -6.6, 3.18, 1.2);
-    tubeLight(-4.6, -3.0, 3.18, -1.2); tubeLight(-4.6, -3.0, 3.18, 1.2);
+      box(-1.4, -0.35, 0, 0.18, -3.4, -0.9, M.concrete);
+      W.heroDeskTop = C.DESK.top || 0.76;
+    });
+    // ---- 纸下软影（桌面上纸飞机的暖灰接触软影，离开桌面自动淡出） ----
+    var PS = null;
+    W.sample.paperShadow = section('纸下软影', function () {
+      function soft(draw) {
+        return LK.canvasTex(256, 128, function (g, w, h) {
+          g.fillStyle = '#fff';
+          if ('filter' in g) { g.filter = 'blur(4px)'; draw(g, w, h); }
+          else { g.shadowColor = '#fff'; g.shadowBlur = 8; g.shadowOffsetX = 1000; g.translate(-1000, 0); draw(g, w, h); }
+        });
+      }
+      TX.planeShadow = soft(function (g, w, h) {
+        g.beginPath(); g.moveTo(w * 0.94, h * 0.5); g.lineTo(w * 0.06, h * 0.08); g.lineTo(w * 0.18, h * 0.5); g.lineTo(w * 0.06, h * 0.92); g.closePath(); g.fill();
+      });
+      var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: TX.planeShadow, color: '#4a3d33', transparent: true, opacity: 0.42, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -0.2, polygonOffsetUnits: -1 }));
+      m.rotation.order = 'XYZ'; m.rotation.x = -Math.PI / 2; m.renderOrder = 1; m.visible = false; m.userData.dynamic = true; m.castShadow = m.receiveShadow = false;
+      tgt.add(m); PS = m; W.paperShadow = m;
+    });
+    var psInv = new THREE.Matrix4(), psYaw = new THREE.Matrix4(), psV = new THREE.Vector3();
+    W.look = function (camera, plane) {
+      if (!PS || !plane || !plane.mesh || !plane.rig) return;
+      var rig = plane.rig, mesh = plane.mesh, top = W.heroDeskTop || C.DESK.top || 0.76;
+      if (!rig.visible || !mesh.visible || Math.abs(rig.position.x - C.DESK.x) > 0.6 || Math.abs(rig.position.z - C.DESK.z) > 0.6 || rig.position.y - top > 0.4) { PS.visible = false; return; }
+      rig.updateMatrixWorld(true);
+      var yaw = rig.rotation.y;
+      psYaw.makeRotationY(yaw).setPosition(rig.position.x, 0, rig.position.z); psInv.copy(psYaw).invert();
+      var P = mesh.geometry.attributes.position, n = Math.min(P.count, mesh.geometry.drawRange.count);
+      var x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, y0 = 1e9;
+      for (var i = 0; i < n; i++) {
+        psV.fromBufferAttribute(P, i).applyMatrix4(mesh.matrixWorld);
+        if (psV.y < y0) y0 = psV.y;
+        psV.y = 0; psV.applyMatrix4(psInv);
+        if (psV.x < x0) x0 = psV.x; if (psV.x > x1) x1 = psV.x; if (psV.z < z0) z0 = psV.z; if (psV.z > z1) z1 = psV.z;
+      }
+      var fade = n ? Math.max(0, Math.min(1, 1 - (y0 - top) / 0.12)) : 0;
+      PS.visible = fade > 0.01; if (!PS.visible) return;
+      PS.material.opacity = 0.42 * fade;
+      psV.set((x0 + x1) / 2, 0, (z0 + z1) / 2).applyMatrix4(psYaw);
+      var py = Math.max(top + 0.0002, Math.min(top + 0.00035, y0 - 0.0005));
+      PS.position.set(psV.x, py, psV.z); PS.rotation.z = yaw;
+      PS.scale.set((x1 - x0) * 1.14, (z1 - z0) * 1.2, 1);
+    };
+    // ---- 日光灯、广播大喇叭、吊扇、天花水渍 ----
+    var LAMP = { tube: null };
+    W.sample.lamps = section('灯和喇叭', function () {
+      var canvasTex = LK.canvasTex, rnd = LK.rnd, painted = LK.painted, pc = LK.paintedC, rbox = LK.rbox, rboxW = LK.rboxW;
+      var loose = [];
+      function part(geo, mat, x, y, z, parent, opt) { var m = add(geo, mat, x, y, z, Object.assign({ parent: parent }, opt || {})); loose.push(m); return m; }
+      var lampHood = pc({ color: '#efe8da', roughness: 0.4, metalness: 0.1 }), lampIn = pc({ color: '#d9cfbd', roughness: 0.6 });
+      var tubeMat = painted({ color: '#f7f2e6', roughness: 0.25, emissive: '#fff4dd', emissiveIntensity: 0.08 }), capMat = pc({ color: '#9a958c', metalness: 0.4, roughness: 0.4 });
+      LAMP.tube = tubeMat;
+      [[-7.4, -1.2], [-7.4, 1.2], [-3.8, -1.2], [-3.8, 1.2]].forEach(function (q, i) {
+        var x = q[0], z = q[1], y = H - 0.36, o = { cast: false };
+        [-0.45, 0.45].forEach(function (dx) { add(new THREE.CylinderGeometry(0.006, 0.006, 0.34, 6), capMat, x + dx, H - 0.18, z, o); });
+        add(rboxW(1.34, 0.05, 0.22, 0.02, 0.002, 400 + i), lampHood, x, y + 0.03, z, o);
+        [-1, 1].forEach(function (sd) { add(rboxW(1.34, 0.05, 0.02, 0.008, 0.001, 410 + i), lampHood, x, y, z + sd * 0.1, { cast: false, rx: sd * 0.5 }); });
+        add(rbox(1.3, 0.008, 0.16, 0.003), lampIn, x, y + 0.004, z, o);
+        [-0.035, 0.035].forEach(function (dz) { add(new THREE.CylinderGeometry(0.014, 0.014, 1.2, 8), tubeMat, x, y - 0.02, z + dz, { cast: false, rz: Math.PI / 2 }); });
+        [-0.62, 0.62].forEach(function (dx) { add(rbox(0.05, 0.05, 0.14, 0.01), capMat, x + dx, y - 0.015, z, o); });
+      });
+      var horn = new THREE.Group(); horn.position.set(X1 - 0.34, 2.72, -3.25); horn.rotation.set(0, 0.35, Math.PI / 2 + 0.3);
+      var hornMat = pc({ color: '#ece4d2', roughness: 0.45, metalness: 0.2, side: THREE.DoubleSide });
+      var bell = []; for (var i = 0; i <= 16; i++) { var t = i / 16; bell.push(new THREE.Vector2(0.035 + 0.15 * Math.pow(t, 2.2), t * 0.32)); }
+      part(new THREE.LatheGeometry(bell, 16), hornMat, 0, 0, 0, horn, { cast: false });
+      part(new THREE.TorusGeometry(0.185, 0.012, 6, 16), hornMat, 0, 0.32, 0, horn, { rx: Math.PI / 2, cast: false });
+      part(new THREE.CylinderGeometry(0.06, 0.07, 0.12, 12), pc({ color: '#8e8778', roughness: 0.5, metalness: 0.4 }), 0, -0.05, 0, horn, { cast: false });
+      part(new THREE.CylinderGeometry(0.07, 0.07, 0.02, 12), pc({ color: '#6f6a60', metalness: 0.5, roughness: 0.4 }), 0, -0.11, 0, horn, { cast: false });
+      var iron = pc({ color: '#5b5f63', metalness: 0.6, roughness: 0.4 });
+      add(rbox(0.03, 0.03, 0.26, 0.008), iron, X1 - 0.22, 2.74, -3.25, { ry: Math.PI / 2, cast: false });
+      add(rbox(0.12, 0.16, 0.02, 0.006), iron, X1 - 0.16, 2.74, -3.25, { ry: Math.PI / 2, cast: false });
+      add(new THREE.CylinderGeometry(0.004, 0.004, 0.9, 6), pc({ color: '#2d2a30' }), X1 - 0.18, 2.3, -3.4, { cast: false });
+      var fm = pc({ color: '#e9e2d0', roughness: 0.45, metalness: 0.2 });
+      [[-6.1, 0], [-2.6, 0]].forEach(function (q, k) {
+        var f = new THREE.Group(); f.position.set(q[0], H - 0.55, q[1]); f.rotation.y = k * 0.7;
+        part(new THREE.CylinderGeometry(0.014, 0.014, 0.5, 8), fm, 0, 0.28, 0, f, { cast: false });
+        part(LK.wobble(LK.mergeVertices(new THREE.SphereGeometry(0.11, 12, 8)), 0.003, 3, 500 + k), fm, 0, 0, 0, f, { cast: false }).scale.set(1, 0.55, 1);
+        for (var b = 0; b < 3; b++) {
+          var blade = part(rboxW(0.55, 0.012, 0.11, 0.01, 0.002, 510 + b + k * 3), fm, 0, -0.01, 0, f, { cast: false });
+          blade.geometry.translate(0.34, 0, 0); blade.rotation.set(0.12, b * 2.094, -0.05);
+        }
+      });
+      loose.forEach(function (m) { m.updateMatrixWorld(true); tgt.attach(m); });
+      TX.stain = canvasTex(256, 256, function (g, w) {
+        var r = rnd(123);
+        for (var k = 0; k < 9; k++) {
+          var x = 128 + (r() - 0.5) * 90, y = 128 + (r() - 0.5) * 70, rr = 30 + r() * 50;
+          var gr = g.createRadialGradient(x, y, rr * 0.6, x, y, rr); gr.addColorStop(0, 'rgba(170,130,90,0.10)'); gr.addColorStop(0.92, 'rgba(150,110,80,0.22)'); gr.addColorStop(1, 'rgba(150,110,80,0)');
+          g.fillStyle = gr; g.beginPath(); g.arc(x, y, rr, 0, 6.283); g.fill();
+        }
+      });
+      add(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({ map: TX.stain, transparent: true, depthWrite: false }), -4.6, H - 0.002, 2.4, { rx: Math.PI / 2, cast: false, recv: false });
+    }, function () {
+      tubeLight(-8.2, -6.6, 3.18, -1.2); tubeLight(-8.2, -6.6, 3.18, 1.2);
+      tubeLight(-4.6, -3.0, 3.18, -1.2); tubeLight(-4.6, -3.0, 3.18, 1.2);
+    });
+    // ---- 开着的门、黑板、圆钟、黑板报、海报 ----
+    W.sample.front = section('门黑板', function () {
+      var canvasTex = LK.canvasTex, rnd = LK.rnd, painted = LK.painted, pc = LK.paintedC, rbox = LK.rbox, rboxW = LK.rboxW;
+      function poster(seed, hue) {
+        return canvasTex(256, 360, function (g, w, h) {
+          g.fillStyle = '#f7efdc'; g.fillRect(0, 0, w, h);
+          g.fillStyle = 'hsl(' + hue + ',55%,62%)'; g.fillRect(14, 14, w - 28, h * 0.55);
+          g.fillStyle = '#fff6e0'; g.beginPath(); g.arc(w / 2, h * 0.3, 46, 0, 6.283); g.fill();
+          var r = rnd(seed); g.fillStyle = 'hsl(' + hue + ',40%,45%)';
+          for (var i = 0; i < 4; i++) g.fillRect(24, h * 0.66 + i * 26, (w - 48) * (0.5 + r() * 0.5), 10);
+        });
+      }
+      TX.board = canvasTex(2048, 768, function (g, w, h) {
+        g.fillStyle = PAL.board; g.fillRect(0, 0, w, h);
+        var r = rnd(31), i;
+        for (i = 0; i < 70; i++) {
+          g.strokeStyle = 'rgba(230,236,226,' + (0.025 + r() * 0.04) + ')'; g.lineWidth = 30 + r() * 50;
+          var x = r() * w, y = r() * h; g.beginPath(); g.arc(x, y, 60 + r() * 140, r() * 6, r() * 6 + 1.2); g.stroke();
+        }
+        var chalk = function (lw, a) { g.strokeStyle = 'rgba(246,242,230,' + a + ')'; g.lineWidth = lw; g.lineCap = 'round'; };
+        chalk(9, 0.88); if (g.setLineDash) g.setLineDash([46, 26]);
+        g.beginPath(); g.moveTo(w * 0.16, h * 0.68); g.bezierCurveTo(w * 0.38, h * 0.08, w * 0.66, h * 0.12, w * 0.86, h * 0.6); g.stroke();
+        if (g.setLineDash) g.setLineDash([]); chalk(7, 0.9);
+        g.beginPath(); g.moveTo(w * 0.86 - 34, h * 0.6 - 30); g.lineTo(w * 0.86, h * 0.6); g.lineTo(w * 0.86 - 46, h * 0.6 + 6); g.stroke();
+        var px = w * 0.12, py = h * 0.74; chalk(6, 0.92);
+        g.beginPath(); g.moveTo(px + 70, py - 26); g.lineTo(px - 50, py - 6); g.lineTo(px - 20, py + 4); g.closePath(); g.stroke();
+        g.beginPath(); g.moveTo(px + 70, py - 26); g.lineTo(px - 20, py + 4); g.lineTo(px - 34, py + 26); g.stroke();
+        chalk(5, 0.7); g.beginPath(); g.moveTo(w * 0.08, h * 0.88); g.lineTo(w * 0.94, h * 0.88); g.stroke();
+        g.font = '84px "Kaiti SC","STKaiti","KaiTi",serif'; g.fillStyle = 'rgba(246,242,230,0.82)'; g.textBaseline = 'top';
+        g.save(); g.translate(w * 0.035, h * 0.07); g.rotate(-0.012); g.fillText('设计与改进纸飞机', 0, 0); g.restore();
+        for (i = 0; i < 900; i++) { g.fillStyle = 'rgba(61,90,80,' + (0.25 + r() * 0.35) + ')'; g.fillRect(w * 0.03 + r() * w * 0.36, h * 0.06 + r() * 120, 1 + r() * 3, 1 + r() * 2); }
+        for (i = 0; i < 400; i++) { g.fillStyle = 'rgba(240,240,230,' + (r() * 0.06) + ')'; g.fillRect(r() * w, r() * h, 2, 2); }
+      });
+      MS.board = painted({ map: TX.board, roughness: 0.9 });
+      var BX = X1 - 0.13;
+      var nc = { cast: false };
+      add(rbox(0.04, 1.2, 3.0, 0.01), MS.board, BX, 1.65, -2.1, nc);
+      add(rbox(0.06, 1.32, 3.12, 0.02), MS.frame, BX + 0.012, 1.65, -2.1, nc);
+      add(rbox(0.12, 0.04, 3.1, 0.015), MS.frame, BX - 0.05, 1.03, -2.1, nc);
+      add(rbox(0.05, 0.02, 0.09, 0.008), MS.white, BX - 0.06, 1.06, -1.4, { ry: 0.3, cast: false });
+      add(rbox(0.06, 0.035, 0.13, 0.01), pc({ color: '#7b5ea8' }), BX - 0.06, 1.07, -2.8, nc);
+      add(new THREE.CylinderGeometry(0.17, 0.17, 0.05, 24), MS.white, X1 - 0.16, 2.62, 0.95, { rz: Math.PI / 2, cast: false });
+      add(new THREE.TorusGeometry(0.17, 0.02, 6, 24), pc({ color: '#3d3550' }), X1 - 0.17, 2.62, 0.95, { ry: Math.PI / 2, cast: false });
+      add(rbox(0.01, 0.1, 0.012, 0.004), MS.metal || pc({ color: PAL.metal, roughness: 0.45, metalness: 0.15 }), X1 - 0.2, 2.65, 0.95, { cast: false });
+      add(rbox(0.01, 0.012, 0.08, 0.004), MS.metal || pc({ color: PAL.metal, roughness: 0.45, metalness: 0.15 }), X1 - 0.2, 2.62, 0.98, { cast: false });
+      TX.doorPaint = LK.paintedWood('#4f7d68', 81);
+      var door = new THREE.Group(); door.position.set(X1 - 0.05, 0, 0.6); tgt.add(door);
+      var doorMat = painted({ map: TX.doorPaint, roughness: 0.5 }), brass = pc({ color: '#c9b27a', roughness: 0.3, metalness: 0.7 });
+      add(rboxW(0.05, 2.08, 1.15, 0.02, 0.002, 91), doorMat, 0, 1.04, -0.58, { parent: door });
+      add(rboxW(0.07, 0.56, 0.5, 0.02, 0.001, 92), MS.frame, 0, 1.62, -0.58, { parent: door, cast: false });
+      add(rbox(0.075, 0.46, 0.4, 0.01), pc({ color: '#d8e0d6', roughness: 0.2, metalness: 0.1 }), 0, 1.62, -0.58, { parent: door, cast: false });
+      add(rboxW(0.06, 0.2, 1.05, 0.01, 0.001, 93), pc({ color: '#a7a39a', roughness: 0.35, metalness: 0.6 }), 0, 0.12, -0.58, { parent: door, cast: false });
+      [-1, 1].forEach(function (sd) {
+        add(new THREE.SphereGeometry(0.03, 8, 6), brass, sd * 0.06, 1.0, -1.03, { parent: door, cast: false });
+        add(rbox(0.05, 0.12, 0.03, 0.01), brass, sd * 0.03, 1.0, -1.03, { parent: door, cast: false });
+      });
+      door.rotation.y = DOOR_OPEN;
+      door.updateMatrixWorld(true); door.children.slice().forEach(function (o) { tgt.attach(o); }); tgt.remove(door);
+      [-0.66, 0.66].forEach(function (zz) { add(rboxW(0.14, 2.2, 0.1, 0.02, 0.002, 95 + zz), MS.frame, X1 - 0.12, 1.1, zz, nc); });
+      add(rboxW(0.14, 0.12, 1.42, 0.02, 0.002, 97), MS.frame, X1 - 0.12, 2.15, 0, nc);
+      add(rbox(0.3, 0.03, 1.3, 0.01), pc({ color: '#8f8a7e', roughness: 0.6 }), X1 - 0.05, 0.015, 0, nc);
+      TX.news = canvasTex(1536, 420, function (g, w, h) {
+        g.fillStyle = PAL.board; g.fillRect(0, 0, w, h);
+        var r = rnd(97), cols = ['#f6c86b', '#f08f7a', '#9fd3c7', '#c7b3f0', '#f6f2e6'], i, x;
+        var chalk = function (c, lw) { g.strokeStyle = c; g.fillStyle = c; g.lineWidth = lw; g.lineCap = 'round'; };
+        chalk(cols[0], 8); g.beginPath(); g.arc(160, 150, 70, 0, 6.283); g.stroke();
+        for (i = 0; i < 10; i++) { var a = i * 0.628; g.beginPath(); g.moveTo(160 + Math.cos(a) * 92, 150 + Math.sin(a) * 92); g.lineTo(160 + Math.cos(a) * 120, 150 + Math.sin(a) * 120); g.stroke(); }
+        chalk(cols[2], 7); g.beginPath(); g.moveTo(330, 320); g.lineTo(430, 200); g.lineTo(530, 320); g.closePath(); g.stroke();
+        g.strokeRect(350, 320, 160, 70);
+        chalk(cols[4], 6); if (g.setLineDash) g.setLineDash([24, 16]); g.beginPath(); g.moveTo(600, 330); g.bezierCurveTo(760, 60, 980, 80, 1120, 300); g.stroke(); if (g.setLineDash) g.setLineDash([]);
+        chalk(cols[1], 7); [[1260, 140], [1360, 230], [1220, 300]].forEach(function (q) { g.beginPath(); for (var k = 0; k < 10; k++) { var a2 = k * 0.628 - 1.57, rr = k % 2 ? 22 : 50; g.lineTo(q[0] + Math.cos(a2) * rr, q[1] + Math.sin(a2) * rr); } g.closePath(); g.stroke(); });
+        chalk(cols[3], 10); g.beginPath(); g.moveTo(20, 30); for (x = 20; x < w; x += 40) g.lineTo(x, 26 + Math.sin(x / 30) * 8); g.stroke();
+        g.beginPath(); g.moveTo(20, h - 26); for (x = 20; x < w; x += 40) g.lineTo(x, h - 30 + Math.sin(x / 30) * 8); g.stroke();
+        for (i = 0; i < 500; i++) { g.fillStyle = 'rgba(240,240,230,' + (r() * 0.05) + ')'; g.fillRect(r() * w, r() * h, 3, 3); }
+      });
+      add(rboxW(0.04, 1.2, 4.3, 0.02, 0.002, 98), painted({ map: TX.news, roughness: 0.9 }), X0 + 0.22, 1.85, 0, nc);
+      add(rboxW(0.06, 1.3, 4.4, 0.02, 0.002, 99), MS.frame, X0 + 0.2, 1.85, 0, nc);
+      [-7.6, -5.2, -2.6].forEach(function (x, i) { add(new THREE.PlaneGeometry(0.46, 0.64), new THREE.MeshStandardMaterial({ map: poster(30 + i, [12, 150, 45][i]), roughness: 0.9 }), x, 1.85, Z0 + 0.21, { cast: false }); });
+    }, function () {
+      box(-8.98, -8.96, 1.2, 2.3, -2.6, 1.8, M.poster, false);
+      box(-0.25, -0.18, 1.0, 2.2, -3.2, -1.0, M.board, false);
+    });
 
     // ---- 走廊 ----
     floorSlab(-0.1, 6.0, -1.3, 1.3);
@@ -1120,8 +1855,8 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     // ---- 湿走廊 + 尽头 ----
     var wetSlab = box(13.6, 15.4, -0.25, 0, 1.2, 7.4, tiled(M.wet, 1.8 / 1.6, 6.2 / 1.6), false, true);
     floorSlab(13.6, 15.4, 7.4, 12.0);
-    wallX(1.2, 12.3, 13.5, T, 3.0, [[4.2, 5.6], [7.4, 8.8]], 0.95, 2.4);
-    wallX(1.2, 12.3, 15.5, T, 3.0);
+    wallX(1.2, 12.0, 13.5, T, 3.0, [[4.2, 5.6], [7.4, 8.8]], 0.95, 2.4);
+    wallX(1.2, 12.0, 15.5, T, 3.0);
     // 尽头的窗
     box(13.4, 13.9, 0, 3.0, 12.0, 12.3, M.wall); box(15.1, 15.6, 0, 3.0, 12.0, 12.3, M.wall);
     box(13.9, 15.1, 0, 0.9, 12.0, 12.3, M.dado); box(13.9, 15.1, 2.3, 3.0, 12.0, 12.3, M.wall);
@@ -1139,7 +1874,8 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     sign.position.set(15.05, 0, 1.6); sign.rotation.y = Math.PI; sign.traverse(function (o) { o.castShadow = true; });
     sign.userData.dynamic = true; group.add(sign);
     // 拖把桶
-    if (!model('mop', 13.95, 0, -0.85, 0.6, 0.85)) {
+    var mopM = model('mop', 13.95, 0, -0.85, 0.6, 0.85);
+    if (mopM) { mopM.castShadow = false; } else {
       var bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 0.3, 16), new THREE.MeshStandardMaterial({ color: 0x3f7fb0, roughness: 0.5 }));
       bucket.position.set(13.8, 0.15, -1.0); bucket.castShadow = true; group.add(bucket);
       var mop = box(13.72, 13.75, 0.2, 1.4, -0.85, -0.82, M.trunk);
@@ -1165,14 +1901,15 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     // 院子
     var ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), M.ground);
     ground.rotation.x = -Math.PI / 2; ground.position.y = GY - 0.01; ground.receiveShadow = true; group.add(ground);
-    box(-10, 40, GY, GY + 0.35, 12.3, 13.6, M.concrete);                 // 花坛沿
+    box(-10, 40, GY, GY + 0.35, 12.3, 13.6, M.concrete, false, true);                 // 花坛沿
     for (var i = 0; i < 26; i++) {
       var bush = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), i % 2 ? M.leaf : M.leaf2);
-      bush.position.set(-9 + i * 1.9, GY + 0.55, 12.95); bush.scale.set(1.2, 0.75, 0.9); bush.castShadow = true; bush.receiveShadow = true; group.add(bush);
+      bush.position.set(-9 + i * 1.9, GY + 0.55, 12.95); bush.scale.set(1.2, 0.75, 0.9); bush.castShadow = false; bush.receiveShadow = true; group.add(bush);
     }
+    var trees = [];
     function tree(x, z, s) {
       var tm = model('tree', x, GY, z, x * 1.7, s * 0.8);
-      if (tm) { tm.userData.dynamic = true; return; }      // 不并进大网格，才能各自被视锥剔除
+      if (tm) { tm.userData.dynamic = true; trees.push(tm); return; }      // 不并进大网格，才能各自被视锥剔除
       var t = new THREE.Group();
       var tr = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 3.2 * s, 7), M.trunk);
       tr.position.y = 1.6 * s; t.add(tr);
@@ -1182,20 +1919,20 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         t.add(cr);
       }
       t.traverse(function (o) { o.castShadow = true; o.receiveShadow = true; });
-      t.position.set(x, GY, z); group.add(t);
+      t.position.set(x, GY, z); group.add(t); trees.push(t);
     }
     tree(6, 17, 1.2); tree(24, 16, 1.4); tree(2, 24, 1.1); tree(28, 25, 1.3); tree(-6, 18, 1.3);
     // 校门：两根门柱 + 铁栅栏
-    box(10.5, 11.3, GY, GY + 2.6, 26.6, 27.4, M.concrete); box(17.7, 18.5, GY, GY + 2.6, 26.6, 27.4, M.concrete);
+    box(10.5, 11.3, GY, GY + 2.6, 26.6, 27.4, M.concrete, false, true); box(17.7, 18.5, GY, GY + 2.6, 26.6, 27.4, M.concrete, false, true);
     for (var fx = -30; fx < 60; fx += 0.35) {
       if (fx > 11.3 && fx < 17.7) continue;
-      box(fx, fx + 0.04, GY, GY + 1.8, 26.98, 27.02, M.metal, true, false);
+      box(fx, fx + 0.04, GY, GY + 1.8, 26.98, 27.02, M.metal, false, false);
     }
-    box(-30, 10.5, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal); box(18.5, 60, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal);
+    box(-30, 10.5, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal, false, false); box(18.5, 60, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal, false, false);
     // 路灯（傍晚会亮）
     W.lamps = [];
     [[9.5, 29], [20, 29], [-4, 29], [32, 29]].forEach(function (p) {
-      box(p[0] - 0.06, p[0] + 0.06, GY, GY + 4.2, p[1] - 0.06, p[1] + 0.06, M.metal);
+      box(p[0] - 0.06, p[0] + 0.06, GY, GY + 4.2, p[1] - 0.06, p[1] + 0.06, M.metal, false, false);
       var head = box(p[0] - 0.25, p[0] + 0.25, GY + 4.1, GY + 4.25, p[1] - 0.15, p[1] + 0.15, M.lampGlow, false, false);
       W.lamps.push(head);
     });
@@ -1225,8 +1962,8 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       // 每一面按楼的大小铺窗，免得窗户被拉长
       var uv = geo.attributes.uv; for (var ui = 0; ui < uv.count; ui++) uv.setXY(ui, uv.getX(ui) * bw / 14, uv.getY(ui) * bh / 18);
       var bm = new THREE.Mesh(geo, W.farMats[k % farTones.length]);
-      bm.position.set(bx, GY + bh / 2, bz); group.add(bm);
-      if (rr() < 0.55) { var tk = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 2.2, 10), tankM); tk.position.set(bx + (rr() - 0.5) * bw * 0.5, GY + bh + 1.1, bz); group.add(tk); }
+      bm.position.set(bx, GY + bh / 2, bz); bm.userData.far = true; group.add(bm);
+      if (rr() < 0.55) { var tk = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 2.2, 10), tankM); tk.position.set(bx + (rr() - 0.5) * bw * 0.5, GY + bh + 1.1, bz); tk.userData.far = true; group.add(tk); }
     }
 
     /* ---------------- 爸爸和自行车 ---------------- */
@@ -1483,6 +2220,12 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     var cA = new THREE.Color(), cB = new THREE.Color();
     function mixHex(a, b, t, out) { cA.setHex(a); cB.setHex(b); return out.copy(cA).lerp(cB, t); }
     W.dusk = 0;
+    var sunLz = new THREE.Vector3(), sunLx = new THREE.Vector3(), sunLy = new THREE.Vector3(), worldUp = new THREE.Vector3(0, 1, 0);
+    function updateSunBasis() {
+      sunLz.copy(W.sunNow).normalize();
+      sunLx.crossVectors(worldUp, sunLz).normalize();
+      sunLy.crossVectors(sunLz, sunLx).normalize();
+    }
     W.setDusk = function (t) {
       W.dusk = t;
       mixHex(GOLD.top, BLUE.top, t, skyU.top.value); mixHex(GOLD.mid, BLUE.mid, t, skyU.mid.value); mixHex(GOLD.hor, BLUE.hor, t, skyU.hor.value);
@@ -1495,24 +2238,54 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       var lightsOn = Math.max(0, (t - 0.35) / 0.65);
       fill.forEach(function (l) { l.intensity = 2.4 * lightsOn; });
       M.tube.emissiveIntensity = 1.4 * lightsOn;
+      if (LAMP.tube) LAMP.tube.emissiveIntensity = 0.08 + 1.4 * lightsOn;
       M.lampGlow.emissiveIntensity = 3 * Math.max(0, (t - 0.5) / 0.5);
       W.farMats.forEach(function (m) { m.emissiveIntensity = 1.6 * lightsOn; });
       gapLight.intensity = 2.2 * (1 - t * 0.7);
       // 太阳慢慢往下沉
       var d = SUN_DIR.clone(); d.y = 0.25 - 0.17 * t; d.normalize();
       skyU.sunDir.value.copy(d); W.sunNow = d;
+      updateSunBasis();
     };
     W.sunNow = SUN_DIR.clone();
     W.setDusk(0);
 
+    /* ---------------- 分机位阴影相机 + 光空间纹素网格对齐 ---------------- */
+    var shadowR = 16.0;
+    function syncShadowCam() {
+      var mapSz = sun.shadow.mapSize.x || 1024;
+      var sc = sun.shadow.camera;
+      if (sc.right !== shadowR) {
+        sc.left = -shadowR; sc.right = shadowR; sc.top = shadowR; sc.bottom = -shadowR;
+        sc.updateProjectionMatrix();
+      }
+      var texel = (2 * shadowR) / mapSz;
+      var q = W.quality || 'high';
+      sun.shadow.bias = q === 'low' ? -Math.max(0.00065, texel * 0.11) : q === 'mid' ? -Math.max(0.00045, texel * 0.08) : -Math.max(0.00032, texel * 0.06);
+      sun.shadow.normalBias = q === 'low' ? Math.max(0.022, texel * 2.6) : q === 'mid' ? Math.max(0.016, texel * 2.0) : Math.max(0.012, texel * 1.6);
+      return texel;
+    }
+
     /* ---------------- 每帧 ---------------- */
     var tmp = new THREE.Vector3();
-    W.update = function (dt, focus, time) {
-      // 阴影相机跟着镜头关注的地方
-      tmp.copy(focus);
+    W.update = function (dt, focus, time, phase) {
       // 镜头还在教室里（门在 x=0）时，楼下的爸爸和自行车看不见，不画它们，省 7 千多面
       // 一次成功挑战（W.showDad）：人在教室窗口往下看，楼下的爸爸和车要画出来
-      dad.visible = bike.visible = focus.x > 0 || !!W.showDad;
+      var inClass = focus.x < 0 && !W.showDad;
+      dad.visible = bike.visible = !inClass;
+      var showYard = focus.z > 5 || focus.y < -2 || !!W.showDad;
+      for (var ti = 0; ti < trees.length; ti++) trees[ti].visible = showYard;
+      for (var yi = 0; yi < yardLow.length; yi++) yardLow[yi].visible = showYard;
+      // 拿起特写和出手位同一个半径：镜头落到课桌直到交接，阴影范围一次不变，窗框椅子的影子不会中途消失又出现
+      var wantR = phase === 'pickup' ? 6.0 : inClass ? (phase === 'aim' || phase === 'toAim' ? 6.0 : 10.0) : 16.0;
+      var maxStep = Math.max(0, dt) * 25;
+      if (Math.abs(wantR - shadowR) <= maxStep) shadowR = wantR;
+      else shadowR += (wantR > shadowR ? maxStep : -maxStep);
+      var texel = syncShadowCam();
+      var u = Math.round(focus.dot(sunLx) / texel) * texel;
+      var v = Math.round(focus.dot(sunLy) / texel) * texel;
+      var w = inClass ? (-4.5 * sunLz.x + 0.8 * sunLz.y) : (Math.round(focus.dot(sunLz) / 2) * 2);
+      tmp.set(0, 0, 0).addScaledVector(sunLx, u).addScaledVector(sunLy, v).addScaledVector(sunLz, w);
       if (jig.t >= 0) {
         jig.t += dt;
         var ja = jig.t >= 0.4 ? 0 : 4 * Math.PI / 180 * Math.sin(jig.t / 0.4 * Math.PI * 3) * (1 - jig.t / 0.4);   // 4° 起、来回一下半、0.4 秒回正
@@ -1520,7 +2293,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         if (jig.t >= 0.4) jig.t = -1;
       }
       sun.target.position.copy(tmp);
-      sun.position.copy(tmp).addScaledVector(W.sunNow, 40);
+      sun.position.copy(tmp).addScaledVector(sunLz, 40);
       beamMat.uniforms.time.value = time;
       dusts.forEach(function (d) {
         var a = d.pts.geometry.attributes.position, b = d.box;
@@ -1568,6 +2341,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     W.dadMode = function (m) { W.dad.mode = m; W.dad.t = 0; W.dad.group.position.y = C.GROUND; };
 
     /* ---------------- 性能：把不会动的东西按材质合并成少数几个网格 ---------------- */
+    var yardLow = [];
     function mergeStatic() {
       group.updateMatrixWorld(true);
       var buckets = {}, remove = [], before = 0;
@@ -1577,9 +2351,13 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         var g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
         var groups = Array.isArray(mesh.material) && mesh.geometry.groups.length ? mesh.geometry.groups : [{ start: 0, count: g.attributes.position.count, materialIndex: 0 }];
         nm.getNormalMatrix(mesh.matrixWorld);
+        var mc = new THREE.Vector3().setFromMatrixPosition(mesh.matrixWorld);
+        var isLow = !mesh.userData.far && mc.y < -8;
+        var zone = (isLow ? ':low' : mesh.userData.far ? ':far' : mc.x < 0.2 ? ':cls' : ':hal') + (mesh.castShadow ? ':1' : ':0');
         groups.forEach(function (gr) {
           var mat = mats[gr.materialIndex]; if (!mat) return;
-          var b = buckets[mat.uuid] || (buckets[mat.uuid] = { mat: mat, pos: [], nor: [], uv: [], cast: false });
+          var bKey = mat.uuid + zone;
+          var b = buckets[bKey] || (buckets[bKey] = { mat: mat, pos: [], nor: [], uv: [], cast: false, low: isLow });
           b.cast = b.cast || mesh.castShadow;
           var P = g.attributes.position, N = g.attributes.normal, U = g.attributes.uv, v = new THREE.Vector3();
           for (var i = gr.start; i < gr.start + gr.count; i++) {
@@ -1605,6 +2383,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         g.setAttribute('uv', new THREE.Float32BufferAttribute(b.uv, 2));
         g.computeBoundingSphere();
         var m = new THREE.Mesh(g, b.mat); m.castShadow = b.cast; m.receiveShadow = true;
+        if (b.low) yardLow.push(m);
         group.add(m); after++;
       });
       W.mergeStats = { meshesBefore: before, meshesAfter: after };
@@ -1624,6 +2403,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       fill.forEach(function (l) { l.visible = q !== 'low'; });
       gapLight.visible = landLight.visible = q !== 'low';
       W.quality = q;
+      syncShadowCam();
     };
     W.sun = sun;
 
@@ -1647,11 +2427,14 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
 
     /* ---------- 纸面贴图 ---------- */
     var cv = document.createElement('canvas'); cv.width = 512; cv.height = 512;
-    var g = cv.getContext('2d');
+    var g = cv.getContext('2d', { willReadFrequently: true });
+    var cvB = document.createElement('canvas'); cvB.width = 512; cvB.height = 512;
+    var gB = cvB.getContext('2d', { willReadFrequently: true });
     var fiber = document.createElement('canvas'); fiber.width = 512; fiber.height = 512;
+    var fiberBack = document.createElement('canvas'); fiberBack.width = 512; fiberBack.height = 512;
     (function () {
-      var f = fiber.getContext('2d');
-      f.fillStyle = '#f4efe3'; f.fillRect(0, 0, 512, 512);
+      var f = fiber.getContext('2d', { willReadFrequently: true });
+      f.fillStyle = '#f6f1e5'; f.fillRect(0, 0, 512, 512);
       var s = 9;
       function r() { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }
       for (var i = 0; i < 2600; i++) {
@@ -1659,23 +2442,136 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         f.strokeStyle = 'rgba(' + (180 + r() * 50 | 0) + ',' + (170 + r() * 50 | 0) + ',' + (150 + r() * 40 | 0) + ',' + (0.08 + r() * 0.12) + ')';
         f.lineWidth = 0.6 + r(); f.beginPath(); f.moveTo(x, y); f.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); f.stroke();
       }
-      // 作业本的淡蓝横线 —— 这张纸是从本子上撕下来的
-      f.strokeStyle = 'rgba(120,150,200,0.22)'; f.lineWidth = 1.5;
-      for (var k = 0; k < 512; k += 38) { f.beginPath(); f.moveTo(k, 0); f.lineTo(k, 512); f.stroke(); }
-      // 对折中线、机身折线
-      f.strokeStyle = 'rgba(150,140,120,0.55)'; f.lineWidth = 2;
-      f.beginPath(); f.moveTo(0, 256); f.lineTo(512, 256); f.stroke();
-      f.strokeStyle = 'rgba(150,140,120,0.3)'; f.lineWidth = 1.4;
-      f.beginPath(); f.moveTo(512, 256); f.lineTo(0, 210); f.moveTo(512, 256); f.lineTo(0, 302); f.stroke();
+      // 作业本的淡蓝横线与红边线 —— 与前段孩子亲手折的那张纸一致
+      f.strokeStyle = 'rgba(120,150,200,0.28)'; f.lineWidth = 1.5;
+      for (var k = 20; k < 512; k += 30) {
+        f.beginPath(); f.moveTo(0, k); f.lineTo(512, k); f.stroke();
+      }
+      // 本子边那条红线
+      f.strokeStyle = 'rgba(214,110,110,0.35)'; f.lineWidth = 1.5;
+      f.beginPath(); f.moveTo(46, 0); f.lineTo(46, 512); f.stroke();
+      // 对折中线、机身折线与斜折痕（高光+暗线）
+      f.strokeStyle = 'rgba(255,255,255,0.75)'; f.lineWidth = 3;
+      f.beginPath(); f.moveTo(0, 256); f.lineTo(512, 256);
+      f.moveTo(512, 256); f.lineTo(0, 64); f.moveTo(512, 256); f.lineTo(0, 448); f.stroke();
+      f.strokeStyle = 'rgba(130,118,96,0.45)'; f.lineWidth = 1.4;
+      f.beginPath(); f.moveTo(0, 256); f.lineTo(512, 256);
+      f.moveTo(512, 256); f.lineTo(0, 210); f.moveTo(512, 256); f.lineTo(0, 302);
+      f.moveTo(512, 256); f.lineTo(0, 66); f.moveTo(512, 256); f.lineTo(0, 450); f.stroke();
+      fiberBack.getContext('2d').drawImage(fiber, 0, 0);
+      // 名字：孩子在纸角写的（只印在右翼正面，机腹背面不透字）
+      f.fillStyle = 'rgba(60,70,95,0.55)'; f.font = '28px "Kaiti SC","STKaiti","KaiTi",serif';
+      f.save(); f.translate(60, 330); f.rotate(Math.PI / 2); f.fillText('四年级', 0, 0); f.restore();
     })();
     var tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    var texB = new THREE.CanvasTexture(cvB);
+    texB.colorSpace = THREE.SRGBColorSpace; texB.anisotropy = 8;
 
     var marks = { tally: 0, pinch: 0, bent: 0, fixed: 0, wet: 0, clips: 0, breath: 0, oldTally: 0, leaf: 0 };
+    function shapeSpec(kind) {
+      var C = root.CFG && root.CFG.PLANES;
+      var m = C && C[kind];
+      if (m && m.shape) {
+        return {
+          name: m.name, orig: m.orig || '',
+          len: m.shape.len || 1, span: m.shape.span || 1,
+          noseCut: m.shape.noseCut || 0, elbowU: m.shape.elbowU || 0,
+          winglet: m.shape.winglet || 0, mark: m.shape.mark || 'dart'
+        };
+      }
+      if (typeof kind === 'string' && /^my:(tip|flat)-(narrow|wide)-(flat|up)$/.test(kind)) {
+        var ps = kind.slice(3).split('-');
+        var isFlat = ps[0] === 'flat', isWide = ps[1] === 'wide', isUp = ps[2] === 'up';
+        return {
+          name: shape.label || '我的设计', orig: '',
+          len: isFlat ? 0.88 : 1.0, span: isWide ? 1.15 : 1.0,
+          noseCut: isFlat ? 0.15 : 0, elbowU: isWide ? 0.56 : (isFlat ? 0.42 : 0),
+          winglet: isUp ? 0.02 : 0, mark: isFlat ? 'flat' : (isUp ? 'winglet' : 'dart')
+        };
+      }
+      return { name: '平头镖', orig: '', len: 1, span: 1, noseCut: 0, elbowU: 0, winglet: 0, mark: 'dart' };
+    }
     function u2c(u) { return u * 512; }               // 机身方向（尾→头）
     function z2c(z) { return (z / HS * 0.5 + 0.5) * 512; }  // 翼展方向（左→右）
+    function drawModelCreases(sp) {
+      var mk = sp.mark;
+      g.save();
+      if (mk === 'raven') {
+        // 渡鸦：前锁钻形折痕 + 宽掠翼折线
+        g.fillStyle = 'rgba(236,229,214,0.72)';
+        g.beginPath(); g.moveTo(u2c(0.50), 256); g.lineTo(u2c(0.76), 212); g.lineTo(u2c(0.95), 256); g.lineTo(u2c(0.76), 300); g.closePath(); g.fill();
+        g.strokeStyle = 'rgba(120,108,88,0.58)'; g.lineWidth = 1.8;
+        g.beginPath(); g.moveTo(u2c(0.50), 256); g.lineTo(u2c(0.76), 212); g.lineTo(u2c(0.95), 256); g.lineTo(u2c(0.76), 300); g.closePath();
+        g.moveTo(u2c(0.58), 212); g.lineTo(u2c(0.10), 76); g.moveTo(u2c(0.58), 300); g.lineTo(u2c(0.10), 436); g.stroke();
+      } else if (mk === 'harrier') {
+        // 鹞式：信封横折线 + 中央三角锁舌
+        g.fillStyle = 'rgba(234,227,210,0.75)';
+        g.beginPath(); g.moveTo(u2c(0.44), 214); g.lineTo(u2c(0.74), 256); g.lineTo(u2c(0.44), 298); g.closePath(); g.fill();
+        g.strokeStyle = 'rgba(120,108,88,0.58)'; g.lineWidth = 1.8;
+        g.beginPath(); g.moveTo(u2c(0.44), 120); g.lineTo(u2c(0.44), 392);
+        g.moveTo(u2c(0.44), 214); g.lineTo(u2c(0.74), 256); g.lineTo(u2c(0.44), 298); g.stroke();
+      } else if (mk === 'heavy') {
+        // 重头镖：机头来回三层厚折带
+        g.fillStyle = 'rgba(232,224,206,0.78)';
+        g.fillRect(u2c(0.70), 168, u2c(0.26), 176);
+        g.strokeStyle = 'rgba(115,102,82,0.62)'; g.lineWidth = 2.0;
+        [0.70, 0.78, 0.86, 0.93].forEach(function (u) {
+          g.beginPath(); g.moveTo(u2c(u), 166); g.lineTo(u2c(u), 346); g.stroke();
+        });
+      } else if (mk === 'bulldog') {
+        // 斗牛犬镖：背折宽扁短鼻头压痕
+        g.strokeStyle = 'rgba(118,104,84,0.6)'; g.lineWidth = 2.0;
+        g.beginPath(); g.moveTo(u2c(0.84), 170); g.lineTo(u2c(0.84), 342);
+        g.moveTo(u2c(0.84), 170); g.lineTo(u2c(0.56), 256); g.lineTo(u2c(0.84), 342); g.stroke();
+        gB.fillStyle = 'rgba(228,220,202,0.82)';
+        gB.beginPath(); gB.moveTo(u2c(0.96), 182); gB.lineTo(u2c(0.66), 256); gB.lineTo(u2c(0.96), 330); gB.closePath(); gB.fill();
+      } else if (mk === 'hunting') {
+        // 狩猎号：卷条厚鼻头 + 两侧翼尖上翘折线
+        g.fillStyle = 'rgba(230,222,204,0.8)';
+        g.fillRect(u2c(0.76), 162, u2c(0.18), 188);
+        g.strokeStyle = 'rgba(115,102,82,0.6)'; g.lineWidth = 1.8;
+        g.beginPath();
+        g.moveTo(u2c(0.76), 162); g.lineTo(u2c(0.76), 350);
+        g.moveTo(u2c(0.84), 168); g.lineTo(u2c(0.84), 344);
+        g.moveTo(u2c(0.06), 88); g.lineTo(u2c(0.76), 146);
+        g.moveTo(u2c(0.06), 424); g.lineTo(u2c(0.76), 366);
+        g.stroke();
+      } else if (mk === 'heso') {
+        // 肚脐飞机：机背正中翻回的小三角「肚脐」锁片
+        g.fillStyle = 'rgba(245,240,228,0.88)';
+        g.beginPath(); g.moveTo(u2c(0.70), 222); g.lineTo(u2c(0.50), 256); g.lineTo(u2c(0.70), 290); g.closePath(); g.fill();
+        g.strokeStyle = 'rgba(112,98,78,0.65)'; g.lineWidth = 2.0;
+        g.beginPath(); g.moveTo(u2c(0.70), 222); g.lineTo(u2c(0.50), 256); g.lineTo(u2c(0.70), 290); g.closePath();
+        g.moveTo(u2c(0.70), 152); g.lineTo(u2c(0.70), 360); g.stroke();
+      } else if (mk === 'nakamura') {
+        // 中村锁：经典横折线 + 三角锁舌
+        g.fillStyle = 'rgba(238,231,216,0.78)';
+        g.beginPath(); g.moveTo(u2c(0.48), 210); g.lineTo(u2c(0.76), 256); g.lineTo(u2c(0.48), 302); g.closePath(); g.fill();
+        g.strokeStyle = 'rgba(115,102,82,0.6)'; g.lineWidth = 1.9;
+        g.beginPath(); g.moveTo(u2c(0.48), 126); g.lineTo(u2c(0.48), 386);
+        g.moveTo(u2c(0.48), 210); g.lineTo(u2c(0.76), 256); g.lineTo(u2c(0.48), 302); g.stroke();
+      } else if (mk === 'flat') {
+        g.strokeStyle = 'rgba(120,108,88,0.58)'; g.lineWidth = 2.0;
+        g.beginPath(); g.moveTo(u2c(0.74), 160); g.lineTo(u2c(0.74), 352); g.stroke();
+      } else if (mk === 'winglet') {
+        g.strokeStyle = 'rgba(120,108,88,0.55)'; g.lineWidth = 1.7;
+        g.beginPath();
+        g.moveTo(u2c(0.06), 92); g.lineTo(u2c(0.74), 156);
+        g.moveTo(u2c(0.06), 420); g.lineTo(u2c(0.74), 356);
+        g.stroke();
+      }
+      if (shape.kind && shape.kind !== 'dart' && sp.name) {
+        g.fillStyle = 'rgba(42,68,88,0.58)';
+        g.font = 'bold 24px "Kaiti SC","STKaiti","KaiTi",serif';
+        g.translate(64, 128); g.rotate(Math.PI / 2);
+        g.fillText(sp.name, 0, 0);
+      }
+      g.restore();
+    }
     function redraw() {
-      g.drawImage(fiber, 0, 0);
+      g.drawImage(fiber, 0, 0); gB.drawImage(fiberBack, 0, 0);
+      drawModelCreases(shapeSpec(shape.kind));
       // 捏过的机头：发亮的折痕
       if (marks.pinch > 0.5) {
         var a = Math.min(1, marks.pinch / 30);
@@ -1713,38 +2609,24 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         gr.addColorStop(0, 'rgba(170,185,195,' + 0.45 * marks.breath + ')'); gr.addColorStop(1, 'rgba(170,185,195,0)');
         g.fillStyle = gr; g.fillRect(u2c(0.62), 150, 200, 212);
       }
-      // 回形针压痕
+      // 回形针压痕（与 3D 回形针夹持位置对齐）
       for (var c = 0; c < marks.clips; c++) {
         g.strokeStyle = 'rgba(120,120,125,0.5)'; g.lineWidth = 1.5;
-        g.strokeRect(u2c(0.8 - c * 0.07) - 6, 236, 12, 40);
+        g.strokeRect(u2c(0.84 - c * 0.06) - 6, 236, 12, 40);
       }
-      // 上一局的"正"字：淡淡地留在右翼上（擦不干净的铅笔印）
-      if (marks.oldTally > 0) {
-        g.save(); g.globalAlpha = 0.28;
-        g.strokeStyle = 'rgba(55,55,60,1)'; g.lineWidth = 2.5; g.lineCap = 'round';
-        for (var ko = 0; ko < Math.ceil(marks.oldTally / 5); ko++) {
-          var px = 30 + (ko % 3) * 46, py = 330 + Math.floor(ko / 3) * 48, so = Math.min(5, marks.oldTally - ko * 5), Wo = 30, Ho = 34;
-          var sgo = [[px, py, px + Wo, py], [px + Wo / 2, py, px + Wo / 2, py + Ho], [px + Wo / 2, py + Ho / 2, px + Wo - 4, py + Ho / 2], [px + 5, py + Ho * 0.45, px + 5, py + Ho], [px - 2, py + Ho, px + Wo + 2, py + Ho]];
-          for (var jo = 0; jo < so; jo++) { g.beginPath(); g.moveTo(sgo[jo][0], sgo[jo][1]); g.lineTo(sgo[jo][2], sgo[jo][3]); g.stroke(); }
+      // "正"字：转 90° 画，从机尾往前看是正的
+      function tally(n, cx, cy, alpha, lw) {
+        g.save(); g.translate(cx, cy); g.rotate(Math.PI / 2); g.globalAlpha = alpha; g.strokeStyle = 'rgba(55,55,60,1)'; g.lineWidth = lw; g.lineCap = 'round';
+        for (var k = 0; k < Math.ceil(n / 5); k++) {
+          var ox = (k % 3) * 40, oy = Math.floor(k / 3) * 42, s = Math.min(5, n - k * 5), Wd = 28, H = 32;
+          var seg = [[ox, oy, ox + Wd, oy], [ox + Wd / 2, oy, ox + Wd / 2, oy + H], [ox + Wd / 2, oy + H / 2, ox + Wd - 4, oy + H / 2], [ox + 5, oy + H * 0.45, ox + 5, oy + H], [ox - 2, oy + H, ox + Wd + 2, oy + H]];
+          for (var j = 0; j < s; j++) { g.beginPath(); g.moveTo(seg[j][0], seg[j][1]); g.lineTo(seg[j][2], seg[j][3]); g.stroke(); }
         }
         g.restore();
       }
-      // 铅笔"正"字：每投一笔，写在左翼尾巴上
-      var n = marks.tally;
-      g.strokeStyle = 'rgba(55,55,60,0.85)'; g.lineWidth = 3; g.lineCap = 'round';
-      for (var k = 0; k < Math.ceil(n / 5); k++) {
-        var ox = 26 + (k % 3) * 52, oy = 60 + Math.floor(k / 3) * 56, s = Math.min(5, n - k * 5);
-        var W = 34, H = 40;
-        var seg = [
-          [ox, oy, ox + W, oy],                       // 一横
-          [ox + W / 2, oy, ox + W / 2, oy + H],       // 中竖
-          [ox + W / 2, oy + H / 2, ox + W - 4, oy + H / 2], // 短横
-          [ox + 6, oy + H * 0.45, ox + 6, oy + H],    // 左竖
-          [ox - 2, oy + H, ox + W + 2, oy + H]        // 底横
-        ];
-        for (var j = 0; j < s; j++) { g.beginPath(); g.moveTo(seg[j][0], seg[j][1]); g.lineTo(seg[j][2], seg[j][3]); g.stroke(); }
-      }
-      tex.needsUpdate = true;
+      if (marks.oldTally > 0) tally(marks.oldTally, 140, 130, 0.28, 2.5);   // 上一局的"正"字：留在左翼中部安全区，不被前缘斜边裁切
+      if (marks.tally > 0) tally(marks.tally, 150, 355, 0.85, 3);          // 这一局的，在右翼上
+      tex.needsUpdate = true; texB.needsUpdate = true;
     }
 
     /* ---------- 几何：两片翼 + 机身龙骨，每帧可形变 ---------- */
@@ -1776,6 +2658,11 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     geo.setIndex(index);
     var mat = new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, roughness: 0.82, metalness: 0, emissive: 0x6a5032, emissiveIntensity: 0.32 });
+    mat.onBeforeCompile = function (sh) {
+      sh.uniforms.mapBack = { value: texB };
+      sh.fragmentShader = 'uniform sampler2D mapBack;\n' + sh.fragmentShader.replace('#include <map_fragment>',
+        'vec4 sampledDiffuseColor = !gl_FrontFacing ? texture2D( map, vMapUv ) : texture2D( mapBack, vMapUv );\ndiffuseColor *= sampledDiffuseColor;');
+    };
     var mesh = new THREE.Mesh(geo, mat);
     mesh.castShadow = true; mesh.receiveShadow = true;
 
@@ -1785,39 +2672,51 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     rig.rotation.order = 'YZX'; body.rotation.order = 'YZX';
 
     /* ---------- 形状参数 ---------- */
-    var shape = { pitch: 0, wingL: 0, wingR: 0, clips: 0, flutter: 0, t: 0 };
+    var shape = { kind: 'dart', label: '', pitch: 0, wingL: 0, wingR: 0, clips: 0, flutter: 0, t: 0, onDesk: 0 };
     var vis = { pitch: 0, wingL: 0, wingR: 0 };
     var BASE_DIHEDRAL = 7;
 
     function build() {
       var p = vis.pitch * 0.9 * DEG;
-      var t = shape.t;
+      var t = shape.t, od = shape.onDesk || 0, mf = 1 - od;
+      var sp = shapeSpec(shape.kind);
+      var lenK = 1 + (sp.len - 1) * mf, spanK = 1 + (sp.span - 1) * mf;
+      var elbowU = sp.elbowU * mf, noseCut = sp.noseCut * mf, wl = (sp.winglet || 0) * mf;
       for (var sd2 = 0; sd2 < 2; sd2++) {
         var wv = sd2 ? vis.wingR : vis.wingL, kink = 0;
         if (P.bentMode && sd2 === (P.bentSide === 'L' ? 0 : 1) && wv < 0) { kink = -wv * 1.4 * DEG; wv = 0; }   // 被撞弯的翅膀：外半截折下去
-        var ang = (BASE_DIHEDRAL + wv * 1.4) * DEG;
+        var ang = (BASE_DIHEDRAL + wv * 1.4 + 10 * od) * DEG;   // 桌上只比飞行多抬 10°：机翼展开立在龙骨上；抬到 44° 从座位看下去像一座金字塔（格 8 盲审）
         for (var i = 0; i <= NU; i++) for (var j = 0; j <= NV; j++) {
           var id = wi(sd2, i, j), u = i / NU, v = j / NV;
-          var x = X0 + LEN * u;
-          var span = v * HS * (1 - u);
-          var y = span * Math.tan(ang);
+          var x = X0 + LEN * lenK * u;
+          var prof = elbowU > 0.01
+            ? (u <= elbowU ? 1 - 0.28 * elbowU * (u / elbowU) : noseCut + (1 - 0.28 * elbowU - noseCut) * (1 - (u - elbowU) / Math.max(0.01, 1 - elbowU)))
+            : (noseCut + (1 - noseCut) * (1 - u));
+          var span = v * HS * spanK * ((1 - mf) * (1 - u) + mf * prof);
+          var y = od > 0 ? span * Math.sin(ang) : span * Math.tan(ang);
           if (kink && v > 0.45) y -= (v - 0.45) * HS * (1 - u) * Math.tan(kink) * 1.6;
-          if (u > 0.62) y += (u - 0.62) * LEN * Math.tan(p);
+          if (u > 0.62) y += (u - 0.62) * LEN * lenK * Math.tan(p);
+          var wlLift = wl > 0 && v > 0.8 ? (v - 0.8) / 0.2 * wl * (1 - u * 0.45) : 0;
+          y += wlLift;
           y -= shape.clips * 0.002 * Math.max(0, u - 0.6) * 4;
           y += shape.flutter * Math.sin(t * 38 + u * 6 + sd2 * 1.3) * v * v * (1 - u * 0.6) * 0.012;
-          var zz = (sd2 ? 1 : -1) * span;
+          var zz = (sd2 ? 1 : -1) * ((od > 0 ? span * Math.cos(ang) : span) - wlLift * 0.35);
           pos[id * 3] = x; pos[id * 3 + 1] = y + 0.004; pos[id * 3 + 2] = zz;
+          var zUv = (sd2 ? 1 : -1) * (span / Math.max(0.08, HS * spanK));
+          uv[id * 2] = u; uv[id * 2 + 1] = 1 - (zUv * 0.5 + 0.5);
         }
       }
+      var thickNose = (sp.mark === 'heavy' || sp.mark === 'bulldog' || sp.mark === 'hunting' || sp.mark === 'raven' || sp.mark === 'nakamura') ? 0.0035 * mf : 0;
       for (var i4 = 0; i4 <= NU; i4++) {
-        var u4 = i4 / NU, x4 = X0 + LEN * u4, top = 0.004;
-        if (u4 > 0.62) top += (u4 - 0.62) * LEN * Math.tan(p);
-        var depth = 0.032 * (1 - u4) + 0.004;
+        var u4 = i4 / NU, x4 = X0 + LEN * lenK * u4, top = 0.004;
+        if (u4 > 0.62) top += (u4 - 0.62) * LEN * lenK * Math.tan(p);
+        var depth = (0.032 * (1 - u4) + 0.004 + (u4 > 0.6 ? thickNose : 0)) * (1 - od) + 0.039 * od;
         var a4 = k0 + i4 * 2;
         pos[a4 * 3] = x4; pos[a4 * 3 + 1] = top; pos[a4 * 3 + 2] = 0;
         pos[(a4 + 1) * 3] = x4; pos[(a4 + 1) * 3 + 1] = top - depth; pos[(a4 + 1) * 3 + 2] = 0;
       }
       geo.attributes.position.needsUpdate = true;
+      geo.attributes.uv.needsUpdate = true;
       geo.computeVertexNormals();
       geo.computeBoundingSphere();
     }
@@ -1842,7 +2741,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       var path = [[0, 0], [l, 0], [l, w * 2], [-0.002, w * 2], [-0.002, w * 0.5], [l * 0.8, w * 0.5], [l * 0.8, w * 1.5], [0.004, w * 1.5]];
       var curve = new THREE.CurvePath();
       for (var i = 0; i < path.length - 1; i++) curve.add(new THREE.LineCurve3(new THREE.Vector3(path[i][0], path[i][1] - w, 0), new THREE.Vector3(path[i + 1][0], path[i + 1][1] - w, 0)));
-      return new THREE.TubeGeometry(curve, 48, 0.0016, 5, false);
+      return new THREE.TubeGeometry(curve, 24, 0.0016, 4, false);
     }
     var clipG = clipGeom();
     var clipM = new THREE.MeshStandardMaterial({ color: 0xd8dde2, metalness: 0.9, roughness: 0.25, emissive: 0x222222 });
@@ -1851,7 +2750,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     trayBox.castShadow = true; trayBox.receiveShadow = true; tray.add(trayBox);
     var trayIn = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.004, 0.08), new THREE.MeshStandardMaterial({ color: 0xe8d6b0, roughness: 0.9 }));
     var trayModel = root.MODELS && root.MODELS.mesh(THREE, 'tray');
-    if (trayModel) { tray.remove(trayBox); trayModel.position.y = -0.008; tray.add(trayModel); }
+    if (trayModel) { tray.remove(trayBox); trayModel.position.y = -0.008; trayModel.castShadow = false; tray.add(trayModel); }
     trayIn.position.y = 0.006; if (!trayModel) tray.add(trayIn);
     rig.add(tray);
     var trayHit = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.06, 0.13), hMat); trayHit.name = 'tray'; tray.add(trayHit);
@@ -1861,21 +2760,28 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     var clips = [];
     for (var ci = 0; ci < 3; ci++) {
       var cm = new THREE.Mesh(clipG, clipM);
-      cm.castShadow = true;
+      cm.castShadow = false; cm.rotation.order = 'ZYX';
       var hit = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.04, 0.03), hMat); hit.name = 'clip'; hit.userData.clip = ci; cm.add(hit); hit.position.x = 0.042;
       cm.userData = { i: ci, on: false, home: new THREE.Vector3(-0.025, 0.01, -0.028 + ci * 0.028), drag: false };
-      tray.add(cm); cm.position.copy(cm.userData.home); cm.rotation.x = -Math.PI / 2;
+      tray.add(cm); cm.position.copy(cm.userData.home); cm.rotation.set(-Math.PI / 2, 0, 0);
       clips.push(cm);
     }
     function layoutClips() {
       var n = 0;
+      var mf = 1 - (shape.onDesk || 0), sp = shapeSpec(shape.kind);
+      var lenU = LEN * (1 + (sp.len - 1) * mf);
+      var pRad = vis.pitch * 0.9 * DEG;
+      var noseTipX = X0 + lenU;
       clips.forEach(function (c) {
         if (c.userData.drag) return;
         if (c.userData.on) {
           if (c.parent !== body) body.add(c);
-          // 夹在机头尖上，往前探出一截：从上面、后面都看得见，也抓得到
-          c.position.set(0.118 - n * 0.006, 0.006 + n * 0.004, (n - 1) * 0.006);
-          c.rotation.set(-Math.PI / 2, 0, (n - 1) * 0.12);
+          // 夹在机头前缘（长 4.5cm 的回形针前端探出机头约 3mm），高度与倾角随抬机头实时联动
+          var xClip = noseTipX - 0.042 - n * 0.008;
+          var uClip = Math.max(0, Math.min(1, (xClip + 0.022 - X0) / Math.max(0.1, lenU)));
+          var ySpine = 0.006 + Math.max(0, uClip - 0.62) * lenU * Math.tan(pRad) - shape.clips * 0.002 * Math.max(0, uClip - 0.6) * 4;
+          c.position.set(xClip, ySpine + n * 0.002, (n - 1) * 0.005);
+          c.rotation.set(-Math.PI / 2, (n - 1) * 0.08, pRad * 0.9);
           n++;
         } else {
           if (c.parent !== tray) tray.add(c);
@@ -1916,15 +2822,25 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     leafGeo.computeBoundingBox();
     (function () { var uv = leafGeo.attributes.uv, p = leafGeo.attributes.position; for (var i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / 0.08, p.getY(i) / 0.06 + 0.5); })();
     var leaf = new THREE.Mesh(leafGeo, new THREE.MeshStandardMaterial({ map: leafTex, roughness: 0.35, metalness: 0, side: THREE.DoubleSide }));
-    leaf.castShadow = true; leaf.visible = false; leaf.name = 'leafMesh';
-    var LEAF_POS = new THREE.Vector3(0.05, 0.03, -0.004), LEAF_ROT = new THREE.Euler(-Math.PI / 2 + 0.12, 0, 0.18);
+    leaf.castShadow = true; leaf.visible = false; leaf.name = 'leafMesh'; leaf.rotation.order = 'ZYX';
+    var LEAF_POS = new THREE.Vector3(0.05, 0.012, -0.004), LEAF_ROT = new THREE.Euler(-Math.PI / 2 + 0.12, 0, 0.12);
     leaf.position.copy(LEAF_POS); leaf.rotation.copy(LEAF_ROT); body.add(leaf);
     var leafHit = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.05), hMat); leafHit.name = 'leaf'; leafHit.position.set(0.04, 0, 0); leaf.add(leafHit);
     var leafFall = null;
     P.leaf = leaf; P.leafHit = leafHit;
+    function syncLeafPose(lenU, pRad) {
+      if (leafFall) return;
+      var noseTipX = X0 + lenU;
+      var lx = noseTipX - 0.082;
+      var uMid = Math.max(0, Math.min(1, (lx + 0.04 - X0) / Math.max(0.1, lenU)));
+      var ly = 0.010 + Math.max(0, uMid - 0.62) * lenU * Math.tan(pRad);
+      leaf.position.set(lx, ly, -0.004);
+      leaf.rotation.set(-Math.PI / 2 + 0.12, 0, 0.10 + pRad * 0.85);
+    }
     // 摘下来：飘落到脚边，几秒后不见
     P.dropLeaf = function () {
       if (!leaf.visible || leafFall) return;
+      marks.leaf = 0.45; redraw();
       scene.attach(leaf);
       leafFall = { t: 0, v: new THREE.Vector3(0, 0.9, 0).add(new THREE.Vector3().setFromMatrixColumn(body.matrixWorld, 2).normalize().multiplyScalar(0.7)), floor: rig.position.y - 1.25 };
     };
@@ -1932,17 +2848,31 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     /* ---------- 对外 ---------- */
     P.rig = rig; P.body = body; P.mesh = mesh; P.handles = handles; P.dots = dots; P.clips = clips; P.tray = tray;
     P.shape = shape; P.vis = vis; P.marks = marks;
+    P.noseTipWorld = function () { return dots.nose.getWorldPosition(new THREE.Vector3()); };
 
     P.setSetup = function (s, instant) {
+      if (s.kind) shape.kind = s.kind;
+      if (s.label !== undefined) shape.label = s.label || '';
       shape.pitch = s.pitch; shape.wingL = s.wingL; shape.wingR = s.wingR;
       if (instant) { vis.pitch = s.pitch; vis.wingL = s.wingL; vis.wingR = s.wingR; }
       marks.pinch = s.pitch;
       clips.forEach(function (c, i) { c.userData.on = i < s.clips; });
       shape.clips = layoutClips(); marks.clips = shape.clips;
       if (!leafFall) leaf.visible = !!s.leaf;
-      if (s.leaf) marks.leaf = 1;
-      redraw();
+      if (s.leaf) marks.leaf = 1; else if (instant) marks.leaf = 0;
+      var mf0 = 1 - (shape.onDesk || 0), sp0 = shapeSpec(shape.kind);
+      syncLeafPose(LEN * (1 + (sp0.len - 1) * mf0), vis.pitch * 0.9 * DEG);
+      redraw(); build();
     };
+    P.setKind = function (kind, label) {
+      shape.kind = kind || 'dart';
+      if (label !== undefined) shape.label = label || '';
+      shape.clips = layoutClips();
+      var mf0 = 1 - (shape.onDesk || 0), sp0 = shapeSpec(shape.kind);
+      syncLeafPose(LEN * (1 + (sp0.len - 1) * mf0), vis.pitch * 0.9 * DEG);
+      redraw(); build();
+    };
+    P.getKind = function () { return shape.kind || 'dart'; };
     P.bentMode = false;
     P.bentSide = 'R';
     P.setBend = function (on, side) { P.bentMode = !!on; if (side) P.bentSide = side; marks.bent = on ? 1 : 0; redraw(); };
@@ -1976,6 +2906,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       });
     };
     P.showTray = function (on) { tray.visible = on; };
+    P.setOnDesk = function (d) { shape.onDesk = Math.max(0, Math.min(1, d || 0)); build(); };
     // 趴在窗台往下看时镜头是俯视的，盒子要挪到手边，免得挨着翼尖
     P.placeTray = function (room) { if (room === 'window') tray.position.set(-0.24, -0.02, 0.15); else tray.position.copy(TRAY_POS); };
 
@@ -1987,21 +2918,32 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       vis.pitch += (shape.pitch - vis.pitch) * k;
       vis.wingL += (shape.wingL - vis.wingL) * k;
       vis.wingR += (shape.wingR - vis.wingR) * k;
-      dots.nose.position.y = 0.012 + (1 - 0.62) * LEN * Math.tan(vis.pitch * 0.9 * DEG);
+      var mfU = 1 - (shape.onDesk || 0), spU = shapeSpec(shape.kind);
+      var lenU = LEN * (1 + (spU.len - 1) * mfU), hsU = HS * (1 + (spU.span - 1) * mfU);
+      var pRadU = vis.pitch * 0.9 * DEG;
+      dots.nose.position.x = X0 + lenU - 0.002;
+      dots.nose.position.y = 0.012 + (1 - 0.62) * lenU * Math.tan(pRadU);
       ['wingL', 'wingR'].forEach(function (k) {
         var w = vis[k], kk = 0;
         if (P.bentMode && k === (P.bentSide === 'L' ? 'wingL' : 'wingR') && w < 0) { kk = -w * 1.4; w = 0; }
-        dots[k].position.y = 0.02 + HS * Math.tan((BASE_DIHEDRAL + w * 1.4) * DEG) * 0.95 - (kk > 0 ? HS * 0.55 * Math.tan(kk * DEG) * 1.6 : 0);
+        dots[k].position.z = (k === 'wingR' ? 1 : -1) * hsU * 0.94;
+        dots[k].position.y = 0.02 + hsU * Math.tan((BASE_DIHEDRAL + w * 1.4) * DEG) * 0.95 - (kk > 0 ? hsU * 0.55 * Math.tan(kk * DEG) * 1.6 : 0) + (spU.winglet || 0) * mfU * 0.8;
       });
+      if (shape.clips > 0) layoutClips();
       if (leafFall) {
         leafFall.t += dt;
         leaf.position.addScaledVector(leafFall.v, dt); leafFall.v.y -= dt * 2.6; leafFall.v.multiplyScalar(Math.exp(-dt * 1.5));
         leaf.rotation.x += dt * 5; leaf.rotation.z = Math.sin(leafFall.t * 7) * 0.6;
         if (leaf.position.y < leafFall.floor) { leaf.position.y = leafFall.floor; leafFall.v.set(0, 0, 0); }
-        if (leafFall.t > 2.4) { leafFall = null; leaf.visible = false; body.add(leaf); leaf.position.copy(LEAF_POS); leaf.rotation.copy(LEAF_ROT); }
+        if (leafFall.t > 2.4) { leafFall = null; leaf.visible = false; body.add(leaf); syncLeafPose(lenU, pRadU); }
+      } else if (leaf.visible) {
+        syncLeafPose(lenU, pRadU);
       }
+      handles.wingR.position.z = dots.wingR.position.z * 0.85;
+      handles.wingL.position.z = dots.wingL.position.z * 0.85;
       handles.wingR.position.y = dots.wingR.position.y - 0.01;
       handles.wingL.position.y = dots.wingL.position.y - 0.01;
+      handles.nose.position.x = dots.nose.position.x - 0.003;
       handles.nose.position.y = dots.nose.position.y;
       build();
     };
@@ -2053,12 +2995,12 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       var th = new THREE.Group(); th.position.set(-0.05, -0.03, 0.036); h.add(th);
       seg(th, [0, 0, 0], [0.024, 0.008, -0.014], 0.0085, 0.0075, skin);
       seg(th, [0.024, 0.008, -0.014], [0.046, 0.017, -0.03], 0.0075, 0.0068, skin);
-      knob(th, [0.046, 0.017, -0.03], 0.0068, skin);
-      // 另外三根手指蜷着
+      var thTip = knob(th, [0.046, 0.017, -0.03], 0.0068, skin);
+      // 另外三根手指蜷着（桌面伸手时关节稍抬，手指尖不穿进桌面）
       for (var i = 0; i < 3; i++) {
-        var z = 0.002 + i * 0.013;
-        seg(h, [-0.03, -0.03, z], [-0.016, -0.042, z + 0.002], 0.0068, 0.0062, skin);
-        knob(h, [-0.016, -0.042, z + 0.002], 0.0062, skin);
+        var z = 0.002 + i * 0.013, y0 = -0.025 + i * 0.002, y1 = -0.032 + i * 0.004;
+        seg(h, [-0.03, y0, z], [-0.016, y1, z + 0.002], 0.0068, 0.0062, skin);
+        knob(h, [-0.016, y1, z + 0.002], 0.0062, skin);
       }
       // 手腕
       seg(h, [-0.07, -0.03, 0.014], [-0.11, -0.04, 0.02], 0.016, 0.017, skin, 7);
@@ -2067,7 +3009,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         var L = sleeveLen || 0.43;
         seg(h, [-0.125, -0.044, 0.022], [-0.125 - L, -0.044 - L * 0.22, 0.022 + L * 0.07], 0.026, 0.026 + L * 0.033, sleeveM, 7);
       }
-      h.userData = { idx: idx, th: th };
+      h.userData = { idx: idx, th: th, palm: palm, thTip: thTip, idxTip: idx.children[2] };
       return h;
     }
     function pinchPose(h, open) {
@@ -2078,10 +3020,10 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     /* ---------- 右手：捏着机身下面那道折缝 ---------- */
     var right = makeHand(true);
     var rightRoot = new THREE.Group(); rightRoot.add(right);
-    // 手腕往右后下方伸出去，从屏幕右下角进画
-    var R_WRIST_DIR = new THREE.Vector3(-0.78, -0.42, 0.46).normalize();
+    // 手腕往右后下方伸出去，从屏幕右下角进画（右手、白袖口、蓝校服袖完整入画）
+    var R_WRIST_DIR = new THREE.Vector3(-0.80, -0.24, 0.52).normalize();
     right.quaternion.setFromUnitVectors(new THREE.Vector3(-1, 0, 0), R_WRIST_DIR);
-    right.position.set(-0.02, -0.022, 0);
+    right.position.set(-0.015, -0.021, 0.004);
     plane.body.add(rightRoot);
 
     /* ---------- 左手：捏机头 / 掰翅膀时伸过来 ---------- */
@@ -2089,8 +3031,9 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     left.scale.set(1, 1, -1);           // 镜像成左手
     var leftRoot = new THREE.Group(); leftRoot.add(left); leftRoot.visible = false;
     plane.body.add(leftRoot);
+    A.rightRoot = rightRoot; A.leftRoot = leftRoot; A.right = right;
 
-    var st = { mode: 'hold', t: 0, enter: 1, swing: null, leftVis: 0, breath: 0, breathT: 0, breathing: false };
+    var st = { mode: 'hold', t: 0, enter: 1, swing: null, leftVis: 0, breath: 0, breathT: 0, breathing: false, rightOn: true };
     A.st = st;
     var tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), q = new THREE.Quaternion();
 
@@ -2109,6 +3052,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       st.mode = 'hold'; st.enter = 0; rightRoot.visible = true;
     };
     A.hide = function () { rightRoot.visible = false; leftRoot.visible = false; };
+    A.setRight = function (on) { st.rightOn = !!on; rightRoot.visible = !!on && st.mode === 'hold'; };
 
     // 双击哈气：把飞机举到嘴边（相机在机身局部坐标里的位置由外面给）
     A.breathe = function () { if (st.mode === 'hold' && !st.breathing) { st.breathing = true; st.breathT = 0; return true; } return false; };
@@ -2121,14 +3065,26 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       st.t += dt;
       var out = null;
       if (st.mode === 'hold') {
-        st.enter = Math.min(1, st.enter + dt / 0.35);
-        var e = 1 - Math.pow(1 - st.enter, 3);
-        var p = s.power || 0;
-        // 进画：从右后下方滑进来；蓄力：手腕往后扳
-        tmp.copy(R_WRIST_DIR).multiplyScalar((1 - e) * 0.35);
-        rightRoot.position.copy(tmp);
-        rightRoot.rotation.set(0, 0, -p * 0.35);
-        pinchPose(right, s.dragKind === 'pull' ? 0 : 0.05 + 0.03 * Math.sin(st.t * 2));
+        var pk = s.pickup;
+        if (pk) {
+          st.enter = pk.enter;
+          var d = pk.desk || 0, slide = 1 - pk.enter;
+          rightRoot.position.set(0.012 * d - 0.14 * slide, 0.015 * d + 0.010 * slide, -0.006 * d + 0.16 * slide);
+          rightRoot.rotation.set(-0.22 * d, 0.12 * d, -0.52 * d);
+          pinchPose(right, pk.open);
+          rightRoot.visible = st.rightOn;
+        } else {
+          st.enter = Math.min(1, st.enter + dt / 0.35);
+          var e = 1 - Math.pow(1 - st.enter, 3);
+          var p = s.power || 0;
+          // 进画：从右后下方滑进来；蓄力：手腕顺着右后下方轻轻压沉，避免把蓝校服袖子往上撬穿机翼
+          tmp.copy(R_WRIST_DIR).multiplyScalar((1 - e) * 0.35);
+          tmp.x -= p * 0.025; tmp.y -= p * 0.018; tmp.z += p * 0.012;
+          rightRoot.position.copy(tmp);
+          rightRoot.rotation.set(0, 0, p * 0.08);
+          pinchPose(right, s.dragKind === 'pull' ? 0 : 0.05 + 0.03 * Math.sin(st.t * 2), 0);
+          rightRoot.visible = st.rightOn;
+        }
         // 哈气
         if (st.breathing) {
           st.breathT += dt;
@@ -2268,6 +3224,11 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       '<path d="M30 60 Q120 60 170 106" class="bad"/><path d="M30 60 L270 60" class="good"/>' +
       '<text x="150" y="94" class="tb">一边低</text><text x="210" y="50" class="tg">一样高</text>' +
       '<g transform="translate(40 60)"><path d="M14 0 L-12 -10 L-12 10Z" class="pl2"/></g></svg>',
+    chalWing: '<svg viewBox="0 0 300 120"><line x1="20" y1="14" x2="280" y2="14" class="g"/><line x1="20" y1="106" x2="280" y2="106" class="g"/>' +
+      '<path d="M30 42 L265 42" class="bad"/><path d="M30 42 Q125 44 196 96" class="good"/>' +
+      '<rect x="184" y="92" width="28" height="12" rx="2" class="bk"/>' +
+      '<text x="172" y="34" class="tb">一样高（直飞偏左）</text><text x="48" y="96" class="tg">右翼低 → 拐进车筐</text>' +
+      '<g transform="translate(40 42)"><path d="M14 0 L-12 -10 L-12 10Z" class="pl2"/></g></svg>',
     clip: '<svg viewBox="0 0 300 120"><rect x="14" y="8" width="16" height="104" class="w"/><line x1="30" y1="112" x2="290" y2="112" class="g"/>' +
       '<path d="M32 18 Q150 30 285 92" class="bad"/><path d="M32 18 Q120 24 160 104" class="good"/><path d="M32 18 Q52 30 60 108" class="bad2"/>' +
       '<rect x="146" y="98" width="28" height="12" rx="2" class="bk"/>' +
@@ -2307,8 +3268,14 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     function focusOf(stage, s) {
       if (stage === 'throw') return 'throw';
       if (stage === 'class') return null;
-      // 挑战里「必须」改对的只有两样：拿掉回形针、两边翅膀一样高。机头抬多少留给孩子，引导永远不碰
-      if (stage === 'challenge') return s.clips > 0 ? 'trayRemove' : !sym(s) ? 'wing' : null;
+      // 挑战在尽头窗口朝侧面出手：两翼一样高一定进不了，必须让两翼一高一低斜飞；若还夹着回形针且压翼较大也会提前坠地
+      if (stage === 'challenge') {
+        if (s.clips > 2) return 'trayRemove';
+        if (s.wingL - s.wingR < 2.5 || s.wingL - s.wingR > 10) return 'wing';
+        if (s.clips > 0 && (s.wingL - s.wingR > 4.5 || s.pitch < 6)) return 'trayRemove';
+        if (s.clips === 0 && (s.pitch < 1 || s.pitch > 8)) return s.pitch < 1 ? 'noseUp' : 'noseDown';
+        return null;
+      }
       if (stage === 'window') return s.clips === 0 ? 'trayAdd' : s.clips > 1 ? 'trayRemove' : null;
       // 稳妥的机头范围：大多数力度都能成功（见 tools/tune.cjs）
       var lo = stage === 'gap' ? 6 : 8, hi = stage === 'gap' ? 14 : 13;
@@ -2329,9 +3296,9 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       trayRemove: ['win_heavy', 'tray_tap', 'clip_t3'],
       leafRemove: ['leaf_t1', 'leaf_t2', 'clip_t3']
     };
-    var CARD_OF = { noseUp: 'nose', noseDown: 'nose', wing: 'wing', trayAdd: 'clip', trayRemove: 'clip', leafRemove: 'clip' };
+    var CARD_OF = { noseUp: 'nose', noseDown: 'nose', wing: 'wing', wingDown: 'wing', trayAdd: 'clip', trayRemove: 'clip', leafRemove: 'clip' };
     var PART_OF = { noseUp: 'nose', noseDown: 'nose', trayAdd: 'tray', trayRemove: 'tray', throw: 'body', leafRemove: 'leaf' };
-    function partOf(f) { return f === 'wing' ? lowerWing(S.setup) : PART_OF[f]; }
+    function partOf(f) { return (f === 'wing' || f === 'wingDown') ? (st.stage === 'challenge' ? 'wingR' : lowerWing(S.setup)) : PART_OF[f]; }
 
     /* ---------- 卡片 ---------- */
     function openCard(kind, opts) {
@@ -2339,9 +3306,11 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       var html = '';
       if (kind === 'book') {
         var k = opts.book;
+        var svgKey = (opts.chal && k === 'wing') ? 'chalWing' : k;
+        var chalQ = (opts.chal && k === 'wing') ? '<div class="q">' + L.wet_q + '</div>' : '';
         var demoBtn = opts.chal ? (opts.fix ? '<button class="pri" data-act="demo">帮我把必须的改好</button>' : '') : '<button class="pri" data-act="demo">帮我演示这一步</button>';
         html = (TB[k] ? '<div class="tag">课本里说</div><div class="src">课本' + TS.page + '：「' + TS[k] + '」</div><div class="big">' + TB[k] + '</div>'
-          : '<div class="tag">自己想办法</div><div class="src">课本' + TS.page + '问：「' + TS.ask + '」</div><div class="big">' + OWN[k] + '</div>') + SVG[k] +
+          : '<div class="tag">自己想办法</div><div class="src">课本' + TS.page + '问：「' + TS.ask + '」</div><div class="big">' + OWN[k] + '</div>') + chalQ + SVG[svgKey] +
           '<div class="btns">' + demoBtn + '<button' + (opts.chal && !opts.fix ? ' class="pri"' : '') + ' data-act="self">我自己试试</button></div>';
       } else {
         html = '<div class="tag">想一想</div><div class="mid">' + L[opts.line] + '</div>' + (opts.svg ? SVG[opts.svg] : '') +
@@ -2380,11 +3349,13 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       var f = focusOf(st.stage, S.setup);
       var s = S.setup, target = {};
       if (st.stage === 'challenge') {
-        // 只把「必须」的改对：回形针拿掉、两边翅膀掰平（低的那边掰到高的那边）。不碰机头、不替孩子扔
+        // 把挑战关键参数校准到 19 款全机型通用的斜飞进筐甜区：右翼压低 6°、机头微抬 4°、回形针清零，留力度给孩子自己拉
         if (!f) return;
-        if (s.clips > 0) target.clips = 0;
-        if (!sym(s)) { var lw0 = lowerWing(s); target[lw0] = lw0 === 'wingL' ? s.wingR : s.wingL; }
-        st.rescue = { kind: 'setup', from: JSON.parse(JSON.stringify(s)), to: target, t: 0, dur: 1.4, focus: f };
+        target.clips = 0;
+        target.pitch = 4;
+        target.wingL = 0;
+        target.wingR = -6;
+        st.rescue = { kind: 'setup', from: JSON.parse(JSON.stringify(s)), to: target, t: 0, dur: 1.4, focus: f === 'wing' ? 'wingDown' : f };
         st.camFocus = partOf(f); st.camFocusT = 2.2;
         return;
       }
@@ -2500,21 +3471,24 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     function chPart() { var f = focusOf('challenge', S.setup); return f ? partOf(f) : 'nose'; }
     function chTier(tier) {
       var s = S.setup, h = st.chHist, last = h[h.length - 1], both = h.length === 2 && h[0] === h[1];
+      var f = focusOf('challenge', s), needWing = f === 'wing';
       if (tier === 1) {
         var id;
-        if ((last === 'veer' || h[0] === 'veer') && !sym(s)) id = 'challenge_t1_veer';
+        if (needWing) id = sym(s) ? 'wet_q' : 'challenge_t1_veer';
+        else if (f === 'trayRemove') id = 'challenge_t1_short';
         else if (last === 'over' && (both || h.length < 2)) id = 'challenge_t1_over';
-        else if (last === 'short' || last === 'dive') id = s.clips > 0 ? 'challenge_t1_short' : 'challenge_t1_far';
-        else id = last === 'over' ? 'challenge_t1_over' : s.clips > 0 ? 'challenge_t1_short' : !sym(s) ? 'challenge_t1_veer' : 'challenge_t1_far';
+        else id = 'challenge_t1_far';
         N.then(id);
         st.camFocus = chPart(); st.camFocusT = 1.8; startReplay();
       } else if (tier === 2) {
-        // 小手指着该改的那一处；童声说前半句，让孩子自己接
-        N.then(s.clips > 0 ? 'win_t2' : !sym(s) ? 'wet_t2' : 'gap_t2');
+        // 小手示范把右翼往下掰低；童声反问两边翅膀尖一样高吗
+        N.then(f === 'trayRemove' ? 'win_t2' : needWing ? 'wet_t1' : 'gap_t2');
       } else if (tier === 3) {
-        var fix = !!focusOf('challenge', s);
-        openCard('book', { book: s.clips > 0 ? 'clip' : !sym(s) ? 'wing' : 'nose', chal: true, fix: fix });
-        N.then(s.clips > 0 ? 'clip_t3' : !sym(s) ? 'wing_t3' : 'nose_t3');
+        var fix = !!f;
+        openCard('book', { book: f === 'trayRemove' ? 'clip' : needWing ? 'wing' : 'nose', chal: true, fix: fix });
+        if (f === 'trayRemove') N.then('clip_t3');
+        else if (needWing) { N.then('wing_t3'); N.then('wet_q'); }
+        else N.then('nose_t3');
       }
     }
     G.onChallengeWin = function () {
@@ -2522,7 +3496,11 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       N.say('challenge_win', function () { st.prizeDue = true; });
     };
     G.reset = function () {
-      st.prizeDue = false; st.chHist = []; st.winCardDue = false; st.draftHinted = false; st.rescued = {}; st.noseMoreSaid = false; st.stage = null; st.fails = 0; st.tier = 0; hideRescue(); N.stop(); if (st.card) { st.card = null; elCard.className = ''; } };
+      st.prizeDue = false; st.chHist = []; st.winCardDue = false; st.draftHinted = false; st.rescued = {}; st.noseMoreSaid = false;
+      st.stage = null; st.fails = 0; st.tier = 0; st.camFocus = null; st.camFocusT = 0; st.rescue = null; st.replay = null; st.wrongPullHand = 0;
+      ghost.visible = false; elHand.style.opacity = 0; hideRescue(); N.stop();
+      if (st.card) { st.card = null; elCard.className = ''; document.body.classList.remove('carding'); }
+    };
     G.blocking = function () { return !!st.card || !!st.rescue; };
 
     function hideRescue() { elRescue.className = ''; }
@@ -2545,7 +3523,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         if (Math.random() < dt * 12) SFX.crinkle(0.4);
         ctx.applySetup();
         handAt(partOf(r.focus), r.focus, u);
-        if (u >= 1) { st.rescue = null; st.rescued[st.stage] = true; elHand.style.opacity = 0; N.say(st.stage === 'challenge' ? 'challenge_t3' : 'rescue_go'); if (r.to.wingL !== undefined || r.to.wingR !== undefined) SFX.snap(); }
+        if (u >= 1) { st.rescue = null; st.rescued[st.stage] = true; elHand.style.opacity = 0; N.say('rescue_go'); if (r.to.wingL !== undefined || r.to.wingR !== undefined) SFX.snap(); }
         out.camFocus = st.camFocus;
         return out;
       }
@@ -2574,9 +3552,10 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       if (S.phase !== 'aim' || st.card) { return out; }
       if (st.camFocusT > 0) { st.camFocusT -= dt; out.camFocus = st.camFocus; }
       if (st.stage === 'challenge') {
-        // 挑战：1 级起该改的那一处轻轻闪，2 级起小手指着它（只指，不替他改）
-        if (st.tier >= 1) out.pulse = chPart();
-        if (st.tier >= 2 && !S.drag) handAt(chPart(), 'point', null); else elHand.style.opacity = 0;
+        // 挑战：1 级起该改的那一处轻轻闪，2 级起小手示范往对应方向调（右翼往下压低）
+        var cf = focusOf('challenge', S.setup);
+        if (st.tier >= 1 && cf) out.pulse = chPart();
+        if (st.tier >= 2 && !S.drag && cf) handAt(chPart(), cf === 'wing' ? 'wingDown' : cf, null); else elHand.style.opacity = 0;
         return out;
       }
       var f = focusOf(st.stage, S.setup);
@@ -2629,6 +3608,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       else if (f === 'noseUp') { b.y = a.y - H * 0.12; }
       else if (f === 'noseDown') { b.y = a.y + H * 0.08; }
       else if (f === 'wing') { b.y = a.y - H * 0.1; }
+      else if (f === 'wingDown') { b.y = a.y + H * 0.1; }
       else if (f === 'trayAdd') { b = ctx.partScreen('nose'); }
       else if (f === 'trayRemove') { b = { x: a.x, y: a.y }; }
       else if (f === 'leafRemove') { b = { x: a.x + H * 0.12, y: a.y - H * 0.08 }; }
@@ -2662,6 +3642,8 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
   var elTally = document.getElementById('tally');
   var elChal = document.getElementById('chal'), elChalBadge = document.getElementById('chalBadge');
   var elChalHud = document.getElementById('chalHud'), elChalTag = document.getElementById('chalTag'), elPrize = document.getElementById('prize');
+  var elPlanePick = document.getElementById('planePick'), elPlanePickPath = document.getElementById('planePickPath'), elPlanePickName = document.getElementById('planePickName');
+  var elPlaneModal = document.getElementById('planeModal'), elPlaneModalBody = document.getElementById('planeModalBody');
 
   /* ---------------- 渲染器 ---------------- */
   var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
@@ -2683,7 +3665,10 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
   var elBreath = document.getElementById('breath');
 
   /* ---------------- 状态 ---------------- */
-  function freshSetup() { return { pitch: 0, wingL: 0, wingR: 0, clips: 0, leaf: 0 }; }
+  function validKind(k) {
+    return typeof k === 'string' && ((CFG.PLANES && !!CFG.PLANES[k]) || /^my:(tip|flat)-(narrow|wide)-(flat|up)$/.test(k));
+  }
+  function freshSetup(kind) { return { kind: validKind(kind) ? kind : 'dart', pitch: 0, wingL: 0, wingR: 0, clips: 0, leaf: 0 }; }
   var S = {
     phase: 'title', t: 0, phaseT: 0,
     setup: freshSetup(), bent: false, fixedOnce: false,
@@ -2740,12 +3725,166 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     if (!el) return;
     if (fb) { el.textContent = '纸飞机图鉴：已收集 ' + fb.n + ' / 4 种' + (fb.m ? ' · 我的设计 ' + fb.m + ' 架' : ''); el.className = 'on'; }
   })();
+  function nakamuraUnlocked() {
+    if (SV.challenge && SV.challenge.won) return true;
+    try {
+      var b = (JSON.parse(root.localStorage.getItem('paperfold.v1')) || {}).book;
+      return !!(b && b.lit && b.lit.nakamura === true);
+    } catch (e) { return false; }
+  }
   function carriedSetup() {
     var l = SV.lastSetup;
-    if (!l) return freshSetup();
-    return { pitch: +l.pitch || 0, wingL: +l.wingL || 0, wingR: +l.wingR || 0, clips: Math.max(0, Math.min(3, l.clips | 0)), leaf: 0 };
+    if (!l) return freshSetup('dart');
+    var k = validKind(l.kind) ? l.kind : 'dart';
+    if (k === 'nakamura' && !nakamuraUnlocked()) k = 'dart';
+    return { kind: k, pitch: +l.pitch || 0, wingL: +l.wingL || 0, wingR: +l.wingR || 0, clips: Math.max(0, Math.min(3, l.clips | 0)), leaf: 0 };
   }
   S.setup = carriedSetup();
+
+  /* ---------------- 纸飞机图鉴机型（6 款真实名机优先 + 隐藏真机 + 4 款课上机型 + 我的设计） ---------------- */
+  var PLANE_SIL = {
+    raven: 'M50 53 L92 95 L92 112 L56 112 L50 116 L44 112 L8 112 L8 95 Z',
+    harrier: 'M50 50 L92 92 L92 112 L56 112 L50 116 L44 112 L8 112 L8 92 Z',
+    heavy: 'M41 51 L59 51 L59 53 L75 53 L92 95 L92 112 L56 112 L50 116 L44 112 L8 112 L8 95 L25 53 L41 53 Z',
+    bulldog: 'M38 23 L62 23 L92 95 L92 112 L56 112 L50 116 L44 112 L8 112 L8 95 Z',
+    hunting: 'M50 28 L92 70 L92 112 L56 112 L50 116 L44 112 L8 112 L8 70 Z',
+    heso: 'M44 53 L56 53 L92 89 L92 112 L56 112 L50 116 L44 112 L8 112 L8 89 Z',
+    nakamura: 'M45 20 L55 20 L92 62 L92 112 L56 112 L50 116 L44 112 L8 112 L8 62 Z',
+    dart: 'M50 6 L53 9 L88 112 L56 112 L50 116 L44 112 L12 112 L47 9 Z',
+    glider: 'M50 8 L53 10 L92 44 L92 112 L56 112 L50 116 L44 112 L8 112 L8 44 L47 10 Z',
+    flat: 'M44 40 L56 40 L90 74 L90 112 L56 112 L50 116 L44 112 L10 112 L10 74 Z',
+    winglet: 'M50 6 L53 9 L84 100 L92 98 L92 112 L56 112 L50 116 L44 112 L8 112 L8 98 L16 100 L47 9 Z'
+  };
+  var PLANE_SILX = {
+    raven: { top: 53, mark: 'M38 82 L50 54 L62 82' },
+    harrier: { top: 50, mark: 'M35 92 L50 77 L65 92' },
+    heavy: { top: 51, mark: 'M33 71 L67 71 M41 53 L50 71 L59 53' },
+    bulldog: { top: 23, mark: 'M38 23 L50 53 L62 23' },
+    hunting: { top: 28, mark: 'M44 34 L56 34 M42 37 L58 37', fin: 'M17 62 L17 112 M83 62 L83 112' },
+    heso: { top: 53, mark: 'M38 89 L50 77 L62 89 M46 53 L24 112 M54 53 L76 112' },
+    nakamura: { top: 20, mark: 'M42 44 L50 30 L58 44' }
+  };
+  function silPathOf(kind) {
+    if (PLANE_SIL[kind]) return PLANE_SIL[kind];
+    if (typeof kind === 'string' && kind.indexOf('my:') === 0) {
+      var ps = kind.slice(3).split('-');
+      if (ps[0] === 'flat') return PLANE_SIL.flat;
+      if (ps[1] === 'wide') return PLANE_SIL.glider;
+      if (ps[2] === 'up') return PLANE_SIL.winglet;
+    }
+    return PLANE_SIL.dart;
+  }
+  function frontCustomPlanes() {
+    try {
+      var b = (JSON.parse(root.localStorage.getItem('paperfold.v1')) || {}).book;
+      if (!b || !b.mine || typeof b.mine !== 'object' || Array.isArray(b.mine)) return [];
+      var PN = { tip: '尖头折平', flat: '平头', narrow: '窄翼', wide: '宽翼', up: '翼尖上翘' };
+      var PT = { flat: '机头平，大迎角不易失速', wide: '宽翼升阻比高，滑得更远', up: '翼尖上翘，横滚自动回正' };
+      return Object.keys(b.mine).filter(function (k) { return /^(tip|flat)-(narrow|wide)-(flat|up)$/.test(k) && b.mine[k] && typeof b.mine[k] === 'object'; }).map(function (k, idx) {
+        var ps = k.split('-'), nm = (b.mine[k].name && String(b.mine[k].name).trim()) || ('我的设计 #' + (idx + 1));
+        var tr = [ps[0] === 'flat' ? PT.flat : '', ps[1] === 'wide' ? PT.wide : '', ps[2] === 'up' ? PT.up : ''].filter(Boolean).join('；') || '轻快标准飞镖';
+        return { kind: 'my:' + k, name: nm, orig: '', group: 'mine', parts: [PN[ps[0]], PN[ps[1]], ps[2] === 'up' ? PN.up : '平翼尖'].join(' · '), trait: tr };
+      });
+    } catch (e) { return []; }
+  }
+  function planeInfoOf(kind) {
+    if (CFG.PLANES && CFG.PLANES[kind]) {
+      var m = CFG.PLANES[kind];
+      return { kind: kind, name: m.name, orig: m.orig || '', group: m.group, parts: m.parts, trait: m.trait };
+    }
+    var customs = frontCustomPlanes();
+    for (var i = 0; i < customs.length; i++) if (customs[i].kind === kind) return customs[i];
+    if (typeof kind === 'string' && /^my:(tip|flat)-(narrow|wide)-(flat|up)$/.test(kind)) {
+      var ps = kind.slice(3).split('-');
+      return { kind: kind, name: '我的设计', orig: '', group: 'mine', parts: (ps[0] === 'flat' ? '平头' : '尖头折平') + ' · ' + (ps[1] === 'wide' ? '宽翼' : '窄翼') + ' · ' + (ps[2] === 'up' ? '翼尖上翘' : '平翼尖'), trait: '前段自己折的设计机型' };
+    }
+    return { kind: 'dart', name: '平头镖', orig: '', group: 'class', parts: CFG.PLANES.dart.parts, trait: CFG.PLANES.dart.trait };
+  }
+  function syncPlanePick() {
+    if (!elPlanePick) return;
+    var info = planeInfoOf(S.setup.kind || 'dart');
+    if (elPlanePickName) elPlanePickName.textContent = info.name;
+    if (elPlanePickPath) elPlanePickPath.setAttribute('d', silPathOf(info.kind));
+    var show = S.phase === 'aim' && elEnd.className !== 'on';
+    elPlanePick.className = show ? 'on' : '';
+    document.body.classList.toggle('challenging', !!S.challenge);
+  }
+  function selectKind(kind, force) {
+    if (!validKind(kind)) return false;
+    if (kind === 'nakamura' && !force && !nakamuraUnlocked()) return false;
+    var info = planeInfoOf(kind);
+    S.setup.kind = kind;
+    plane.setKind(kind, info.name);
+    applySetup(true);
+    syncPlanePick();
+    return info;
+  }
+  function renderPlaneModal() {
+    if (!elPlaneModalBody) return;
+    var cur = S.setup.kind || 'dart', nkOpen = nakamuraUnlocked();
+    function svgFor(k) {
+      var d = silPathOf(k), sx = PLANE_SILX[k], topY = sx ? sx.top : (k === 'flat' ? 40 : 8);
+      return '<svg viewBox="0 0 100 120" aria-hidden="true"><path class="pl" d="' + d + '"/><path class="kl" d="M50 ' + topY + ' L50 114"/>' +
+        (sx && sx.mark ? '<path class="kl" d="' + sx.mark + '"/>' : '') +
+        (sx && sx.fin ? '<path class="kl" d="' + sx.fin + '"/>' : '') + '</svg>';
+    }
+    function cardHtml(item) {
+      var locked = item.kind === 'nakamura' && !nkOpen;
+      var cls = (item.kind === cur ? ' cur' : '') + (locked ? ' locked' : '');
+      var badge = locked ? '<span class="lk">完成「一投进筐」解锁</span>' : (item.orig ? '<span class="og">' + item.orig + '</span>' : '');
+      return '<button type="button" class="item' + cls + '" data-kind="' + item.kind + '"' + (locked ? ' data-locked="1"' : '') + '>' + svgFor(item.kind) +
+        '<div class="meta"><div class="nm"><span>' + item.name + '</span>' + badge + '</div>' +
+        '<div class="pt">' + item.parts + '</div><div class="tr">' + item.trait + '</div></div></button>';
+    }
+    var realKeys = ['raven', 'harrier', 'heavy', 'bulldog', 'hunting', 'heso'];
+    var classKeys = ['dart', 'glider', 'flat', 'winglet'];
+    var html = '<div class="sec">世界真实折纸名机（6 款 · 独立折痕与气动特性）</div><div class="grid">' +
+      realKeys.map(function (k) { return cardHtml(planeInfoOf(k)); }).join('') + '</div>';
+    html += '<div class="sec">隐藏名机 · 中村荣志经典款</div><div class="grid">' + cardHtml(planeInfoOf('nakamura')) + '</div>';
+    html += '<div class="sec">科学课标准机型（4 款）</div><div class="grid">' +
+      classKeys.map(function (k) { return cardHtml(planeInfoOf(k)); }).join('') + '</div>';
+    var customs = frontCustomPlanes();
+    if (customs.length) {
+      html += '<div class="sec">我的设计（前段图鉴存档）</div><div class="grid">' + customs.map(cardHtml).join('') + '</div>';
+    }
+    elPlaneModalBody.innerHTML = html;
+    var btns = elPlaneModalBody.querySelectorAll('.item');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function () {
+        var k = this.getAttribute('data-kind');
+        SFX.unlock();
+        if (this.getAttribute('data-locked') === '1') {
+          say('完成「一投进筐」挑战，就能解锁中村锁！', 2.4);
+          return;
+        }
+        SFX.crinkle(0.6);
+        var info = selectKind(k, false);
+        closePlaneModal();
+        if (info) say('换成了「' + info.name + '」', 2.0);
+      });
+    }
+  }
+  function openPlaneModal() {
+    if (!elPlaneModal) return;
+    renderPlaneModal();
+    elPlaneModal.className = 'on';
+    document.body.classList.add('modaling');
+  }
+  function closePlaneModal() {
+    if (!elPlaneModal) return;
+    elPlaneModal.className = '';
+    document.body.classList.remove('modaling');
+  }
+  if (elPlanePick) {
+    elPlanePick.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    elPlanePick.addEventListener('click', function (e) { e.stopPropagation(); SFX.unlock(); openPlaneModal(); });
+  }
+  if (elPlaneModal) {
+    elPlaneModal.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    elPlaneModal.addEventListener('click', function (e) { if (e.target === elPlaneModal) closePlaneModal(); });
+  }
+  var elPlaneModalClose = document.getElementById('planeModalClose');
+  if (elPlaneModalClose) elPlaneModalClose.addEventListener('click', function (e) { e.stopPropagation(); closePlaneModal(); });
   // 这一局拐角会遇到什么：撞歪右翼 / 粘上湿树叶 / 撞歪左翼（见 CFG.ROUNDS）
   function round() { return CFG.ROUNDS[S.runs % CFG.ROUNDS.length]; }
 
@@ -2777,11 +3916,11 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     var f = fwdOf(yaw), r = rightOf(yaw);
     var asp = camera.aspect, back = asp < 1 ? 0.62 + (1 - asp) * 0.5 : 0.62;
     if (spot.room === 'challenge') {
-      // 挑战：趴在自己课桌旁的窗台上。爸爸在 27 米外的楼下，比走廊尽头那扇窗远得多，
-      // 所以不往正下方看，而是往下 38° 看：纸飞机在画面下半，楼下的院子、爸爸和车在画面中上
-      outPos.set(spot.x, spot.y, spot.z).addScaledVector(f, -0.45).add(_up.set(0, 0.5, 0));
-      outLook.copy(outPos).addScaledVector(f, Math.cos(0.66)).add(_up.set(0, -Math.sin(0.66), 0));
-      return 60;
+      // 挑战：在尽头窗口（x 14.5, z 12.2），出手方向朝侧面（偏左 0.6 rad），镜头退后并略朝车筐（+z）偏一点，
+      // 让手里的飞机（朝左前方）和楼下的爸爸车筐（画面右侧）同屏可见
+      outPos.set(spot.x, spot.y, spot.z).addScaledVector(f, -0.42).add(_up.set(0, 0.78, 0));
+      outLook.set(spot.x, spot.y, spot.z).addScaledVector(f, 0.42).add(_up.set(0, -1.1, 0.16));
+      return 62;
     }
     if (spot.room === 'window') {
       // 趴在窗台上往下看：飞机在手边，爸爸在楼下
@@ -2798,37 +3937,63 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
 
   /* ---------------- 摆飞机 ---------------- */
   function placeAtSpot(spot) {
+    plane.setOnDesk(0);
     plane.rig.position.set(spot.x, spot.y, spot.z);
     plane.rig.rotation.set(0, -spot.yaw, 0);
     plane.body.position.set(0, 0, 0); plane.body.rotation.set(0, 0, 0);
   }
-  function applySetup(instant) { plane.setSetup(S.setup, instant); }
+  function placeOnDesk() {
+    var top = world.heroDeskTop || C.DESK.top || 0.76;
+    plane.setOnDesk(1);
+    plane.rig.position.set(C.DESK.x, top + 0.0365, C.DESK.z);
+    plane.rig.rotation.set(0, -DESK_SPOT.yaw, 0);
+    plane.body.position.set(0, 0, 0); plane.body.rotation.set(0, 0, 0);
+  }
+  function applySetup(instant) {
+    var info = planeInfoOf(S.setup.kind || 'dart');
+    S.setup.label = info.name;
+    plane.setSetup(S.setup, instant);
+  }
 
   function enterAim(spot) {
     S.spot = spot; S.room = spot.room; S.aim = 0; S.power = 0;
-    S.phase = 'aim'; S.phaseT = 0; S.idle = 0;
+    S.phase = 'aim'; S.phaseT = 0; S.idle = 0; S.pickupClose = false;
     placeAtSpot(spot);
     plane.showTray(true); plane.placeTray(spot.room === 'challenge' ? 'window' : spot.room);
+    if (spot.room === 'challenge') plane.tray.position.set(-0.14, -0.02, -0.22);
     if (S.challenge) chalTag(S.challenge.tries + 1);
     plane.setBand(false);
-    arm.onAim();
+    arm.onAim(); arm.setRight(true);
+    syncPlanePick();
     if (G) G.onAim();
   }
+  function deskPose(outPos, outLook) {
+    var top = (world.heroDeskTop || C.DESK.top || 0.76) + 0.001;
+    var asp = camera.aspect, k = asp < 1 ? 1 + (1 - asp) * 0.9 : 1;
+    // 落座机位偏到右后方 3/4：正对机尾俯看，任何纸飞机都只剩一个带脊的三角形，孩子看成金字塔（格 8 盲审两轮）
+    outPos.set(C.DESK.x - 0.30 * k, top + 0.30 * k, 0.26 * k);
+    outLook.set(C.DESK.x + 0.02, top, 0);
+    return 50;
+  }
+  /* 两段必须同值 */
+  var PICKUP_BEAT = { enterDur: 0.4, pinchDur: 0.22, liftDur: 1.23, pressY: 0.001, arcY: 0.14, overY: 0.01, camLag: 0.15 };
 
   /* ---------------- 开场：从楼下一路倒飞回课桌 ---------------- */
+  var DESK_Y0 = (C.DESK.top || 0.76) + 0.001;
   var introPos = new THREE.CatmullRomCurve3([
     new THREE.Vector3(17.6, -10.6, 25.5), new THREE.Vector3(15.6, -4, 19), new THREE.Vector3(14.6, 1.0, 14.2),
     new THREE.Vector3(14.5, 1.7, 10.8), new THREE.Vector3(14.5, 1.8, 4.5), new THREE.Vector3(14.4, 1.9, 0.0),
     new THREE.Vector3(10.0, 2.3, 0.0), new THREE.Vector3(3.5, 1.8, 0.0), new THREE.Vector3(-1.5, 1.6, 0.0),
-    new THREE.Vector3(-6.4, 1.25, 0.0)
+    new THREE.Vector3(C.DESK.x + 1.2, DESK_Y0 + 0.62, 0.9),   // 从课桌右侧绕到座位后方，不从飞机头顶掠过（格 8 盲审：贴脸掠过时像一块奶酪）
+    new THREE.Vector3(C.DESK.x - 0.30, DESK_Y0 + 0.30, 0.26)
   ], false, 'catmullrom', 0.3);
   var introLook = new THREE.CatmullRomCurve3([
     new THREE.Vector3(14.5, 1.2, 12.3), new THREE.Vector3(14.5, 1.4, 11.5), new THREE.Vector3(14.5, 1.4, 8),
     new THREE.Vector3(14.5, 1.3, 1.5), new THREE.Vector3(14.0, 1.2, -1.0), new THREE.Vector3(9, 1.0, 0),
     new THREE.Vector3(2, 1.2, 0), new THREE.Vector3(-4, 1.1, 0), new THREE.Vector3(-7, 0.9, 0),
-    new THREE.Vector3(-7.4, 0.85, 0)
+    new THREE.Vector3(C.DESK.x + 0.02, DESK_Y0, 0.0)
   ], false, 'catmullrom', 0.3);
-  var INTRO_DUR = 5.8;
+  var INTRO_DUR = 7.0;
   function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
   function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
@@ -2879,6 +4044,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     S.flight = PH.launch(S.setup, { x: spot.x, y: spot.y, z: spot.z }, yaw, S.power, tremor, S.challenge ? { course: 'challenge' } : undefined);
     S.path = []; S.hitWall = false; S.acc = 0; S.ev = null; S.result = null; S.maxBank = 0; S.maxY = -99;
     S.phase = 'fly'; S.phaseT = 0;
+    closePlaneModal(); syncPlanePick();
     plane.setBand(false); plane.showTray(false);
     plane.body.position.set(0, 0, 0); plane.body.rotation.set(0, 0, 0);
     SFX.throw(S.power);
@@ -2915,10 +4081,11 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       else if (S.runs < CFG.ROUNDS.length || S.hitWall) res.bend = cn === 'bendL' ? 'L' : 'R';
     }
     if (res.kind === 'rewind' && S.challenge) {
-      // 挑战没进：只说差在哪（歪 / 过头 / 不够远 / 一头栽下去 / 撞窗框），倒放回窗口再来
-      var cwhy = S.maxBank > 0.35 ? 'veer' : res.why;
+      // 挑战没进：出手朝侧面（偏左 0.6 rad），两翼放平或拐反了会偏在车筐两侧外（veer）；拐回来了再按远近判 short / over / dive
+      var B0 = C.BASKET, cwhy = res.why;
+      if (cwhy !== 'wall' && (Math.abs(S.setup.wingL - S.setup.wingR) < 0.5 || Math.abs(ev.x - B0.x) > 2.6)) cwhy = 'veer';
       if (cwhy === 'short' && ev.type === 'ground') {
-        var B0 = C.BASKET, dTot = Math.hypot(B0.x - CH_SPOT.x, B0.z - CH_SPOT.z);
+        var dTot = Math.hypot(B0.x - CH_SPOT.x, B0.z - CH_SPOT.z);
         if (((ev.x - CH_SPOT.x) * (B0.x - CH_SPOT.x) + (ev.z - CH_SPOT.z) * (B0.z - CH_SPOT.z)) / dTot < dTot * 0.45) cwhy = 'dive';
       }
       G.onChallengeFail(cwhy);
@@ -2966,45 +4133,44 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     elChal.className = can ? 'on' + (won ? ' won' : '') : '';
     elChal.textContent = won ? '再挑战一次：一投进筐' : '挑战：一投进筐';
     elChalBadge.className = can ? 'on' : '';
-    elChalBadge.textContent = won ? '一投进筐：做到啦（' + SV.challenge.tries + ' 次）· 再挑战一次' : '挑战：从教室窗口，一投进筐 →';
+    elChalBadge.textContent = won ? '一投进筐：做到啦（' + SV.challenge.tries + ' 次）· 再挑战一次' : '挑战：斜着出手，一投进筐 →';
     S.chalOffer = can;
   }
-  function showEnd() { drawTally(); updateChalButtons(); elEnd.className = 'on'; }
-  function showPrize() { elPrize.className = 'on'; elChalHud.className = ''; document.body.classList.add('prizing'); }
+  function showEnd() { drawTally(); updateChalButtons(); elEnd.className = 'on'; syncPlanePick(); }
+  function showPrize() { elPrize.className = 'on'; elChalHud.className = ''; document.body.classList.add('prizing'); syncPlanePick(); }
   function endChallenge() {
     S.challenge = null; world.showDad = false;
     elChalHud.className = ''; elPrize.className = ''; document.body.classList.remove('prizing');
+    syncPlanePick();
   }
   function startChallenge() {
     if (S.runs < CH.MIN_RUNS) return false;
     var fromTitle = S.phase === 'title' || S.phase === 'intro';
     elEnd.className = ''; elTitle.className = 'off'; elPrize.className = ''; document.body.classList.remove('prizing');
+    closePlaneModal();
     S.challenge = { tries: 0, fromTitle: fromTitle };
-    // 纸飞机就是这一局最后的样子：可能还夹着回形针、翅膀可能不平——这正是要他自己想的。湿树叶去掉
+    // 挑战在尽头窗口斜着出手：清零主线带过来的回形针，机头放到 4° 基准配平角，两边翅膀归平、去掉湿树叶，让孩子专心把两翼掰成一高一低斜飞进筐
     if (fromTitle) S.setup = carriedSetup();
-    S.setup.leaf = 0; plane.setWet(0); applySetup(true);
+    S.setup.clips = 0; S.setup.pitch = 4; S.setup.wingL = 0; S.setup.wingR = 0; S.setup.leaf = 0;
+    plane.setBend(false, 'R'); plane.setWet(0); applySetup(true);
     trail.visible = false; trail2.visible = false;
     world.showDad = true; world.dadMode('wave');
     G.reset();
     hush(); S.drag = null;
     placeAtSpot(CH_SPOT); plane.showTray(false);
     elChalHud.className = 'on'; chalTag(1);
-    // 镜头路线：在对面楼里（走廊尽头窗口）就先出窗；再到院子上空、升到四楼窗外、钻进窗口
+    // 镜头路线：在结尾窗口就地转到侧向出手位；从标题页（楼下院子）进来的则升到四楼尽头窗口
     S.chalFrom = { p: camPos.clone(), l: camLook.clone() };
     aimPose(CH_SPOT, CH_SPOT.yaw, tmpV, tmpV2);
     var aimP = tmpV.clone();
-    if (camPos.distanceTo(aimP) < 2) { S.chalCurve = null; S.chalDur = 0.9; }
+    if (camPos.distanceTo(aimP) < 2.5) { S.chalCurve = null; S.chalDur = 0.9; }
     else {
-      var pts = [camPos.clone()];
-      if (camPos.x > 12.5 && camPos.z < 12.4 && camPos.y > -0.3) pts.push(new THREE.Vector3(camPos.x, camPos.y + 0.3, 13.4));
-      var last = pts[pts.length - 1];
-      pts.push(new THREE.Vector3((last.x + CH_SPOT.x) / 2, Math.max(last.y, 2) + 2.5, (last.z + 6.5) / 2));
-      pts.push(new THREE.Vector3(CH_SPOT.x - 0.2, 2.4, 6.2));
-      pts.push(aimP);
+      var pts = [camPos.clone(), new THREE.Vector3(15.6, -4.0, 19.0), new THREE.Vector3(14.6, 1.5, 13.6), aimP];
       S.chalCurve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.3);
-      S.chalDur = fromTitle ? 3.2 : 2.6;
+      S.chalDur = 2.6;
     }
     S.phase = 'chalMove'; S.phaseT = 0;
+    syncPlanePick();
     return true;
   }
   // 「不挑战了」：回到结尾卡（从标题页直接进来的，就开始新的一局）
@@ -3012,6 +4178,13 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     var fromTitle = S.challenge && S.challenge.fromTitle;
     endChallenge(); hush(); G.reset();
     if (fromTitle || !S.throws) { S.phase = 'end'; restart(); return; }
+    arm.hide(); plane.showTray(false); plane.showDots(false, S.t);
+    world.showDad = true; world.dadMode('cheer');
+    plane.rig.position.copy(world.basketWorld).add(tmpV.set(0, -0.02, 0));
+    var ws = C.WINDOW_SPOT;
+    camPos.set(ws.x, ws.y + 0.8, ws.z - 0.3);
+    camLook.copy(world.basketWorld).add(tmpV.set(0.3, 0.6, 0));
+    fovTarget = 30; camera.fov = 30; camera.updateProjectionMatrix();
     S.phase = 'end'; showEnd();
   }
   elChal.addEventListener('click', function () { SFX.unlock(); startChallenge(); });
@@ -3079,14 +4252,14 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     var n = screenOf(noseWorld());
     return Math.hypot(c.x - x, c.y - y) < Math.max(50, Math.hypot(c.x - n.x, c.y - n.y) * 1.1);
   }
-  function noseWorld() { return plane.body.localToWorld(new THREE.Vector3(0.11, 0.01, 0)); }
+  function noseWorld() { return plane.noseTipWorld ? plane.noseTipWorld() : plane.body.localToWorld(new THREE.Vector3(0.11, 0.01, 0)); }
 
   var dragPlane = new THREE.Plane(), dragHit = new THREE.Vector3();
   function onDown(e) {
     SFX.unlock();
     S.lastInput = S.t; S.idle = 0; elGhost.style.opacity = 0;
     if (S.phase === 'title') { beginIntro(); return; }
-    if (S.phase === 'intro') { S.phaseT = INTRO_DUR; return; }
+    if (S.phase === 'intro') { S.phaseT = S.introDur; return; }
     if (S.phase !== 'aim' || S.drag || G.blocking() || arm.isBreathing()) return;
     canvas.setPointerCapture && e.pointerId !== undefined && canvas.setPointerCapture(e.pointerId);
     var o = pick(e.clientX, e.clientY);
@@ -3216,9 +4389,12 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
   var gleam = 0;
 
   function beginIntro(fast) {
-    elTitle.className = 'off';
-    S.phase = 'intro'; S.phaseT = 0; S.introDur = fast ? 3.6 : INTRO_DUR;
+    elTitle.className = 'off'; closePlaneModal();
+    S.phase = 'intro'; S.phaseT = 0; S.introDur = fast ? 3.2 : INTRO_DUR;
     S.introFrom = fast ? { p: camPos.clone(), l: camLook.clone() } : null;
+    S.pickupStarted = false; S.pinchSfx = false; S.liftFrom = null; S.pickupClose = false;
+    placeOnDesk(); arm.hide(); plane.showTray(false); plane.showDots(false, S.t);
+    syncPlanePick();
     world.dadMode('wave');
     if (!fast) G.onIntro();
   }
@@ -3228,7 +4404,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     S.setup = carriedSetup(); S.bent = false; S.leafDone = false; S.fixedOnce = false; S.throws = 0; S.wetSeen = 0; S.overSeen = 0; S.windowSeen = false;
     plane.resetMarks(); plane.setBend(false, 'R'); plane.setWet(0); plane.setOldTally(SV.lastTally || 0); applySetup(true);
     world.clearMarks(); world.dadMode('wait');
-    placeAtSpot(DESK_SPOT);
+    placeOnDesk(); arm.hide(); plane.showTray(false); plane.showDots(false, S.t);
     G.reset(); S.endReady = false;
     beginIntro(true);
   }
@@ -3238,7 +4414,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
   var frames = 0, fpsT = 0, lowFps = 0, tuned = false;
   var paused = false;
   function loop(now) {
-    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    var dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
     if (paused) { requestAnimationFrame(loop); return; }
     tick(dt);
     render();
@@ -3286,22 +4462,69 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         if (S.t > 1.2 && world.dad.mode === 'wait' && S.t % 6 < 0.05) world.dadMode('wave');
         if (S.t > (S.chalOffer ? 7 : 3.2)) beginIntro();     // 不点也会自己开始（标题页有挑战入口时多等一会儿）
         if (world.dad.mode === 'wave' && world.dad.t > 2.2) world.dadMode('wait');
-        placeAtSpot(DESK_SPOT);
+        placeOnDesk(); arm.hide(); plane.showTray(false); plane.showDots(false, S.t);
         break;
       }
       case 'intro': {
-        var u = Math.min(1, S.phaseT / S.introDur), e = ease(u);
-        if (S.introFrom) {
-          aimPose(DESK_SPOT, DESK_SPOT.yaw, tmpV, tmpV2);
-          camPos.copy(S.introFrom.p).lerp(tmpV, e); camLook.copy(S.introFrom.l).lerp(tmpV2, e);
-        } else {
-          var a = Math.min(0.999, e);
-          camPos.copy(introPos.getPoint(a)); camLook.copy(introLook.getPoint(a));
-          if (u > 0.85) { aimPose(DESK_SPOT, DESK_SPOT.yaw, tmpV, tmpV2); var b = (u - 0.85) / 0.15; camPos.lerp(tmpV, b); camLook.lerp(tmpV2, b); }
-        }
         if (world.dad.mode === 'wave' && world.dad.t > 2.4) world.dadMode('wait');
-        if (u >= 1) {
-          enterAim(DESK_SPOT);
+        var PK = PICKUP_BEAT, pkTotal = PK.enterDur + PK.pinchDur + PK.liftDur;
+        var tFly = Math.max(0.5, S.introDur - pkTotal);
+        if (S.phaseT < tFly) {
+          var uf = Math.min(1, S.phaseT / tFly), ef = ease(uf);
+          S.pickupClose = uf > 0.82;   // 镜头开始落向课桌：阴影范围先定成特写那一档，之后一直到交接都不再变
+          placeOnDesk(); arm.hide(); plane.showTray(false); plane.showDots(false, S.t);
+          if (S.introFrom) {
+            deskPose(tmpV, tmpV2);
+            camPos.copy(S.introFrom.p).lerp(tmpV, ef); camLook.copy(S.introFrom.l).lerp(tmpV2, ef);
+          } else {
+            var a = Math.min(0.999, ef);
+            camPos.copy(introPos.getPoint(a)); camLook.copy(introLook.getPoint(a));
+            if (uf > 0.82) { deskPose(tmpV, tmpV2); var b = ease((uf - 0.82) / 0.18); camPos.lerp(tmpV, b); camLook.lerp(tmpV2, b); }
+            if (uf > 0.78) { var sd = Math.sin(((uf - 0.78) / 0.22) * Math.PI); camPos.y -= 0.01 * sd * sd; }
+          }
+          fovTarget = 50;
+          break;
+        }
+        var pt = S.phaseT - tFly, tEnter = PK.enterDur, tPinch = tEnter + PK.pinchDur;
+        if (!S.pickupStarted) { S.pickupStarted = true; S.pinchSfx = false; S.liftFrom = null; arm.onAim(); arm.setRight(true); }
+        if (pt < tEnter) {
+          S.pickupClose = true;
+          var ue = pt / tEnter, ee0 = easeOut(ue);
+          deskPose(camPos, camLook); fovTarget = 50;
+          placeOnDesk(); plane.showTray(false); plane.showDots(false, S.t);
+          arm.update(dt, { power: 0, dragKind: null, camLocal: plane.body.worldToLocal(camPos.clone()), dotLocal: function (n) { return plane.dots[n].position.clone(); }, pickup: { enter: ee0, open: 0.55 - 0.20 * ee0, desk: 1 } });
+          break;
+        }
+        if (pt < tPinch) {
+          S.pickupClose = true;
+          var up = (pt - tEnter) / PK.pinchDur, ep = easeOut(up);
+          if (!S.pinchSfx) { S.pinchSfx = true; SFX.throw(0.08); }
+          deskPose(camPos, camLook); fovTarget = 50;
+          placeOnDesk(); plane.showTray(false); plane.showDots(false, S.t);
+          plane.rig.position.y -= Math.sin(up * Math.PI) * PK.pressY;
+          arm.update(dt, { power: 0, dragKind: null, camLocal: plane.body.worldToLocal(camPos.clone()), dotLocal: function (n) { return plane.dots[n].position.clone(); }, pickup: { enter: 1, open: 0.35 * (1 - ep) + 0.03, desk: 1 } });
+          break;
+        }
+        S.pickupClose = true;
+        if (!S.liftFrom) { deskPose(tmpV, tmpV2); S.liftFrom = { pos: plane.rig.position.clone(), q: plane.rig.quaternion.clone(), cp: tmpV.clone(), cl: tmpV2.clone() }; }
+        var lu = Math.min(1, (pt - tPinch) / PK.liftDur), le = ease(lu), m0 = S.liftFrom;
+        plane.setOnDesk(1 - ease(PH.clamp((lu - 0.1) / 0.75, 0, 1)));
+        tmpV.set(DESK_SPOT.x, DESK_SPOT.y, DESK_SPOT.z);
+        plane.rig.position.copy(m0.pos).lerp(tmpV, le);
+        var sArc = Math.sin(lu * Math.PI);
+        plane.rig.position.y += sArc * (1 - le) * PK.arcY + sArc * sArc * le * (PK.overY * 3.8);
+        tmpQ.setFromEuler(new THREE.Euler(0, -DESK_SPOT.yaw, 0, 'YZX'));
+        plane.rig.quaternion.copy(m0.q).slerp(tmpQ, le);
+        if (lu > 0.55) { plane.placeTray(DESK_SPOT.room); plane.showTray(true); } else plane.showTray(false);
+        plane.showDots(false, S.t);
+        var av = aimPose(DESK_SPOT, DESK_SPOT.yaw, tmpV, tmpV2);
+        var cu = PH.clamp((pt - tPinch - PK.camLag) / (PK.liftDur - PK.camLag), 0, 1), ce = ease(cu);
+        camPos.copy(m0.cp).lerp(tmpV, ce); camLook.copy(m0.cl).lerp(tmpV2, ce); fovTarget = 50 + (av - 50) * ce;
+        arm.update(dt, { power: 0, dragKind: null, camLocal: plane.body.worldToLocal(camPos.clone()), dotLocal: function (n) { return plane.dots[n].position.clone(); }, pickup: { enter: 1, open: 0.03, desk: 1 - le } });
+        if (lu >= 1) {
+          S.pickupClose = false;
+          enterAim(DESK_SPOT); arm.st.enter = 1;
+          aimPose(DESK_SPOT, DESK_SPOT.yaw, camPos, camLook); fovTarget = av; camera.fov = av; camera.updateProjectionMatrix();
           if (S.runs === 0) say('把飞机送到爸爸那儿', 3.4);
         }
         break;
@@ -3310,7 +4533,8 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         S.idle += dt;
         var spot = S.spot, yaw = spot.yaw + S.aim;
         var fov = aimPose(spot, spot.yaw, tmpV, tmpV2);
-        if (S.camOverride > 0) {
+        var inWin = spot.room === 'window' || spot.room === 'challenge';
+        if (S.camOverride > 0 && !inWin) {
           // 压低了从后面看一眼：一边高、一边低
           S.camOverride -= dt;
           var f = fwdOf(spot.yaw);
@@ -3319,19 +4543,19 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
           fov = 46;
         }
         var focusKind = S.drag ? S.drag.kind : (gOut.camFocus || null);
-        if (focusKind === 'tray' && spot.room !== 'window' && spot.room !== 'challenge') {
+        if (!inWin && focusKind === 'tray') {
           // 引导时看一眼回形针盒
           var tp = plane.tray.getWorldPosition(new THREE.Vector3()), ft = fwdOf(spot.yaw);
           tmpV.copy(tp).addScaledVector(ft, -0.32).add(_up.set(0, 0.3, 0));
           tmpV2.copy(tp).addScaledVector(ft, 0.12);
           fov = 46;
-        } else if (focusKind === 'nose') {
+        } else if (!inWin && focusKind === 'nose') {
           // 捏机头：镜头侧过来，看得见机头翘起来
           var fs = fwdOf(spot.yaw), rs = rightOf(spot.yaw);
           tmpV.set(spot.x, spot.y, spot.z).addScaledVector(rs, -0.26).addScaledVector(fs, -0.46).add(_up.set(0, 0.16, 0));
           tmpV2.set(spot.x, spot.y, spot.z).addScaledVector(fs, 0.1);
           fov = 48;
-        } else if (focusKind === 'wingL' || focusKind === 'wingR') {
+        } else if (!inWin && (focusKind === 'wingL' || focusKind === 'wingR')) {
           // 掰翅膀：镜头压低到机翼高度，从后面平着看，两边高低一眼看出来
           var fw = fwdOf(spot.yaw);
           tmpV.set(spot.x, spot.y, spot.z).addScaledVector(fw, -0.42).add(_up.set(0, 0.03, 0));
@@ -3478,8 +4702,8 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
       }
       case 'win': {
         if (S.challenge) {
-          // 挑战：人还在教室窗口，离车筐约 30 米，推得更近才和主线窗口那一下一样大；奖励卡出来后把车筐让到画面右边
-          fovTarget = S.phaseT < 2.6 ? 10 : 13;
+          // 挑战：人在尽头窗口，推近楼下的爸爸；奖励卡出来后把车筐让到画面右边
+          fovTarget = S.phaseT < 2.6 ? 20 : 28;
           tmpV.copy(world.basketWorld).add(tmpV2.set(0.3, 0.6, 0));
           if (elPrize.className === 'on') {
             var dd = camPos.distanceTo(tmpV), half = dd * Math.tan(camera.fov * DEG / 2) * camera.aspect;
@@ -3496,7 +4720,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         break;
       }
       case 'chalMove': {
-        // 镜头从当前位置（楼下、或走廊尽头的窗口）出到院子上空，一路升回四楼，从窗外钻进自己课桌旁的窗口
+        // 镜头从当前位置移到尽头窗口的侧向出手位
         var cu = Math.min(1, S.phaseT / S.chalDur), ce = ease(cu);
         var cfv = aimPose(CH_SPOT, CH_SPOT.yaw, tmpV, tmpV2);
         if (S.chalCurve) { camPos.copy(S.chalCurve.getPoint(ce)); if (cu > 0.8) camPos.lerp(tmpV, (cu - 0.8) / 0.2); }
@@ -3511,7 +4735,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     // 镜头震动
     if (shakeAmt > 0) { shakeAmt = Math.max(0, shakeAmt - dt * 2.5); }
     plane.update(dt, flutter);
-    world.update(dt, focusPoint(), S.t);
+    world.update(dt, focusPoint(), S.t, S.pickupClose ? 'pickup' : S.phase);
     camera.fov += (fovTarget - camera.fov) * Math.min(1, dt * 3);
     camera.updateProjectionMatrix();
   }
@@ -3526,11 +4750,12 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     var spot = S.spot;
     var p = plane.rig.position;
     if (spot.room === 'challenge') {
-      // 挑战：人趴在教室窗口，看着它从四楼往下飘；飞远了镜头收窄一点，四层楼的高度和车筐都看得见
-      tmpV.set(spot.x, spot.y + 0.62, spot.z).addScaledVector(fwdOf(spot.yaw), -0.08);   // 头探到窗洞里，窗框不挡视线
+      // 挑战：人留在尽头窗口，看着它从侧面拐弯往下飘进爸爸的车筐
+      var ws2 = C.WINDOW_SPOT;
+      tmpV.set(ws2.x, ws2.y + 0.8, ws2.z - 0.3);
       camPos.lerp(tmpV, 1 - Math.exp(-dt * 3));
       camLook.lerp(p, 1 - Math.exp(-dt * 6));
-      fovTarget = PH.clamp(56 - camPos.distanceTo(p) * 0.8, 30, 56);
+      fovTarget = 52;
       return;
     }
     if (spot.room === 'window' || (spot.room === 'land' && p.z > C.DRAFT.zw - 0.6)) {
@@ -3598,6 +4823,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
     var sh = shakeAmt * 0.03;
     camera.position.copy(camPos).add(tmpV.set((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh));
     camera.lookAt(camLook);
+    if (world.look) world.look(camera, plane);
     renderer.render(scene, camera);
   }
 
@@ -3639,13 +4865,13 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
   updateChalButtons();
   plane.setOldTally(SV.lastTally || 0);
   applySetup(true);
-  placeAtSpot(DESK_SPOT);
+  placeOnDesk(); arm.hide(); plane.showTray(false); plane.showDots(false, S.t);
   camPos.copy(introPos.getPoint(0)); camLook.copy(introLook.getPoint(0));
   requestAnimationFrame(loop);
 
   /* ---------------- 调试接口（给无头探针用） ---------------- */
   root.PAPER = {
-    S: S,
+    S: S, plane: plane, arm: arm, world: world, camera: camera, camPos: camPos, camLook: camLook,
     api: {
       clearSave: function () { try { root.localStorage.removeItem(SAVE_KEY); } catch (e) {} return true; },
       snapshot: function () {
@@ -3670,10 +4896,15 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
         return screenOf(v);
       },
       pickAt: function (x, y) { var o = pick(x, y); return o ? o.name : null; },
-      setSetup: function (o) { Object.assign(S.setup, o); applySetup(true); return S.setup; },
+      setSetup: function (o) { Object.assign(S.setup, o); applySetup(true); syncPlanePick(); return S.setup; },
+      setKind: function (k, respectLock) { return selectKind(k, !respectLock); },
+      kinds: function () { return CFG.PLANE_ORDER.map(planeInfoOf).concat(frontCustomPlanes()); },
+      openPlaneModal: function () { openPlaneModal(); return elPlaneModal.className === 'on'; },
+      closePlaneModal: function () { closePlaneModal(); return elPlaneModal.className === 'on'; },
       setRuns: function (n) { S.runs = n; return round(); },
-      skipIntro: function () { if (S.phase === 'title') beginIntro(); S.phaseT = 99; tick(0.016); tick(0.016); },
+      skipIntro: function () { elVeil.style.transition = 'none'; elVeil.className = ''; elTitle.style.transition = 'none'; elTitle.className = 'off'; if (S.phase === 'title') beginIntro(); S.phaseT = 99; tick(0.016); tick(0.016); render(); },
       teleport: function (name) {
+        elVeil.style.transition = 'none'; elVeil.className = '';
         var sp = name === 'land' ? spotFor('land') : name === 'window' ? spotFor('window') : name === 'hall' ? spotFor('hall', 5.4, 0) : DESK_SPOT;
         if (name === 'land' && !S.bent && !S.leafDone) {
           var cn = round().corner;
@@ -3681,7 +4912,7 @@ var MD = root.MODELS && root.MODELS.has ? root.MODELS : null;
           else { S.bent = true; S.setup[cn === 'bendL' ? 'wingL' : 'wingR'] = -SET.BENT; plane.setBend(true, cn === 'bendL' ? 'L' : 'R'); }
           applySetup(true);
         }
-        enterAim(sp); aimPose(sp, sp.yaw, camPos, camLook); render(); return S.spot;
+        enterAim(sp); aimPose(sp, sp.yaw, camPos, camLook); world.update(1, camLook, S.t, S.phase); render(); return S.spot;
       },
       throwNow: function (power, aim) { if (S.phase !== 'aim') return false; S.power = power; S.aim = aim || 0; doThrow(); return true; },
       advance: function (sec, noRender) { var n = Math.round(sec * 60); for (var i = 0; i < n; i++) tick(1 / 60); if (!noRender) render(); return this.snapshot(); },
