@@ -348,15 +348,16 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       }
     },
     CAM: { FOV: 52 },
-    // 一次成功挑战：站在走廊尽头那扇窗前，但出手方向朝侧面偏开车筐（偏左 0.6 弧度 ≈ 34.4°）。
-    // 只有挑战那一投才用这里的配置（PHYS.launch 的 opt.course === 'challenge'）；主线的 COURSE 一个数不动。
-    // 两翼一样高 0 种能进，孩子必须让两翼一高一低，飞机才能斜飞拐进车筐；0/1/2 枚回形针均有丰富进筐扔法
+    // 一次成功挑战：回到四楼教室，从自己课桌旁的第一扇窗，一投进爸爸的车筐。
+    // 只有挑战那一投才用这里的几何（PHYS.launch 的 opt.course === 'challenge'）；主线的 COURSE 一个数不动。
+    // 物理只多一个窗洞和一块窗外空域：不加风、不放大车筐、不放宽判定，进没进筐还是同一个 step() 算的
     CHALLENGE: {
-      // 尽头窗洞与窗外院子空域（与主线 win / out 对齐，供 physics.js roomOf/floorOf 读取）
-      WINDOW: { id: 'cwin', x0: 13.9, x1: 15.1, y0: 0.9, y1: 2.3, z0: 12.0, z1: 12.3, floor: false },
-      YARD: { id: 'yard', x0: -12, x1: 42, y0: -12, y1: 30, z0: 12.3, z1: 70, floor: true },
-      // 趴在尽头窗台前出手：与 COURSE.WINDOW_SPOT 同点，出手方向朝侧面偏左 0.6 rad（约 34.4°）
-      SPOT: { x: 14.5, y: 1.2, z: 12.2, yaw: Math.PI / 2 - 0.6 },
+      // 第一扇窗（world.js 朝院子的窗：x −8.2…−6.4、窗台 0.9、窗顶 2.6、墙在 z 3.6），不是地面
+      WINDOW: { id: 'cwin', x0: -8.2, x1: -6.4, y0: 0.9, y1: 2.6, z0: 3.5, z1: 3.8, floor: false },
+      // 窗外到院子的上空：东边到对面那栋楼的外墙（world.js shell x 12.6）为止，南边接上主线的 out（z 12.3）
+      YARD: { id: 'yard', x0: -12, x1: 12.6, y0: -12, y1: 30, z0: 3.8, z1: 12.3, floor: true },
+      // 趴在窗台前出手：窗洞中点、手的高度，正对车筐（COURSE.BASKET 的 x 14.5、z 20.6）
+      SPOT: { x: -7.3, y: 1.3, z: 3.65, yaw: Math.atan2(20.6 - 3.65, 14.5 + 7.3) },
       MIN_RUNS: 1          // 送回家一次以后才邀请
     },
     // 图鉴全机型适配（6 款真实机型 + 1 款隐藏真机 + 4 款课上标准机型 + 我的设计部件组合）。
@@ -3615,14 +3616,8 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     function focusOf(stage, s) {
       if (stage === 'throw') return 'throw';
       if (stage === 'class') return null;
-      // 挑战在尽头窗口朝侧面出手：两翼一样高一定进不了，必须让两翼一高一低斜飞；若还夹着回形针且压翼较大也会提前坠地
-      if (stage === 'challenge') {
-        if (s.clips > 2) return 'trayRemove';
-        if (s.wingL - s.wingR < 2.5 || s.wingL - s.wingR > 10) return 'wing';
-        if (s.clips > 0 && (s.wingL - s.wingR > 4.5 || s.pitch < 6)) return 'trayRemove';
-        if (s.clips === 0 && (s.pitch < 1 || s.pitch > 8)) return s.pitch < 1 ? 'noseUp' : 'noseDown';
-        return null;
-      }
+      // 挑战里「必须」改对的只有两样：拿掉回形针、两边翅膀一样高。机头抬多少留给孩子，引导永远不碰
+      if (stage === 'challenge') return s.clips > 0 ? 'trayRemove' : !sym(s) ? 'wing' : null;
       if (stage === 'window') return s.clips === 0 ? 'trayAdd' : s.clips > 1 ? 'trayRemove' : null;
       // 稳妥的机头范围：大多数力度都能成功（见 tools/tune.cjs）
       var lo = stage === 'gap' ? 6 : 8, hi = stage === 'gap' ? 14 : 13;
@@ -3643,9 +3638,9 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       trayRemove: ['win_heavy', 'tray_tap', 'clip_t3'],
       leafRemove: ['leaf_t1', 'leaf_t2', 'clip_t3']
     };
-    var CARD_OF = { noseUp: 'nose', noseDown: 'nose', wing: 'wing', wingDown: 'wing', trayAdd: 'clip', trayRemove: 'clip', leafRemove: 'clip' };
+    var CARD_OF = { noseUp: 'nose', noseDown: 'nose', wing: 'wing', trayAdd: 'clip', trayRemove: 'clip', leafRemove: 'clip' };
     var PART_OF = { noseUp: 'nose', noseDown: 'nose', trayAdd: 'tray', trayRemove: 'tray', throw: 'body', leafRemove: 'leaf' };
-    function partOf(f) { return (f === 'wing' || f === 'wingDown') ? (st.stage === 'challenge' ? 'wingR' : lowerWing(S.setup)) : PART_OF[f]; }
+    function partOf(f) { return f === 'wing' ? lowerWing(S.setup) : PART_OF[f]; }
 
     /* ---------- 卡片 ---------- */
     function openCard(kind, opts) {
@@ -3653,11 +3648,9 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       var html = '';
       if (kind === 'book') {
         var k = opts.book;
-        var svgKey = (opts.chal && k === 'wing') ? 'chalWing' : k;
-        var chalQ = (opts.chal && k === 'wing') ? '<div class="q">' + L.wet_q + '</div>' : '';
         var demoBtn = opts.chal ? (opts.fix ? '<button class="pri" data-act="demo">帮我把必须的改好</button>' : '') : '<button class="pri" data-act="demo">帮我演示这一步</button>';
         html = (TB[k] ? '<div class="tag">课本里说</div><div class="src">课本' + TS.page + '：「' + TS[k] + '」</div><div class="big">' + TB[k] + '</div>'
-          : '<div class="tag">自己想办法</div><div class="src">课本' + TS.page + '问：「' + TS.ask + '」</div><div class="big">' + OWN[k] + '</div>') + chalQ + SVG[svgKey] +
+          : '<div class="tag">自己想办法</div><div class="src">课本' + TS.page + '问：「' + TS.ask + '」</div><div class="big">' + OWN[k] + '</div>') + SVG[k] +
           '<div class="btns">' + demoBtn + '<button' + (opts.chal && !opts.fix ? ' class="pri"' : '') + ' data-act="self">我自己试试</button></div>';
       } else {
         html = '<div class="tag">想一想</div><div class="mid">' + L[opts.line] + '</div>' + (opts.svg ? SVG[opts.svg] : '') +
@@ -3696,13 +3689,11 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       var f = focusOf(st.stage, S.setup);
       var s = S.setup, target = {};
       if (st.stage === 'challenge') {
-        // 把挑战关键参数校准到 19 款全机型通用的斜飞进筐甜区：右翼压低 6°、机头微抬 4°、回形针清零，留力度给孩子自己拉
+        // 只把「必须」的改对：回形针拿掉、两边翅膀掰平（低的那边掰到高的那边）。不碰机头、不替孩子扔
         if (!f) return;
-        target.clips = 0;
-        target.pitch = 4;
-        target.wingL = 0;
-        target.wingR = -6;
-        st.rescue = { kind: 'setup', from: JSON.parse(JSON.stringify(s)), to: target, t: 0, dur: 1.4, focus: f === 'wing' ? 'wingDown' : f };
+        if (s.clips > 0) target.clips = 0;
+        if (!sym(s)) { var lw0 = lowerWing(s); target[lw0] = lw0 === 'wingL' ? s.wingR : s.wingL; }
+        st.rescue = { kind: 'setup', from: JSON.parse(JSON.stringify(s)), to: target, t: 0, dur: 1.4, focus: f };
         st.camFocus = partOf(f); st.camFocusT = 2.2;
         return;
       }
@@ -3818,24 +3809,21 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     function chPart() { var f = focusOf('challenge', S.setup); return f ? partOf(f) : 'nose'; }
     function chTier(tier) {
       var s = S.setup, h = st.chHist, last = h[h.length - 1], both = h.length === 2 && h[0] === h[1];
-      var f = focusOf('challenge', s), needWing = f === 'wing';
       if (tier === 1) {
         var id;
-        if (needWing) id = sym(s) ? 'wet_q' : 'challenge_t1_veer';
-        else if (f === 'trayRemove') id = 'challenge_t1_short';
+        if ((last === 'veer' || h[0] === 'veer') && !sym(s)) id = 'challenge_t1_veer';
         else if (last === 'over' && (both || h.length < 2)) id = 'challenge_t1_over';
-        else id = 'challenge_t1_far';
+        else if (last === 'short' || last === 'dive') id = s.clips > 0 ? 'challenge_t1_short' : 'challenge_t1_far';
+        else id = last === 'over' ? 'challenge_t1_over' : s.clips > 0 ? 'challenge_t1_short' : !sym(s) ? 'challenge_t1_veer' : 'challenge_t1_far';
         N.then(id);
         st.camFocus = chPart(); st.camFocusT = 1.8; startReplay();
       } else if (tier === 2) {
-        // 小手示范把右翼往下掰低；童声反问两边翅膀尖一样高吗
-        N.then(f === 'trayRemove' ? 'win_t2' : needWing ? 'wet_t1' : 'gap_t2');
+        // 小手指着该改的那一处；童声说前半句，让孩子自己接
+        N.then(s.clips > 0 ? 'win_t2' : !sym(s) ? 'wet_t2' : 'gap_t2');
       } else if (tier === 3) {
-        var fix = !!f;
-        openCard('book', { book: f === 'trayRemove' ? 'clip' : needWing ? 'wing' : 'nose', chal: true, fix: fix });
-        if (f === 'trayRemove') N.then('clip_t3');
-        else if (needWing) { N.then('wing_t3'); N.then('wet_q'); }
-        else N.then('nose_t3');
+        var fix = !!focusOf('challenge', s);
+        openCard('book', { book: s.clips > 0 ? 'clip' : !sym(s) ? 'wing' : 'nose', chal: true, fix: fix });
+        N.then(s.clips > 0 ? 'clip_t3' : !sym(s) ? 'wing_t3' : 'nose_t3');
       }
     }
     G.onChallengeWin = function () {
@@ -3870,7 +3858,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
         if (Math.random() < dt * 12) SFX.crinkle(0.4);
         ctx.applySetup();
         handAt(partOf(r.focus), r.focus, u);
-        if (u >= 1) { st.rescue = null; st.rescued[st.stage] = true; elHand.style.opacity = 0; N.say('rescue_go'); if (r.to.wingL !== undefined || r.to.wingR !== undefined) SFX.snap(); }
+        if (u >= 1) { st.rescue = null; st.rescued[st.stage] = true; elHand.style.opacity = 0; N.say(st.stage === 'challenge' ? 'challenge_t3' : 'rescue_go'); if (r.to.wingL !== undefined || r.to.wingR !== undefined) SFX.snap(); }
         out.camFocus = st.camFocus;
         return out;
       }
@@ -3899,10 +3887,9 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       if (S.phase !== 'aim' || st.card) { return out; }
       if (st.camFocusT > 0) { st.camFocusT -= dt; out.camFocus = st.camFocus; }
       if (st.stage === 'challenge') {
-        // 挑战：1 级起该改的那一处轻轻闪，2 级起小手示范往对应方向调（右翼往下压低）
-        var cf = focusOf('challenge', S.setup);
-        if (st.tier >= 1 && cf) out.pulse = chPart();
-        if (st.tier >= 2 && !S.drag && cf) handAt(chPart(), cf === 'wing' ? 'wingDown' : cf, null); else elHand.style.opacity = 0;
+        // 挑战：1 级起该改的那一处轻轻闪，2 级起小手指着它（只指，不替他改）
+        if (st.tier >= 1) out.pulse = chPart();
+        if (st.tier >= 2 && !S.drag) handAt(chPart(), 'point', null); else elHand.style.opacity = 0;
         return out;
       }
       var f = focusOf(st.stage, S.setup);
@@ -4263,11 +4250,11 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     var f = fwdOf(yaw), r = rightOf(yaw);
     var asp = camera.aspect, back = asp < 1 ? 0.62 + (1 - asp) * 0.5 : 0.62;
     if (spot.room === 'challenge') {
-      // 挑战：在尽头窗口（x 14.5, z 12.2），出手方向朝侧面（偏左 0.6 rad），镜头退后并略朝车筐（+z）偏一点，
-      // 让手里的飞机（朝左前方）和楼下的爸爸车筐（画面右侧）同屏可见
-      outPos.set(spot.x, spot.y, spot.z).addScaledVector(f, -0.42).add(_up.set(0, 0.78, 0));
-      outLook.set(spot.x, spot.y, spot.z).addScaledVector(f, 0.42).add(_up.set(0, -1.1, 0.16));
-      return 62;
+      // 挑战：趴在自己课桌旁的窗台上。爸爸在 27 米外的楼下，比走廊尽头那扇窗远得多，
+      // 所以不往正下方看，而是往下 38° 看：纸飞机在画面下半，楼下的院子、爸爸和车在画面中上
+      outPos.set(spot.x, spot.y, spot.z).addScaledVector(f, -0.45).add(_up.set(0, 0.5, 0));
+      outLook.copy(outPos).addScaledVector(f, Math.cos(0.66)).add(_up.set(0, -Math.sin(0.66), 0));
+      return 60;
     }
     if (spot.room === 'window') {
       // 趴在窗台上往下看：飞机在手边，爸爸在楼下
@@ -4306,8 +4293,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     S.spot = spot; S.room = spot.room; S.aim = 0; S.power = 0;
     S.phase = 'aim'; S.phaseT = 0; S.idle = 0; S.pickupClose = false;
     placeAtSpot(spot);
-    plane.showTray(true); plane.placeTray(spot.room === 'challenge' ? 'window' : spot.room);
-    if (spot.room === 'challenge') plane.tray.position.set(-0.14, -0.02, -0.22);
+    plane.showTray(true); plane.placeTray(spot.room);
     if (S.challenge) chalTag(S.challenge.tries + 1);
     plane.setBand(false);
     arm.onAim(); arm.setRight(true);
@@ -4428,11 +4414,10 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       else if (S.runs < CFG.ROUNDS.length || S.hitWall) res.bend = cn === 'bendL' ? 'L' : 'R';
     }
     if (res.kind === 'rewind' && S.challenge) {
-      // 挑战没进：出手朝侧面（偏左 0.6 rad），两翼放平或拐反了会偏在车筐两侧外（veer）；拐回来了再按远近判 short / over / dive
-      var B0 = C.BASKET, cwhy = res.why;
-      if (cwhy !== 'wall' && (Math.abs(S.setup.wingL - S.setup.wingR) < 0.5 || Math.abs(ev.x - B0.x) > 2.6)) cwhy = 'veer';
+      // 挑战没进：只说差在哪（歪 / 过头 / 不够远 / 一头栽下去 / 撞窗框），倒放回窗口再来
+      var cwhy = S.maxBank > 0.35 ? 'veer' : res.why;
       if (cwhy === 'short' && ev.type === 'ground') {
-        var dTot = Math.hypot(B0.x - CH_SPOT.x, B0.z - CH_SPOT.z);
+        var B0 = C.BASKET, dTot = Math.hypot(B0.x - CH_SPOT.x, B0.z - CH_SPOT.z);
         if (((ev.x - CH_SPOT.x) * (B0.x - CH_SPOT.x) + (ev.z - CH_SPOT.z) * (B0.z - CH_SPOT.z)) / dTot < dTot * 0.45) cwhy = 'dive';
       }
       G.onChallengeFail(cwhy);
@@ -4480,7 +4465,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     elChal.className = can ? 'on' + (won ? ' won' : '') : '';
     elChal.textContent = won ? '再挑战一次：一投进筐' : '挑战：一投进筐';
     elChalBadge.className = can ? 'on' : '';
-    elChalBadge.textContent = won ? '一投进筐：做到啦（' + SV.challenge.tries + ' 次）· 再挑战一次' : '挑战：斜着出手，一投进筐 →';
+    elChalBadge.textContent = won ? '一投进筐：做到啦（' + SV.challenge.tries + ' 次）· 再挑战一次' : '挑战：从教室窗口，一投进筐 →';
     S.chalOffer = can;
   }
   function showEnd() { drawTally(); updateChalButtons(); elEnd.className = 'on'; syncPlanePick(); }
@@ -4496,25 +4481,29 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     elEnd.className = ''; elTitle.className = 'off'; elPrize.className = ''; document.body.classList.remove('prizing');
     closePlaneModal();
     S.challenge = { tries: 0, fromTitle: fromTitle };
-    // 挑战在尽头窗口斜着出手：清零主线带过来的回形针，机头放到 4° 基准配平角，两边翅膀归平、去掉湿树叶，让孩子专心把两翼掰成一高一低斜飞进筐
+    // 纸飞机就是这一局最后的样子：可能还夹着回形针、翅膀可能不平——这正是要他自己想的。湿树叶去掉
     if (fromTitle) S.setup = carriedSetup();
-    S.setup.clips = 0; S.setup.pitch = 4; S.setup.wingL = 0; S.setup.wingR = 0; S.setup.leaf = 0;
-    plane.setBend(false, 'R'); plane.setWet(0); applySetup(true);
+    S.setup.leaf = 0; plane.setWet(0); applySetup(true);
     trail.visible = false; trail2.visible = false;
     world.showDad = true; world.dadMode('wave');
     G.reset();
     hush(); S.drag = null;
     placeAtSpot(CH_SPOT); plane.showTray(false);
     elChalHud.className = 'on'; chalTag(1);
-    // 镜头路线：在结尾窗口就地转到侧向出手位；从标题页（楼下院子）进来的则升到四楼尽头窗口
+    // 镜头路线：在对面楼里（走廊尽头窗口）就先出窗；再到院子上空、升到四楼窗外、钻进窗口
     S.chalFrom = { p: camPos.clone(), l: camLook.clone() };
     aimPose(CH_SPOT, CH_SPOT.yaw, tmpV, tmpV2);
     var aimP = tmpV.clone();
-    if (camPos.distanceTo(aimP) < 2.5) { S.chalCurve = null; S.chalDur = 0.9; }
+    if (camPos.distanceTo(aimP) < 2) { S.chalCurve = null; S.chalDur = 0.9; }
     else {
-      var pts = [camPos.clone(), new THREE.Vector3(15.6, -4.0, 19.0), new THREE.Vector3(14.6, 1.5, 13.6), aimP];
+      var pts = [camPos.clone()];
+      if (camPos.x > 12.5 && camPos.z < 12.4 && camPos.y > -0.3) pts.push(new THREE.Vector3(camPos.x, camPos.y + 0.3, 13.4));
+      var last = pts[pts.length - 1];
+      pts.push(new THREE.Vector3((last.x + CH_SPOT.x) / 2, Math.max(last.y, 2) + 2.5, (last.z + 6.5) / 2));
+      pts.push(new THREE.Vector3(CH_SPOT.x - 0.2, 2.4, 6.2));
+      pts.push(aimP);
       S.chalCurve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.3);
-      S.chalDur = 2.6;
+      S.chalDur = fromTitle ? 3.2 : 2.6;
     }
     S.phase = 'chalMove'; S.phaseT = 0;
     syncPlanePick();
@@ -5049,8 +5038,8 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       }
       case 'win': {
         if (S.challenge) {
-          // 挑战：人在尽头窗口，推近楼下的爸爸；奖励卡出来后把车筐让到画面右边
-          fovTarget = S.phaseT < 2.6 ? 20 : 28;
+          // 挑战：人还在教室窗口，离车筐约 30 米，推得更近才和主线窗口那一下一样大；奖励卡出来后把车筐让到画面右边
+          fovTarget = S.phaseT < 2.6 ? 10 : 13;
           tmpV.copy(world.basketWorld).add(tmpV2.set(0.3, 0.6, 0));
           if (elPrize.className === 'on') {
             var dd = camPos.distanceTo(tmpV), half = dd * Math.tan(camera.fov * DEG / 2) * camera.aspect;
@@ -5067,7 +5056,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
         break;
       }
       case 'chalMove': {
-        // 镜头从当前位置移到尽头窗口的侧向出手位
+        // 镜头从当前位置（楼下、或走廊尽头的窗口）出到院子上空，一路升回四楼，从窗外钻进自己课桌旁的窗口
         var cu = Math.min(1, S.phaseT / S.chalDur), ce = ease(cu);
         var cfv = aimPose(CH_SPOT, CH_SPOT.yaw, tmpV, tmpV2);
         if (S.chalCurve) { camPos.copy(S.chalCurve.getPoint(ce)); if (cu > 0.8) camPos.lerp(tmpV, (cu - 0.8) / 0.2); }
@@ -5097,12 +5086,11 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     var spot = S.spot;
     var p = plane.rig.position;
     if (spot.room === 'challenge') {
-      // 挑战：人留在尽头窗口，看着它从侧面拐弯往下飘进爸爸的车筐
-      var ws2 = C.WINDOW_SPOT;
-      tmpV.set(ws2.x, ws2.y + 0.8, ws2.z - 0.3);
+      // 挑战：人趴在教室窗口，看着它从四楼往下飘；飞远了镜头收窄一点，四层楼的高度和车筐都看得见
+      tmpV.set(spot.x, spot.y + 0.62, spot.z).addScaledVector(fwdOf(spot.yaw), -0.08);   // 头探到窗洞里，窗框不挡视线
       camPos.lerp(tmpV, 1 - Math.exp(-dt * 3));
       camLook.lerp(p, 1 - Math.exp(-dt * 6));
-      fovTarget = 52;
+      fovTarget = PH.clamp(56 - camPos.distanceTo(p) * 0.8, 30, 56);
       return;
     }
     if (spot.room === 'window' || (spot.room === 'land' && p.z > C.DRAFT.zw - 0.6)) {
