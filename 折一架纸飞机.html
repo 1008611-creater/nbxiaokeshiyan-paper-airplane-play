@@ -4162,7 +4162,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     function finish() {
       var it = item; item = null; stopAll();
       N.cur = null; N.busy = false; elSub.className = 'sub';
-      if (it && it.cb) it.cb();
+      if (it && it.cb) { var cb = it.cb; it.cb = null; cb(); }
       if (N.queue.length && !item) gap = 0.26;
     }
     function play(it) {
@@ -4205,8 +4205,14 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         if (gap <= 0) play(N.queue.shift());
       }
     };
-    // 打断当前，立刻说
-    N.say = function (id, cb) { N.queue.length = 0; play({ id: id, cb: cb }); };
+    // 打断当前，立刻说（若上一句挂着阶段推进回调 cb，不能丢掉，必须先执行）
+    N.say = function (id, cb) {
+      var prevCb = item && item.cb;
+      if (item) item.cb = null;
+      N.queue.length = 0;
+      if (prevCb) prevCb();
+      play({ id: id, cb: cb });
+    };
     // 排队说
     N.then = function (id, cb) { if (N.busy || N.queue.length) N.queue.push({ id: id, cb: cb }); else play({ id: id, cb: cb }); };
     N.stop = function () { N.queue.length = 0; item = null; stopAll(); N.cur = null; N.busy = false; elSub.className = 'sub'; };
@@ -4468,16 +4474,23 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
       if (stage === 'fold') { var go0 = ctx.plane.FOLDS[0].line; if (first) { N.say('intro'); N.then(go0); } else N.say(go0); return; }
       if (stage === 'predict') { N.say('predict_ask'); st.tier = 2; return; }   // 小手一进来就在红旗上示范
       if (stage === 'flat') return;
-      var pass = { angle: st.rescued.angle ? 'angle_pass_r' : 'angle_pass', wing: 'door_pass' }[prev];
       var card = { flat: ['predict_card', 'predict_q', null, '比一比'], angle: ['angle_card', 'angle_q', 'nose'], wing: ['wing_card', 'wing_q', 'wing'] }[prev];
       var showCard = card && !st.seenCards[prev];
+      var nextDone = false;
       var next = function () {
+        if (nextDone) return;
+        nextDone = true;
+        st.waitingPass = null;
         if (stage === 'angle') N.then('angle_ask');
         else if (stage === 'wing') { N.then(S.bent === 'L' ? 'bend_l' : 'bend_r'); ctx.lookAtWing(); N.then('door_ask'); }
         else if (stage === 'free' && prev === 'wing' && S.mode !== 'book') ctx.endClass();   // 飞出门：看完「想一想」直接下课，自由试飞放到下课页上可选
         else if (stage === 'free') { N.then('free_go'); if (!S.classOver) N.then('free_tip'); ctx.showDone(); }
       };
+      var goDone = false;
       var go = function () {
+        if (goDone) return;
+        goDone = true;
+        st.waitingPass = null;
         if (showCard) {
           st.seenCards[prev] = true;
           var o = { line: card[0], q: card[1], svg: card[2], tag: card[3] };
@@ -4486,8 +4499,12 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
           st.afterCard = next;
         } else next();
       };
-      if (pass) N.say(pass, go); else go();
+      go();
     }
+    G.onPass = function (stg) {
+      var pass = stg === 'angle' ? (st.rescued.angle ? 'angle_pass_r' : 'angle_pass') : stg === 'wing' ? 'door_pass' : null;
+      if (pass) N.say(pass);
+    };
     G.onFold = function (i, nx) {
       st.idle = 0; st.tier = 0; st.fails = 0; hideRescue(); elHand.style.opacity = 0;
       if (nx) N.say(nx);
@@ -4525,8 +4542,16 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     G.onSnap = function () { if (S.bent && st.stage === 'wing') N.say('snap'); };
     // 放在网上（整套）时，下课的最后一句就是去课后实践：和后段开场那句连起来读
     G.onEnd = function () { hideRescue(); st.stage = 'done'; if (document.body.classList.contains('suite')) N.say('practice'); else { N.say('end'); N.then('again'); } };
-    G.reset = function () { mgStop(); st.rescued = {}; st.seenCards = {}; st.noseMoreSaid = false; st.flagSaid = false; st.stage = null; st.fails = 0; st.tier = 0; hideRescue(); N.stop(); if (st.card) { st.card = null; elCard.className = ''; document.body.classList.remove('carding'); } };
-    G.blocking = function () { return !!st.card || !!st.rescue; };
+    G.reset = function () { mgStop(); st.waitingPass = null; st.rescued = {}; st.seenCards = {}; st.noseMoreSaid = false; st.flagSaid = false; st.stage = null; st.fails = 0; st.tier = 0; hideRescue(); N.stop(); if (st.card) { st.card = null; elCard.className = ''; document.body.classList.remove('carding'); } };
+    G.skipWait = function () {
+      if (!st.waitingPass) return false;
+      var fn = st.waitingPass;
+      st.waitingPass = null;
+      N.stop();
+      fn();
+      return true;
+    };
+    G.blocking = function () { return !!st.card || !!st.rescue || !!st.waitingPass; };
     G.rescueDone = function () { if (st.rescue && st.rescue.kind === 'fold') { st.rescue = null; st.rescued[st.stage] = true; elHand.style.opacity = 0; } };
 
     function hideRescue() { elRescue.className = ''; }
@@ -5162,7 +5187,9 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     world.showGoal(st === 'angle');
     world.setFlag(S.predictX, st === 'predict' || st === 'flat');
     elConfirm.className = '';
-    elRecord.className = st === 'free' ? 'on' : '';
+    var isFreeActive = st === 'free' && (S.classOver || S.mode === 'book');
+    elRecord.className = isFreeActive ? 'on' : '';
+    if (isFreeActive) elDone.className = 'on';
     G.onStage(st);
   }
 
@@ -5277,9 +5304,11 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         G.onFail(res, { path: S.path.slice() });
       } else if (stg === 'angle') {
         say('过线啦 · ' + fmt(dist) + ' 米', 2.2); SFX.chime();
+        if (G.onPass) G.onPass('angle');
         res.bend = round().bend; S.nextStage = 'wing'; res.hold = 1.6;
       } else {
         say('飞出教室门啦！', 2.4);
+        if (G.onPass) G.onPass('wing');
         S.nextStage = 'free'; res.hold = 2.2;
         S.freeze = 0.12;
         elFlash.style.transition = 'none'; elFlash.style.opacity = 0.7;
@@ -5346,6 +5375,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     S.idle = 0;
     if (S.phase === 'title') { beginIntro(); return; }
     if (S.phase === 'intro') { S.phaseT = INTRO_DUR; return; }
+    if (G.skipWait && G.skipWait()) return;
     if (S.drag || G.blocking()) return;
     canvas.setPointerCapture && e.pointerId !== undefined && canvas.setPointerCapture(e.pointerId);
     if (S.phase === 'fold') {
@@ -5459,7 +5489,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     S.phase = 'toAim'; S.phaseT = 0; S.moveFrom = { cp: camPos.clone(), cl: camLook.clone() };
     S.nextStage = 'flat';
   });
-  elDone.addEventListener('click', function () { if (S.stage === 'free' && (S.phase === 'aim' || S.phase === 'settle')) finish(); });
+  elDone.addEventListener('click', function () { if (S.stage === 'free') { S.drag = null; trail.visible = false; finish(); } });
   root.addEventListener('keydown', function (e) {
     if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;   // 正在给飞机起名字：打字不算快捷键
     if (e.key === 'r' || e.key === 'R') restart();
@@ -5710,6 +5740,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         break;
       }
       case 'aim': {
+        if (S.stage === 'free' && !S.classOver && S.mode !== 'book' && !G.blocking()) { finish(); break; }
         S.idle += dt;
         var yaw = SPOT.yaw + S.aim;
         var fov = aimPose(SPOT, tmpV, tmpV2);
@@ -5900,7 +5931,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     demoThrow: function () { if (S.phase === 'aim') { S.power = 0.6; S.aim = 0; doThrow(); } },
     demoFold: function () { if (S.phase === 'fold' && !S.foldAnim) S.foldAnim = { from: plane.fold.p, to: 1, t: 0, dur: 1.4, demo: true }; },
     flagDemo: function (off) { world.setFlag(PH.clamp((S.flagDemoBase === undefined ? (S.flagDemoBase = world.flag.position.x) : S.flagDemoBase) + off, SPOT.x + 0.8, SPOT.x + 7)); if (off === 0) S.flagDemoBase = undefined; },
-    showDone: function () { elDone.className = 'on'; },
+    showDone: function () { elDone.className = 'on'; elRecord.className = 'on'; },
     planeName: function (k) { try { return book.info(k).name; } catch (e) { return null; } },   // 小剧场第四段「你的<机型名>」
     endClass: function () { finish(); }
   });

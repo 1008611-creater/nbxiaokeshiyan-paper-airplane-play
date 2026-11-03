@@ -3599,7 +3599,7 @@ window.MODEL_DATA = {"arm":{"id":"arm","verts":1596,"tris":815,"leftTris":647,"s
     function finish() {
       var it = item; item = null; stopAll();
       N.cur = null; N.busy = false; elSub.className = 'sub';
-      if (it && it.cb) it.cb();
+      if (it && it.cb) { var cb = it.cb; it.cb = null; cb(); }
       if (N.queue.length && !item) gap = 0.26;
     }
     function play(it) {
@@ -3642,8 +3642,14 @@ window.MODEL_DATA = {"arm":{"id":"arm","verts":1596,"tris":815,"leftTris":647,"s
         if (gap <= 0) play(N.queue.shift());
       }
     };
-    // 打断当前，立刻说
-    N.say = function (id, cb) { N.queue.length = 0; play({ id: id, cb: cb }); };
+    // 打断当前，立刻说（若上一句挂着阶段推进回调 cb，不能丢掉，必须先执行）
+    N.say = function (id, cb) {
+      var prevCb = item && item.cb;
+      if (item) item.cb = null;
+      N.queue.length = 0;
+      if (prevCb) prevCb();
+      play({ id: id, cb: cb });
+    };
     // 排队说
     N.then = function (id, cb) { if (N.busy || N.queue.length) N.queue.push({ id: id, cb: cb }); else play({ id: id, cb: cb }); };
     N.stop = function () { N.queue.length = 0; item = null; stopAll(); N.cur = null; N.busy = false; elSub.className = 'sub'; };
