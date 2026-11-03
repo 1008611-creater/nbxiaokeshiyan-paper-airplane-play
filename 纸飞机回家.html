@@ -1197,7 +1197,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     var W = {};
     var SUN_DIR = new THREE.Vector3(0.12, 0.25, 1).normalize();   // 从物体指向太阳
     var HERO_DESK = { color: '#ffffff', desat: 0 };
-    var DOOR_OPEN = -2.1;
+    var DOOR_OPEN = 2.42;
     var LK = createLook(THREE);
     W.SUN_DIR = SUN_DIR;
 
@@ -1214,14 +1214,19 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     function rnd(seed) { var s = seed || 1; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 
     var terrazzoTex = canvasTex(512, 512, function (g, w, h) {
-      g.fillStyle = '#a3ab9f'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#b4b8aa'; g.fillRect(0, 0, w, h);
+      var gr = g.createLinearGradient(0, 0, w, h);
+      gr.addColorStop(0, 'rgba(255,212,140,0.22)');
+      gr.addColorStop(0.5, 'rgba(255,190,115,0.34)');
+      gr.addColorStop(1, 'rgba(165,180,190,0.18)');
+      g.fillStyle = gr; g.fillRect(0, 0, w, h);
       var r = rnd(7);
       for (var i = 0; i < 9000; i++) {
         var x = r() * w, y = r() * h, s = 0.6 + r() * 2.6, k = r();
-        g.fillStyle = k < 0.45 ? 'rgba(238,236,226,0.75)' : k < 0.75 ? 'rgba(70,78,72,0.55)' : k < 0.9 ? 'rgba(160,110,90,0.5)' : 'rgba(120,140,128,0.6)';
+        g.fillStyle = k < 0.45 ? 'rgba(244,238,224,0.75)' : k < 0.75 ? 'rgba(76,82,76,0.48)' : k < 0.9 ? 'rgba(180,124,92,0.52)' : 'rgba(130,148,136,0.55)';
         g.beginPath(); g.ellipse(x, y, s, s * (0.5 + r() * 0.6), r() * 3, 0, 6.3); g.fill();
       }
-      g.strokeStyle = 'rgba(80,86,80,0.35)'; g.lineWidth = 2;      // 分格铜条
+      g.strokeStyle = 'rgba(90,86,76,0.32)'; g.lineWidth = 2;      // 分格铜条
       g.strokeRect(1, 1, w - 2, h - 2);
     }, true);
     var woodTex = canvasTex(256, 256, function (g, w, h) {
@@ -1236,10 +1241,25 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       }
     }, true);
     var signTex = canvasTex(256, 256, function (g, w, h) {
-      g.fillStyle = '#f2c230'; g.fillRect(0, 0, w, h);
-      g.fillStyle = '#222'; g.beginPath(); g.moveTo(128, 30); g.lineTo(200, 150); g.lineTo(56, 150); g.closePath(); g.fill();
-      g.fillStyle = '#f2c230'; g.font = 'bold 78px sans-serif'; g.textAlign = 'center'; g.fillText('!', 128, 138);
-      g.fillStyle = '#222'; g.font = 'bold 44px "PingFang SC","Microsoft YaHei",sans-serif'; g.fillText('小心地滑', 128, 215);
+      g.fillStyle = '#eab528'; g.fillRect(0, 0, w, h);
+      LK.underpaint(g, w, h, '#eab528', 19, 18, 90, 0.05);
+      g.strokeStyle = 'rgba(120,82,12,0.35)'; g.lineWidth = 10;
+      LK.rrect(g, 10, 10, w - 20, h - 20, 18); g.stroke();
+      // 顶部提手孔装饰
+      g.fillStyle = '#6b5322';
+      g.beginPath(); LK.rrect(g, 92, 24, 72, 16, 8); g.fill();
+      // 纯图形符号：三角形警告框 + 滑倒小人图标（遵循世界观设定：牌子上只有图标，不出现文字）
+      g.strokeStyle = '#241e18'; g.fillStyle = '#241e18'; g.lineWidth = 10; g.lineJoin = 'round'; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(128, 62); g.lineTo(208, 198); g.lineTo(48, 198); g.closePath(); g.stroke();
+      // 滑倒小人剪影
+      g.beginPath(); g.arc(136, 114, 9, 0, 6.283); g.fill();
+      g.lineWidth = 7;
+      g.beginPath(); g.moveTo(132, 126); g.lineTo(118, 152); g.lineTo(98, 162); g.stroke();
+      g.beginPath(); g.moveTo(118, 152); g.lineTo(142, 170); g.stroke();
+      g.beginPath(); g.moveTo(128, 134); g.lineTo(152, 140); g.moveTo(128, 134); g.lineTo(106, 136); g.stroke();
+      // 地面水波滑痕
+      g.lineWidth = 5;
+      g.beginPath(); g.moveTo(86, 182); g.quadraticCurveTo(128, 174, 170, 182); g.stroke();
     });
     var boardTex = canvasTex(512, 256, function (g, w, h) {
       g.fillStyle = '#2f4a3e'; g.fillRect(0, 0, w, h);
@@ -1250,25 +1270,88 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       g.beginPath(); g.moveTo(420, 150); g.lineTo(440, 162); g.lineTo(418, 172); g.stroke();
       g.fillStyle = 'rgba(235,235,225,0.12)'; g.fillRect(0, 200, w, 56);
     });
-    var posterTex = canvasTex(256, 320, function (g, w, h) {
-      g.fillStyle = '#e9dcc0'; g.fillRect(0, 0, w, h);
+    var posterTex = canvasTex(512, 320, function (g, w, h) {
+      g.fillStyle = '#efe3c8'; g.fillRect(0, 0, w, h);
+      LK.underpaint(g, w, h, '#efe3c8', 21, 20, 90, 0.04);
       var cols = ['#d9694a', '#e7b24a', '#5b8f7b', '#4b6fa0'];
-      for (var i = 0; i < 4; i++) { g.fillStyle = cols[i]; g.fillRect(20 + i * 56, 40, 44, 120 + i * 20); }
-      g.fillStyle = '#5a4a3a'; g.font = 'bold 30px "PingFang SC",sans-serif'; g.fillText('科学角', 80, 270);
+      for (var i = 0; i < 4; i++) {
+        var bx = 28 + i * 118, by = 36, bw = 96, bh = 210;
+        g.fillStyle = cols[i]; LK.rrect(g, bx, by, bw, bh, 8); g.fill();
+        g.strokeStyle = 'rgba(255,255,255,0.65)'; g.lineWidth = 3;
+        LK.rrect(g, bx + 6, by + 6, bw - 12, bh - 12, 5); g.stroke();
+        // 海报内的无文字科学简笔画（折纸飞机、流线、天平、齿轮）
+        g.strokeStyle = '#fff8ea'; g.fillStyle = '#fff8ea'; g.lineWidth = 4; g.lineCap = 'round'; g.lineJoin = 'round';
+        var cx = bx + bw / 2, cy = by + bh * 0.46;
+        if (i === 0) {
+          g.beginPath(); g.moveTo(cx + 26, cy - 18); g.lineTo(cx - 26, cy - 2); g.lineTo(cx - 8, cy + 8); g.closePath(); g.stroke();
+          g.beginPath(); g.moveTo(cx + 26, cy - 18); g.lineTo(cx - 8, cy + 8); g.lineTo(cx - 14, cy + 24); g.stroke();
+        } else if (i === 1) {
+          g.beginPath(); g.arc(cx, cy, 24, 0, 6.283); g.stroke();
+          g.beginPath(); g.moveTo(cx - 16, cy + 6); g.quadraticCurveTo(cx, cy - 18, cx + 18, cy + 4); g.stroke();
+        } else if (i === 2) {
+          g.beginPath(); g.moveTo(cx - 24, cy + 16); g.quadraticCurveTo(cx, cy - 26, cx + 24, cy + 12); g.stroke();
+          g.beginPath(); g.arc(cx, cy - 6, 5, 0, 6.283); g.fill();
+        } else {
+          g.beginPath(); g.moveTo(cx, cy - 24); g.lineTo(cx + 22, cy + 16); g.lineTo(cx - 22, cy + 16); g.closePath(); g.stroke();
+        }
+      }
     });
     var facadeTex = canvasTex(512, 512, function (g, w, h) {
-      g.fillStyle = '#d8c9ad'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#decbb0'; g.fillRect(0, 0, w, h);
+      LK.underpaint(g, w, h, '#decbb0', 29, 36, 130, 0.05);
+      LK.brushPass(g, w, h, '#decbb0', 31, 320, 140, 26, 0, 0.16, 0.35);
       var r = rnd(11);
       for (var fy = 0; fy < 4; fy++) for (var fx = 0; fx < 4; fx++) {
         var x = 30 + fx * 122, y = 30 + fy * 128;
-        var lit = r() < 0.18;
-        g.fillStyle = lit ? '#f3c27a' : '#4a5a63'; g.fillRect(x, y, 90, 70);
-        g.fillStyle = 'rgba(255,255,255,0.15)'; g.fillRect(x, y, 90, 6);
-        g.fillStyle = '#b9aa8f'; g.fillRect(x - 6, y + 70, 102, 8);
+        var lit = r() < 0.24;
+        g.fillStyle = '#756455'; g.fillRect(x - 4, y - 4, 98, 78);
+        g.fillStyle = lit ? '#f6c578' : '#435369'; g.fillRect(x, y, 90, 70);
+        if (lit) {
+          var wg = g.createLinearGradient(x, y, x, y + 70);
+          wg.addColorStop(0, 'rgba(255,235,185,0.65)'); wg.addColorStop(1, 'rgba(235,145,75,0.35)');
+          g.fillStyle = wg; g.fillRect(x, y, 90, 70);
+        }
+        // 窗格十字木框
+        g.fillStyle = '#6c5a4b'; g.fillRect(x + 43, y, 4, 70); g.fillRect(x, y + 32, 90, 4);
+        g.fillStyle = 'rgba(255,255,255,0.18)'; g.fillRect(x, y, 90, 6);
+        g.fillStyle = '#b9a387'; g.fillRect(x - 6, y + 70, 102, 9);
       }
-      g.fillStyle = 'rgba(0,0,0,0.06)';
+      g.fillStyle = 'rgba(70,52,42,0.08)';
       for (var k = 0; k < 4; k++) g.fillRect(0, k * 128 + 112, w, 6);
     }, true);
+    var shaftTex = canvasTex(512, 512, function (g, w, h) {
+      // 天井墙面（复刻 天井-A2.png）：上沿受暖阳漫射呈暖藕荷灰棕，往下渐变为幽深紫靛蓝阴影井
+      var gr = g.createLinearGradient(0, 0, 0, h);
+      gr.addColorStop(0, '#baa49c'); gr.addColorStop(0.28, '#857786'); gr.addColorStop(0.65, '#4b4b6e'); gr.addColorStop(1, '#26294a');
+      g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      LK.underpaint(g, w, h, '#6a6078', 53, 36, 150, 0.06);
+      LK.brushPass(g, w, h, '#786b82', 57, 360, 150, 28, Math.PI / 2, 0.16, 0.3);
+    }, false);
+    shaftTex.wrapS = THREE.RepeatWrapping; shaftTex.wrapT = THREE.ClampToEdgeWrapping;
+    var stoneTex = canvasTex(512, 256, function (g, w, h) {
+      g.fillStyle = '#d8cab4'; g.fillRect(0, 0, w, h);
+      LK.underpaint(g, w, h, '#d8cab4', 61, 28, 110, 0.05);
+      LK.brushPass(g, w, h, '#e8dcc8', 63, 280, 130, 22, 0, 0.2, 0.25);
+      g.fillStyle = 'rgba(95,75,60,0.18)'; g.fillRect(0, h - 14, w, 14);
+    }, true);
+    var yardTex = canvasTex(1024, 1024, function (g, w, h) {
+      // 晚霞玫瑰金与暖紫交织的手绘水泥方砖地面（呼应窗口-A2与楼下爸爸-A2）
+      g.fillStyle = '#c8a78e'; g.fillRect(0, 0, w, h);
+      LK.underpaint(g, w, h, '#c8a78e', 73, 60, 220, 0.06);
+      LK.brushPass(g, w, h, '#d7b499', 77, 650, 180, 32, 0.2, 0.22, 0.45);
+      var r = rnd(79), grid = 8, step = w / grid;
+      for (var gy = 0; gy < grid; gy++) for (var gx = 0; gx < grid; gx++) {
+        var x0 = gx * step, y0 = gy * step;
+        g.fillStyle = LK.hexA(LK.shade('#c8a78e', (r() - 0.5) * 0.06), 0.35);
+        g.fillRect(x0 + 3, y0 + 3, step - 6, step - 6);
+      }
+      g.strokeStyle = 'rgba(88,68,78,0.28)'; g.lineWidth = 3;
+      for (var i = 0; i <= grid; i++) {
+        var p = i * step;
+        g.beginPath(); g.moveTo(p, 0); g.lineTo(p, h); g.stroke();
+        g.beginPath(); g.moveTo(0, p); g.lineTo(w, p); g.stroke();
+      }
+    }, [28, 28]);
     var softDot = canvasTex(64, 64, function (g, w, h) {
       var gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
       gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
@@ -1276,29 +1359,91 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     });
     W.softDot = softDot;
 
-    /* ---------------- 材质 ---------------- */
+    var TX = {}, MS = {};
+    function initSurfaces() {
+      var canvasTex = LK.canvasTex, rnd = LK.rnd, hexA = LK.hexA, shade = LK.shade, painted = LK.painted;
+      TX.wall = canvasTex(1024, 1024, function (g, w, h) {
+        g.fillStyle = PAL.cream; g.fillRect(0, 0, w, h);
+        LK.underpaint(g, w, h, PAL.cream, 3, 60, 220, 0.05);
+        LK.brushPass(g, w, h, PAL.cream, 4, 1100, 170, 38, 0.25, 0.26, 0.6);
+        LK.brushPass(g, w, h, '#fff6e6', 6, 120, 90, 14, 0.2, 0.22, 0.5);
+        var gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,236,205,0.22)'); gr.addColorStop(1, 'rgba(150,130,150,0.10)');
+        g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      }, [2, 1]);
+      TX.mint = canvasTex(1024, 512, function (g, w, h) {
+        g.fillStyle = PAL.mint; g.fillRect(0, 0, w, h);
+        LK.underpaint(g, w, h, PAL.mint, 5, 36, 180, 0.04);
+        LK.brushPass(g, w, h, PAL.mint, 7, 520, 240, 26, 0, 0.16, 0.04);
+        // 竖向木护墙板纹理（呼应湿走廊-A2与天井-A2的立体墙裙）
+        g.strokeStyle = 'rgba(38,68,52,0.16)'; g.lineWidth = 3;
+        for (var vx = 32; vx < w; vx += 64) { g.beginPath(); g.moveTo(vx, 16); g.lineTo(vx, h - 14); g.stroke(); }
+        g.fillStyle = PAL.mint; g.fillRect(0, 0, w, 16);
+        g.fillStyle = hexA(PAL.mintDark, 0.35); g.fillRect(0, 0, w, 8);
+        g.fillStyle = 'rgba(30,50,40,0.28)'; g.fillRect(0, h - 14, w, 14);
+      }, [3, 1]);
+      TX.mint.wrapT = THREE.ClampToEdgeWrapping;
+      TX.wall.wrapT = THREE.ClampToEdgeWrapping;
+      TX.frameWood = LK.paintedWood('#8c5a33', 71);
+      TX.ceil = canvasTex(512, 512, function (g, w, h) {
+        g.fillStyle = '#dccbb2'; g.fillRect(0, 0, h, w);
+        LK.underpaint(g, w, h, '#dccbb2', 12, 30, 140, 0.04);
+        LK.brushPass(g, w, h, '#dccbb2', 14, 260, 120, 24, 0, 0.12, 0.4);
+      }, [3, 3]);
+      TX.floor = canvasTex(1024, 1024, function (g, w, h) {
+        var r = rnd(11), rows = 6;
+        for (var i = 0; i < rows; i++) {
+          var y0 = i * h / rows, x = -r() * 300;
+          while (x < w) {
+            var Ln = 260 + r() * 260, c = shade(PAL.floor, (r() - 0.5) * 0.08);
+            g.fillStyle = c; g.fillRect(x, y0, Ln, h / rows);
+            g.strokeStyle = hexA(PAL.floorDark, 0.35); g.lineWidth = 1.2;
+            for (var k = 0; k < 3; k++) {
+              var yy = y0 + 6 + r() * (h / rows - 12), amp = 2 + r() * 4, ph = r() * 6;
+              g.beginPath(); for (var t = 0; t <= Ln; t += 8) g.lineTo(x + t, yy + Math.sin(t / 40 + ph) * amp); g.stroke();
+            }
+            g.fillStyle = hexA('#5a3018', 0.75); g.fillRect(x, y0, 3, h / rows);
+            x += Ln;
+          }
+          g.fillStyle = hexA('#5a3018', 0.8); g.fillRect(0, y0, w, 3);
+        }
+        LK.strokes(g, w, h, PAL.floor, 900, 13, 120, 0.16, 0);
+      }, [4, 4]);
+      MS.wall = painted({ map: TX.wall, roughness: 0.88 });
+      MS.mint = painted({ map: TX.mint, roughness: 0.55 });
+      MS.floor = painted({ map: TX.floor, roughness: 0.78 });
+      MS.ceil = painted({ map: TX.ceil, roughness: 0.9 });
+      MS.rail = painted({ color: PAL.mintDark, roughness: 0.42 });
+      MS.frame = painted({ map: TX.frameWood, roughness: 0.55 });
+      MS.white = painted({ color: '#f4efe4', roughness: 0.75 });
+      MS.glass = new THREE.MeshBasicMaterial({ color: '#ffe8c8', transparent: true, opacity: 0.08, depthWrite: false });
+    }
+    initSurfaces();
+    function sampleSurfaces() {}
+
+    /* ---------------- 材质（全楼手绘贴图与色彩脚本统一） ---------------- */
     var M = {
-      floor: new THREE.MeshStandardMaterial({ map: terrazzoTex, roughness: 0.62, metalness: 0.0 }),
-      wet: new THREE.MeshStandardMaterial({ map: terrazzoTex, roughness: 0.1, metalness: 0.0, color: 0x7d8a84 }),
-      dado: new THREE.MeshStandardMaterial({ color: 0x6f9c86, roughness: 0.55 }),
-      wall: new THREE.MeshStandardMaterial({ color: 0xece2cc, roughness: 0.92 }),
-      ceil: new THREE.MeshStandardMaterial({ color: 0xe8e2d6, roughness: 0.95 }),
-      concrete: new THREE.MeshStandardMaterial({ color: 0xb8b0a2, roughness: 0.95 }),
-      shaft: new THREE.MeshStandardMaterial({ color: 0x5e5852, roughness: 1 }),
-      dark: new THREE.MeshStandardMaterial({ color: 0x2a2f33, roughness: 0.9 }),
-      wood: new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.7 }),
-      metal: new THREE.MeshStandardMaterial({ color: 0x5d6a70, roughness: 0.45, metalness: 0.6 }),
-      frame: new THREE.MeshStandardMaterial({ color: 0x7d8c84, roughness: 0.5, metalness: 0.3 }),
+      floor: new THREE.MeshStandardMaterial({ map: terrazzoTex, roughness: 0.52, metalness: 0.0, color: 0xd8dfd8 }),
+      wet: new THREE.MeshStandardMaterial({ map: terrazzoTex, roughness: 0.07, metalness: 0.06, color: 0xbac8d0 }),
+      dado: MS.mint,
+      wall: MS.wall,
+      rail: MS.rail,
+      ceil: MS.ceil,
+      concrete: new THREE.MeshStandardMaterial({ map: stoneTex, roughness: 0.82 }),
+      shaft: new THREE.MeshStandardMaterial({ map: shaftTex, roughness: 0.88 }),
+      dark: new THREE.MeshStandardMaterial({ color: 0x1b2640, roughness: 0.92 }),
+      wood: new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.65 }),
+      metal: new THREE.MeshStandardMaterial({ color: 0x4b5963, roughness: 0.42, metalness: 0.55 }),
+      frame: MS.frame,
       board: new THREE.MeshStandardMaterial({ map: boardTex, roughness: 0.85 }),
-      poster: new THREE.MeshStandardMaterial({ map: posterTex, roughness: 0.9 }),
-      sign: new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.6, side: THREE.DoubleSide }),
-      facade: new THREE.MeshStandardMaterial({ map: facadeTex, roughness: 0.9 }),
-      ground: new THREE.MeshStandardMaterial({ color: 0x8c8478, roughness: 0.95 }),
-      leaf: new THREE.MeshStandardMaterial({ color: 0x4f6b3c, roughness: 0.9 }),
-      leaf2: new THREE.MeshStandardMaterial({ color: 0x6d7f3a, roughness: 0.9 }),
+      poster: new THREE.MeshStandardMaterial({ map: posterTex, roughness: 0.88 }),
+      sign: new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.55, side: THREE.DoubleSide }),
+      facade: new THREE.MeshStandardMaterial({ map: facadeTex, roughness: 0.88 }),
+      ground: new THREE.MeshStandardMaterial({ map: yardTex, roughness: 0.88 }),
+      leaf: new THREE.MeshStandardMaterial({ color: 0x56783e, roughness: 0.85 }),
+      leaf2: new THREE.MeshStandardMaterial({ color: 0x788e42, roughness: 0.85 }),
       trunk: new THREE.MeshStandardMaterial({ color: 0x5a4636, roughness: 0.9 }),
-      tube: new THREE.MeshStandardMaterial({ color: 0xf4f1e8, emissive: 0xdfeee8, emissiveIntensity: 0.0, roughness: 0.4 }),
-      lampGlow: new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0xffc777, emissiveIntensity: 0.0 })
+      tube: new THREE.MeshStandardMaterial({ color: 0xf7f3e8, emissive: 0xfff0d4, emissiveIntensity: 0.25, roughness: 0.35 }),
+      lampGlow: new THREE.MeshStandardMaterial({ color: 0xffdf9e, emissive: 0xffb85c, emissiveIntensity: 0.65 })
     };
 
     function tiled(base, sx, sy) {
@@ -1310,21 +1455,30 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     var group = new THREE.Group(); scene.add(group);
     var tgt = group;
     function box(x0, x1, y0, y1, z0, z1, mat, cast, recv) {
-      var g = new THREE.BoxGeometry(Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0));
+      var dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0), dz = Math.abs(z1 - z0);
+      var g = new THREE.BoxGeometry(dx, dy, dz);
+      if (mat === M.wall || mat === M.dado) {
+        var span = Math.max(dx, dz), uv = g.attributes.uv;
+        var us = Math.max(0.25, span / 2.5), vs = mat === M.dado ? 1 : Math.max(0.25, dy / 2.4);
+        for (var i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * us, uv.getY(i) * vs);
+      }
       var m = new THREE.Mesh(g, mat);
       m.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
       m.castShadow = cast !== false; m.receiveShadow = recv !== false;
       tgt.add(m); return m;
     }
-    // 一段墙：下半截绿墙裙，上半截米白
+    // 一段墙：下半截手绘绿墙裙 + 立体压条，上半截手绘米白灰泥
     function wall(x0, x1, y0, y1, z0, z1) {
-      var dadoTop = 1.1;
+      var dadoTop = 1.12;
       if (y0 < dadoTop && y1 > dadoTop) {
         box(x0, x1, y0, dadoTop, z0, z1, M.dado);
         box(x0, x1, dadoTop, y1, z0, z1, M.wall);
+        var dx = Math.abs(x1 - x0), dz = Math.abs(z1 - z0);
+        if (dx > dz) box(x0, x1, dadoTop - 0.02, dadoTop + 0.035, z0 - 0.018, z1 + 0.018, M.rail, false, false);
+        else box(x0 - 0.018, x1 + 0.018, dadoTop - 0.02, dadoTop + 0.035, z0, z1, M.rail, false, false);
       } else box(x0, x1, y0, y1, z0, z1, y1 <= dadoTop ? M.dado : M.wall);
     }
-    // 沿 z 方向的墙（墙面法向 ±z），在 x 上开若干窗洞 [a,b]
+    // 沿 z 方向的墙（墙面法向 ±z），在 x 上开若干窗洞 [a,b]，自带木窗框与石质窗台
     function wallZ(xa, xb, zc, t, h, windows, sill, top) {
       var cur = xa;
       windows = windows || [];
@@ -1333,7 +1487,15 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
         if (w0 > cur) wall(cur, w0, 0, h, zc - t, zc + t);
         wall(w0, w1, 0, sill, zc - t, zc + t);
         wall(w0, w1, top, h, zc - t, zc + t);
-        box(w0, w1, sill - 0.02, sill + 0.03, zc - t - 0.08, zc + t + 0.04, M.concrete);  // 窗台
+        box(w0 - 0.06, w1 + 0.06, sill - 0.03, sill + 0.04, zc - t - 0.08, zc + t + 0.06, M.concrete, false, true);  // 宽窗台
+        // 木质窗框与中梃
+        box(w0, w0 + 0.06, sill, top, zc - t - 0.01, zc + t + 0.01, M.frame, false, false);
+        box(w1 - 0.06, w1, sill, top, zc - t - 0.01, zc + t + 0.01, M.frame, false, false);
+        box(w0, w1, top - 0.06, top, zc - t - 0.01, zc + t + 0.01, M.frame, false, false);
+        box(w0, w1, sill, sill + 0.05, zc - t - 0.01, zc + t + 0.01, M.frame, false, false);
+        var midX = (w0 + w1) / 2;
+        box(midX - 0.02, midX + 0.02, sill, top, zc - 0.02, zc + 0.02, M.frame, false, false);
+        box(w0, w1, sill + (top - sill) * 0.62, sill + (top - sill) * 0.62 + 0.04, zc - 0.02, zc + 0.02, M.frame, false, false);
         cur = w1;
       }
       if (cur < xb) wall(cur, xb, 0, h, zc - t, zc + t);
@@ -1346,6 +1508,15 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
         if (w0 > cur) wall(xc - t, xc + t, 0, h, cur, w0);
         wall(xc - t, xc + t, 0, sill, w0, w1);
         wall(xc - t, xc + t, top, h, w0, w1);
+        box(xc - t - 0.06, xc + t + 0.08, sill - 0.03, sill + 0.04, w0 - 0.06, w1 + 0.06, M.concrete, false, true);  // 宽窗台
+        // 木质窗框与中梃（呼应湿走廊-A2右侧木窗框）
+        box(xc - t - 0.01, xc + t + 0.01, sill, top, w0, w0 + 0.06, M.frame, false, false);
+        box(xc - t - 0.01, xc + t + 0.01, sill, top, w1 - 0.06, w1, M.frame, false, false);
+        box(xc - t - 0.01, xc + t + 0.01, top - 0.06, top, w0, w1, M.frame, false, false);
+        box(xc - t - 0.01, xc + t + 0.01, sill, sill + 0.05, w0, w1, M.frame, false, false);
+        var midZ = (w0 + w1) / 2;
+        box(xc - 0.02, xc + 0.02, sill, top, midZ - 0.02, midZ + 0.02, M.frame, false, false);
+        box(xc - 0.02, xc + 0.02, sill + (top - sill) * 0.62, sill + (top - sill) * 0.62 + 0.04, w0, w1, M.frame, false, false);
         cur = w1;
       }
       if (cur < zb) wall(xc - t, xc + t, 0, h, cur, zb);
@@ -1382,57 +1553,6 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       var g = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0);
       if (uvScale) { var uv = g.attributes.uv; for (var i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * uvScale[0], uv.getY(i) * uvScale[1]); }
       return add(g, mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
-    }
-    var TX = {}, MS = {};
-    function sampleSurfaces() {
-      var canvasTex = LK.canvasTex, rnd = LK.rnd, hexA = LK.hexA, shade = LK.shade, painted = LK.painted;
-      TX.wall = canvasTex(1024, 1024, function (g, w, h) {
-        g.fillStyle = PAL.cream; g.fillRect(0, 0, w, h);
-        LK.underpaint(g, w, h, PAL.cream, 3, 60, 220, 0.05);
-        LK.brushPass(g, w, h, PAL.cream, 4, 1100, 170, 38, 0.25, 0.26, 0.6);
-        LK.brushPass(g, w, h, '#fff6e6', 6, 120, 90, 14, 0.2, 0.22, 0.5);
-        var gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,236,205,0.22)'); gr.addColorStop(1, 'rgba(150,130,150,0.10)');
-        g.fillStyle = gr; g.fillRect(0, 0, w, h);
-      }, [2, 1]);
-      TX.mint = canvasTex(1024, 512, function (g, w, h) {
-        g.fillStyle = PAL.mint; g.fillRect(0, 0, w, h);
-        LK.underpaint(g, w, h, PAL.mint, 5, 36, 180, 0.04);
-        LK.brushPass(g, w, h, PAL.mint, 7, 520, 240, 26, 0, 0.16, 0.04);
-        g.fillStyle = PAL.mint; g.fillRect(0, 0, w, 16);
-        g.fillStyle = hexA(PAL.mintDark, 0.30); g.fillRect(0, 0, w, 6);
-        g.fillStyle = 'rgba(30,50,40,0.26)'; g.fillRect(0, h - 14, w, 14);
-      }, [3, 1]);
-      TX.mint.wrapT = THREE.ClampToEdgeWrapping;
-      TX.wall.wrapT = THREE.ClampToEdgeWrapping;
-      TX.frameWood = LK.paintedWood('#8c5a33', 71);
-      TX.ceil = canvasTex(512, 512, function (g, w, h) {
-        g.fillStyle = '#dccbb2'; g.fillRect(0, 0, h, w);
-        LK.underpaint(g, w, h, '#dccbb2', 12, 30, 140, 0.04);
-        LK.brushPass(g, w, h, '#dccbb2', 14, 260, 120, 24, 0, 0.12, 0.4);
-      }, [3, 3]);
-      TX.floor = canvasTex(1024, 1024, function (g, w, h) {
-        var r = rnd(11), rows = 6;
-        for (var i = 0; i < rows; i++) {
-          var y0 = i * h / rows, x = -r() * 300;
-          while (x < w) {
-            var Ln = 260 + r() * 260, c = shade(PAL.floor, (r() - 0.5) * 0.08);
-            g.fillStyle = c; g.fillRect(x, y0, Ln, h / rows);
-            g.strokeStyle = hexA(PAL.floorDark, 0.35); g.lineWidth = 1.2;
-            for (var k = 0; k < 3; k++) {
-              var yy = y0 + 6 + r() * (h / rows - 12), amp = 2 + r() * 4, ph = r() * 6;
-              g.beginPath(); for (var t = 0; t <= Ln; t += 8) g.lineTo(x + t, yy + Math.sin(t / 40 + ph) * amp); g.stroke();
-            }
-            g.fillStyle = hexA('#5a3018', 0.75); g.fillRect(x, y0, 3, h / rows);
-            x += Ln;
-          }
-          g.fillStyle = hexA('#5a3018', 0.8); g.fillRect(0, y0, w, 3);
-        }
-        LK.strokes(g, w, h, PAL.floor, 900, 13, 120, 0.16, 0);
-      }, [4, 4]);
-      MS.wall = painted({ map: TX.wall }); MS.mint = painted({ map: TX.mint, roughness: 0.55 });
-      MS.floor = painted({ map: TX.floor, roughness: 0.78 }); MS.ceil = painted({ map: TX.ceil }); MS.rail = painted({ color: PAL.mintDark, roughness: 0.4 });
-      MS.frame = painted({ map: TX.frameWood, roughness: 0.55 }); MS.white = painted({ color: '#f4efe4' });
-      MS.glass = new THREE.MeshBasicMaterial({ color: '#ffe8c8', transparent: true, opacity: 0.08, depthWrite: false });
     }
     function wallRun(axis, a0, a1, fixed, t, h, holes, sill, top, side) {
       holes = holes || []; sill = sill === undefined ? 0.9 : sill; top = top === undefined ? 2.6 : top;
@@ -1473,7 +1593,6 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     W.sample = {};
     // ---- 教室：样板间墙、地、天花、窗 ----
     W.sample.room = section('墙地天花窗', function () {
-      sampleSurfaces();
       var floor = slab(X0, X1, -0.25, 0, Z0, Z1, MS.floor, [2.2, 1.8]); floor.castShadow = false;
       slab(X0, X1, H, H + 0.25, Z0, Z1, MS.ceil);
       wallRun('x', X0, X1, Z1 - 0.1, 0.2, H, WIN, 0.9, 2.6);
@@ -1603,8 +1722,10 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
           W.desks.push(dm);
         });
       });
-      box(-1.4, -0.35, 0, 0.18, -3.4, -0.9, M.concrete);
-      model('podium', -0.95, 0.18, -2.15, Math.PI, 0.95);
+      box(-1.4, -0.35, 0, 0.18, -3.4, -0.82, M.wood);
+      var podM = model('podium', -0.95, 0.18, -2.15, Math.PI, 0.95);
+      if (podM) podM.castShadow = false;
+      box(-1.22, -0.68, 0.18, 1.06, -2.52, -1.78, ghostM, true, false);
     }, function () {
       W.desks = [];
       [-7.0, -5.6, -4.2, -2.8].forEach(function (x) {
@@ -1618,7 +1739,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       });
       box(-7.35, -6.65, 0.72, 0.76, -0.28, 0.28, M.wood);
       box(-7.33, -7.3, 0, 0.72, -0.25, 0.25, M.metal); box(-6.7, -6.67, 0, 0.72, -0.25, 0.25, M.metal);
-      box(-1.4, -0.35, 0, 0.18, -3.4, -0.9, M.concrete);
+      box(-1.4, -0.35, 0, 0.18, -3.4, -0.82, M.wood);
       W.heroDeskTop = C.DESK.top || 0.76;
     });
     // ---- 纸下软影（桌面上纸飞机的暖灰接触软影，离开桌面自动淡出） ----
@@ -1776,6 +1897,17 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       [-0.66, 0.66].forEach(function (zz) { add(rboxW(0.14, 2.2, 0.1, 0.02, 0.002, 95 + zz), MS.frame, X1 - 0.12, 1.1, zz, nc); });
       add(rboxW(0.14, 0.12, 1.42, 0.02, 0.002, 97), MS.frame, X1 - 0.12, 2.15, 0, nc);
       add(rbox(0.3, 0.03, 1.3, 0.01), pc({ color: '#8f8a7e', roughness: 0.6 }), X1 - 0.05, 0.015, 0, nc);
+      // 教室前墙热气球科学贴画（呼应 教室-A2.png 门侧墙面装饰画）
+      var balloonTex = canvasTex(256, 340, function (g, w, h) {
+        g.fillStyle = '#f6ebd5'; g.fillRect(0, 0, w, h);
+        g.fillStyle = '#7bb4c8'; g.fillRect(16, 16, w - 32, h * 0.62);
+        g.fillStyle = '#d95844'; g.beginPath(); g.arc(w / 2, h * 0.30, 52, 0, 6.283); g.fill();
+        g.fillStyle = '#f7efe0'; g.beginPath(); g.ellipse(w / 2, h * 0.30, 22, 51, 0, 0, 6.283); g.fill();
+        g.fillStyle = '#9c6b43'; g.fillRect(w / 2 - 14, h * 0.50, 28, 20);
+        g.fillStyle = '#8c7a66';
+        for (var bi = 0; bi < 3; bi++) g.fillRect(28, h * 0.72 + bi * 24, w - 56 - bi * 22, 10);
+      });
+      add(new THREE.PlaneGeometry(0.44, 0.58), new THREE.MeshStandardMaterial({ map: balloonTex, roughness: 0.88 }), X1 - 0.205, 1.74, 1.68, { ry: -Math.PI / 2, cast: false });
       TX.news = canvasTex(1536, 420, function (g, w, h) {
         g.fillStyle = PAL.board; g.fillRect(0, 0, w, h);
         var r = rnd(97), cols = ['#f6c86b', '#f08f7a', '#9fd3c7', '#c7b3f0', '#f6f2e6'], i, x;
@@ -1799,12 +1931,15 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     });
 
     // ---- 走廊 ----
-    floorSlab(-0.1, 6.0, -1.3, 1.3);
+    floorSlab(-0.1, 6.0, -1.3, 1.3, M.wood);
     box(-0.1, 6.0, 3.0, 3.25, -1.3, 1.3, M.ceil);
     wallZ(0.0, 6.0, -1.3, T, 3.0);
     wallZ(0.0, 6.0, 1.3, T, 3.0, [[1.2, 2.6], [3.4, 4.8]], 0.95, 2.4);
     tubeLight(1.5, 3.0, 2.98, 0);
-    box(5.75, 6.0, 0, 0.08, -1.2, 1.2, M.concrete);                     // 天井边的小坎
+    // 起投端前景地板台沿（复刻 天井-A2.png 底部暖木地板 + 石质前坎）
+    box(5.45, 6.28, 0.55, 0.67, -2.6, 2.6, M.wood, false, true);
+    box(6.26, 6.35, 0.54, 0.68, -2.6, 2.6, M.concrete, false, true);
+    box(13.38, 13.75, -0.08, 0.04, -2.6, 2.6, M.concrete, false, true);
 
     // ---- 天井 ----
     var gx0 = 6, gx1 = 13.5, gz = 2.6, GY = C.GROUND;
@@ -1813,21 +1948,23 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     box(gx0 - 0.2, gx1 + 0.2, GY, 0, gz, gz + 0.25, M.shaft);
     wall(gx0 - 0.2, gx1 + 0.2, 0, 4.0, -gz - 0.25, -gz);
     wall(gx0 - 0.2, gx1 + 0.2, 0, 4.0, gz, gz + 0.25);
-    // 天井两端：本层的洞口，下面每层楼的楼板边
+    // 天井三面每层楼板挑檐（复刻 天井-A2.png 深井层叠楼板边）
+    for (var sfl = 1; sfl <= 3; sfl++) {
+      var sy = -3 * sfl;
+      box(gx0, gx1, sy - 0.18, sy, -gz - 0.05, -gz + 0.22, M.concrete, false, true);
+      box(gx0, gx1, sy - 0.18, sy, gz - 0.22, gz + 0.05, M.concrete, false, true);
+    }
+    // 天井两端：本层敞开平台，下面每层楼的楼板边与深井墙面
     [gx0, gx1].forEach(function (xe, k) {
       var s = k === 0 ? -1 : 1;
       box(xe + s * 0.0, xe + s * 0.25, 3.0, 4.0, -gz, gz, M.wall);
-      box(xe, xe + s * 0.25, 0, 3.0, -gz, -1.3, M.wall);
-      box(xe, xe + s * 0.25, 0, 3.0, 1.3, gz, M.wall);
+      box(xe - s * 0.06, xe + s * 0.35, GY, 0.02, -gz, gz, M.shaft);
       for (var fl = 1; fl <= 3; fl++) {
         var y = -3 * fl;
-        box(xe - s * 0.12, xe + s * 0.25, y - 0.3, y, -gz, gz, M.concrete);
-        box(xe, xe + s * 0.25, y, y + 3 - 0.3, -gz, -1.3, M.wall);
-        box(xe, xe + s * 0.25, y, y + 3 - 0.3, 1.3, gz, M.wall);
-        box(xe + s * 0.3, xe + s * 0.35, y, y + 2.7, -1.3, 1.3, M.dark, false, false);
-        box(xe - s * 0.1, xe - s * 0.12, y + 0.9, y + 0.95, -gz, gz, M.metal, false, false);   // 栏杆扶手
+        box(xe - s * 0.32, xe + s * 0.25, y - 0.24, y, -gz, gz, M.concrete);
+        box(xe - s * 0.24, xe - s * 0.28, y + 0.85, y + 0.92, -gz, gz, M.metal, false, false);   // 栏杆扶手
       }
-      box(xe + s * 0.25, xe + s * 0.3, -0.25, 0, -1.3, 1.3, M.concrete);
+      box(xe + s * 0.25, xe + s * 0.3, -0.25, 0, -gz, gz, M.concrete);
     });
     // 天井底：暗下去，看得出很深
     box(gx0, gx1, GY, GY + 0.05, -gz, gz, M.dark);
@@ -1840,42 +1977,127 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       var m = new THREE.Mesh(g, oldPaper); m.position.set(x, y + 0.03, z); m.rotation.set(crumple * 3, yaw, crumple * 2);
       m.castShadow = true; group.add(m);
     }
-    oldPlane(15.6, 0, 0.6, 0.6, 0); oldPlane(14.9, 0, -0.75, -0.4, 0.02);
+    oldPlane(15.6, 0, 0.45, 0.6, 0); oldPlane(14.9, 0, -0.75, -0.4, 0.02);
     oldPlane(8.4, GY + 0.05, 0.9, 1.2, 0.08); oldPlane(10.3, GY + 0.05, -0.6, 2.5, 0.1); oldPlane(11.6, GY + 0.05, 1.4, -0.7, 0.06);
 
-    // ---- 拐角平台 ----
-    floorSlab(13.5, 16.6, -1.3, 1.3);
-    box(13.5, 16.6, 3.0, 3.25, -1.3, 12.3, M.ceil);
-    wallX(-1.3, 1.3, 16.55, T, 3.0);
-    box(16.43, 16.44, 1.0, 2.2, -0.9, 0.9, M.poster, false);
-    wallZ(13.5, 16.6, -1.3, T, 3.0);
-    wallZ(15.4, 16.6, 1.3, T, 3.0);
-    wallZ(13.3, 13.6, 1.3, T, 3.0);
+    // ---- 拐角平台（复刻 天井-A2.png：宽敞对岸木地板平台 + 四色挂画 + 右侧橙木格子柜 + 左侧绿楼梯牌 + 地面夕阳金光斑） ----
+    floorSlab(13.5, 16.6, -2.55, 0.92, M.wood);
+    box(13.5, 16.6, 3.0, 3.25, -2.6, 12.3, M.ceil);
+    wallX(-2.55, 2.55, 16.55, T, 3.0);
+    box(16.43, 16.45, 1.22, 2.24, -1.28, 0.30, M.poster, false);
+    // 对岸木地板夕阳金光斑（呼应 天井-A2.png 对岸明亮暖金地板与深井紫蓝的冷暖对比）
+    var sunPatchTex = canvasTex(256, 256, function (g, w, h) {
+      var gr = g.createRadialGradient(w * 0.52, h * 0.48, 12, w * 0.52, h * 0.48, w * 0.48);
+      gr.addColorStop(0, 'rgba(255,216,132,0.58)');
+      gr.addColorStop(0.55, 'rgba(255,192,102,0.32)');
+      gr.addColorStop(1, 'rgba(255,175,85,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    });
+    var landSunPatch = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.2), new THREE.MeshBasicMaterial({ map: sunPatchTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    landSunPatch.rotation.x = -Math.PI / 2; landSunPatch.position.set(15.0, 0.004, -0.25); group.add(landSunPatch);
+    // 对岸左侧墙柱与安全出口绿牌（无字纯图标）
+    wall(14.5, 16.55, 0, 3.0, -2.6, -1.65);
+    var exitTex = canvasTex(128, 128, function (g, w, h) {
+      g.fillStyle = '#8b5e36'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#2f6d4f'; g.fillRect(8, 8, w - 16, h - 16);
+      g.strokeStyle = '#f5ecd8'; g.lineWidth = 6; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath(); g.arc(54, 34, 8, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.moveTo(54, 44); g.lineTo(50, 68); g.lineTo(38, 84); g.moveTo(50, 68); g.lineTo(66, 78); g.moveTo(40, 54); g.lineTo(66, 52); g.stroke();
+      g.beginPath(); g.moveTo(30, 102); g.lineTo(52, 102); g.lineTo(52, 90); g.lineTo(74, 90); g.lineTo(74, 78); g.lineTo(96, 78); g.stroke();
+    });
+    var exitSign = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.36), new THREE.MeshStandardMaterial({ map: exitTex, roughness: 0.7 }));
+    exitSign.position.set(16.44, 1.85, -1.25); exitSign.rotation.y = -Math.PI / 2; group.add(exitSign);
+    // 对岸右侧 3×4 橙色木质储物格柜（紧贴 x=16.18..16.48, z=0.35..0.83，不遮挡第4幅蓝色挂画，从天井一眼可见且 100% 位于湿走廊视锥之外）
+    box(16.18, 16.48, 0, 2.24, 0.35, 0.83, M.frame, true, true);
+    var cubbyOrange = new THREE.MeshStandardMaterial({ color: 0xd97d3a, roughness: 0.65 });
+    for (var cy = 0; cy < 4; cy++) for (var cz = 0; cz < 3; cz++) {
+      box(16.15, 16.19, 0.10 + cy * 0.52, 0.54 + cy * 0.52, 0.38 + cz * 0.145, 0.50 + cz * 0.145, (cy + cz) % 2 === 0 ? cubbyOrange : M.wood, false, false);
+    }
+    wallZ(13.5, 16.6, -2.55, T, 3.0);
+    wallZ(15.5, 16.6, 0.90, T, 3.0);
 
     // ---- 湿走廊 + 尽头 ----
-    var wetSlab = box(13.6, 15.4, -0.25, 0, 1.2, 7.4, tiled(M.wet, 1.8 / 1.6, 6.2 / 1.6), false, true);
-    floorSlab(13.6, 15.4, 7.4, 12.0);
-    wallX(1.2, 12.0, 13.5, T, 3.0, [[4.2, 5.6], [7.4, 8.8]], 0.95, 2.4);
-    wallX(1.2, 12.0, 15.5, T, 3.0);
-    // 尽头的窗
-    box(13.4, 13.9, 0, 3.0, 12.0, 12.3, M.wall); box(15.1, 15.6, 0, 3.0, 12.0, 12.3, M.wall);
-    box(13.9, 15.1, 0, 0.9, 12.0, 12.3, M.dado); box(13.9, 15.1, 2.3, 3.0, 12.0, 12.3, M.wall);
-    box(13.85, 15.15, 0.86, 0.92, 11.85, 12.45, M.concrete);
-    box(13.9, 13.95, 0.9, 2.3, 12.0, 12.3, M.frame); box(15.05, 15.1, 0.9, 2.3, 12.0, 12.3, M.frame);
-    box(13.9, 15.1, 2.25, 2.3, 12.0, 12.3, M.frame);
+    var wetSlab = box(13.55, 15.5, -0.25, 0.002, -0.35, 12.0, tiled(M.wet, 1.95 / 1.6, 12.35 / 1.6), false, true);
+    // 湿走廊地面夕阳积水镜面金光反射层（复刻 湿走廊-A2.png 湿滑水磨石地面暖金倒影，保留水磨石底纹不泛白）
+    var wetReflTex = canvasTex(256, 512, function (g, w, h) {
+      var gr = g.createLinearGradient(0, 0, 0, h);
+      gr.addColorStop(0, 'rgba(255,205,125,0.04)');
+      gr.addColorStop(0.35, 'rgba(255,196,110,0.18)');
+      gr.addColorStop(0.75, 'rgba(255,208,125,0.26)');
+      gr.addColorStop(1, 'rgba(255,224,155,0.12)');
+      g.fillStyle = gr; g.fillRect(w * 0.16, 0, w * 0.68, h);
+      // 三扇侧窗投在地面的斜向暖金高光块
+      g.fillStyle = 'rgba(255,216,142,0.22)';
+      [0.22, 0.48, 0.74].forEach(function (v) {
+        g.beginPath();
+        g.moveTo(w * 0.12, h * v); g.lineTo(w * 0.86, h * (v - 0.04));
+        g.lineTo(w * 0.90, h * (v + 0.10)); g.lineTo(w * 0.16, h * (v + 0.14));
+        g.closePath(); g.fill();
+      });
+    });
+    var wetReflPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.72, 8.8), new THREE.MeshBasicMaterial({ map: wetReflTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    wetReflPlane.rotation.x = -Math.PI / 2; wetReflPlane.position.set(14.52, 0.005, 6.4); group.add(wetReflPlane);
+    // 湿走廊左墙与右窗：窗洞从 z=2.85 开始，彻底消除 天井 机位右侧悬空窗框穿帮
+    wallX(1.3, 12.0, 13.5, T, 3.0, [[2.85, 4.65], [5.25, 7.05], [7.65, 9.45]], 0.98, 2.45);
+    wallX(0.90, 12.0, 15.5, T, 3.0);
+    // 湿走廊左墙暖橘夕阳受光方斑（呼应 湿走廊-A2.png 左墙受光面）
+    var wallSunMat = new THREE.MeshBasicMaterial({ map: sunPatchTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+    [3.8, 6.2, 8.6].forEach(function (wz) {
+      var wp = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.35), wallSunMat);
+      wp.rotation.y = -Math.PI / 2; wp.position.set(15.39, 1.55, wz); wp.userData.mergeable = true; group.add(wp);
+    });
+    // 尽头的窗（复刻 窗口-A2.png：带横竖窗框格、通体浅暖石窗台与右角蓝色钢笔）
+    wall(13.4, 13.86, 0, 3.0, 12.0, 12.3); wall(15.14, 15.6, 0, 3.0, 12.0, 12.3);
+    box(13.86, 15.14, 0, 0.9, 12.0, 12.3, M.dado);
+    box(13.4, 13.86, 1.11, 1.15, 11.98, 12.02, M.rail, false, false);
+    box(15.14, 15.6, 1.11, 1.15, 11.98, 12.02, M.rail, false, false);
+    box(13.86, 15.14, 2.3, 3.0, 12.0, 12.3, M.wall);
+    box(13.82, 15.18, 0.85, 0.94, 11.90, 12.38, M.concrete);            // 通体浅暖石窗台
+    box(13.84, 13.90, 0.94, 2.32, 11.98, 12.26, M.frame, false, false);
+    box(15.10, 15.16, 0.94, 2.32, 11.98, 12.26, M.frame, false, false);
+    box(13.84, 15.16, 2.24, 2.32, 11.98, 12.26, M.frame, false, false);
+    box(13.90, 15.10, 1.94, 1.99, 12.04, 12.16, M.frame, false, false); // 上气窗横框
+    // 窗台右上角（面向 +z 时画面右侧为 x≈14.01, z≈12.18）：蓝色六角钢笔，位于红铁盒上方无重叠、无穿窗框
+    var penG = new THREE.Group();
+    var penBody = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.19, 6), new THREE.MeshStandardMaterial({ color: 0x2f5da0, roughness: 0.4 }));
+    penBody.rotation.z = Math.PI / 2; penG.add(penBody);
+    var penRing = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.012, 8), new THREE.MeshStandardMaterial({ color: 0xd8c898, roughness: 0.3, metalness: 0.6 }));
+    penRing.rotation.z = Math.PI / 2; penRing.position.x = 0.025; penG.add(penRing);
+    var penTip = new THREE.Mesh(new THREE.ConeGeometry(0.011, 0.032, 6), new THREE.MeshStandardMaterial({ color: 0xdcb482, roughness: 0.6 }));
+    penTip.rotation.z = -Math.PI / 2; penTip.position.x = 0.111; penG.add(penTip);
+    penG.position.set(14.02, 0.946, 12.18); penG.rotation.y = -0.45; group.add(penG);
+
     tubeLight(14.0, 15.6, 2.98, 0);
-    [3.5, 7.5, 10.8].forEach(function (z) { box(14.46, 14.54, 2.93, 2.98, z - 0.7, z + 0.7, M.tube, false, false); });
-    // 小心地滑
+    // 湿走廊天花板：老式深绿搪瓷伞罩吊灯（复刻 湿走廊-A2.png 墨绿搪瓷灯罩与暖黄灯泡）
+    var shadeOuterM = new THREE.MeshStandardMaterial({ color: 0x2e6b4e, emissive: 0x163828, emissiveIntensity: 0.55, roughness: 0.32, metalness: 0.2, side: THREE.DoubleSide });
+    var shadeBulbM = new THREE.MeshStandardMaterial({ color: 0xfff3d6, emissive: 0xffd28a, emissiveIntensity: 1.6, roughness: 0.2 });
+    [3.5, 7.0, 10.2].forEach(function (z) {
+      box(14.485, 14.515, 2.68, 3.0, z - 0.015, z + 0.015, M.metal, false, false);
+      var sh = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.14, 14, 1, true), shadeOuterM);
+      sh.position.set(14.5, 2.62, z); sh.castShadow = false; group.add(sh);
+      var bulb = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), shadeBulbM);
+      bulb.position.set(14.5, 2.57, z); bulb.castShadow = false; group.add(bulb);
+    });
+    // 小心地滑（纯图标 A 字立牌 + 黄色厚边，微斜摆放露出 A 字侧面且不遮挡纸飞机左翼）
     var sign = new THREE.Group();
+    var signYellowM = new THREE.MeshStandardMaterial({ color: 0xebb42c, roughness: 0.45 });
     var p1 = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.5), M.sign);
-    p1.position.set(0, 0.25, 0.1); p1.rotation.x = -0.2; sign.add(p1);
+    p1.position.set(0, 0.25, 0.102); p1.rotation.x = -0.2; sign.add(p1);
+    var b1 = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.51, 0.018), signYellowM);
+    b1.position.set(0, 0.25, 0.09); b1.rotation.x = -0.2; sign.add(b1);
     var p2 = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.5), M.sign);
-    p2.position.set(0, 0.25, -0.1); p2.rotation.x = 0.2; p2.rotation.y = Math.PI; sign.add(p2);
-    sign.position.set(15.05, 0, 1.6); sign.rotation.y = Math.PI; sign.traverse(function (o) { o.castShadow = true; });
+    p2.position.set(0, 0.25, -0.102); p2.rotation.x = 0.2; p2.rotation.y = Math.PI; sign.add(p2);
+    var b2 = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.51, 0.018), signYellowM);
+    b2.position.set(0, 0.25, -0.09); b2.rotation.x = 0.2; sign.add(b2);
+    sign.position.set(15.08, 0, 1.85); sign.rotation.y = Math.PI - 0.36; sign.traverse(function (o) { o.castShadow = true; });
     sign.userData.dynamic = true; group.add(sign);
     // 拖把桶
     var mopM = model('mop', 13.95, 0, -0.85, 0.6, 0.85);
-    if (mopM) { mopM.castShadow = false; } else {
+    if (mopM) {
+      mopM.castShadow = false;
+      box(13.80, 14.10, 0, 0.34, -1.00, -0.70, ghostM, true, false);
+      box(13.91, 13.99, 0.25, 1.25, -0.89, -0.81, ghostM, true, false);
+    } else {
       var bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 0.3, 16), new THREE.MeshStandardMaterial({ color: 0x3f7fb0, roughness: 0.5 }));
       bucket.position.set(13.8, 0.15, -1.0); bucket.castShadow = true; group.add(bucket);
       var mop = box(13.72, 13.75, 0.2, 1.4, -0.85, -0.82, M.trunk);
@@ -1883,24 +2105,29 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     }
 
     /* ================= 楼外 ================= */
-    // 楼体（下面三层是实心块，表面贴窗格）
+    // 楼体（下面三层是实心块，表面贴窗格，朝天井的面及顶面不外露窗格）
     function shell(x0, x1, y0, y1, z0, z1, inner) {
       var fm = tiled(M.facade, Math.abs(x1 - x0) / 7, Math.abs(y1 - y0) / 6);
-      var mats = [fm, fm, fm, fm, fm, fm];
-      if (inner !== undefined) mats[inner] = M.shaft;   // 朝天井那一面：素混凝土
+      var mats = [fm, fm, M.concrete, M.concrete, fm, fm];
+      if (inner !== undefined) mats[inner] = M.shaft;   // 朝天井那一面：天井阴影材质
       return box(x0, x1, y0, y1, z0, z1, mats, true, true);
     }
     shell(-9.3, 6.0, GY, -0.25, -3.8, 3.8, 0);
-    shell(13.5, 16.7, GY, -0.25, -3.8, 1.3, 1);
-    shell(12.6, 16.5, GY, -0.25, 1.3, 12.3, 1);
-    box(12.6, 13.4, 0, 3.0, 1.3, 12.3, M.facade); box(15.6, 16.5, 0, 3.0, 1.3, 12.3, M.facade);
+    shell(13.5, 16.7, GY, -0.25, -3.8, 2.6, 1);
+    shell(13.45, 16.5, GY, -0.25, 2.6, 12.3, 1);
+    box(15.6, 16.5, 0, 3.0, 2.6, 12.3, M.facade);
     box(-9.3, 16.7, 3.3, 3.8, -3.8, -1.3, M.concrete); box(-9.3, 6, 3.3, 3.8, 1.3, 3.8, M.concrete);
-    box(12.6, 16.6, 3.25, 3.7, 1.3, 12.3, M.concrete);
+    box(13.4, 16.6, 3.25, 3.7, 1.3, 12.3, M.concrete);
     box(-9.3, 16.7, 3.6, 7.0, -3.8, -2.6, M.concrete);   // 后面高一层的楼，让天井上沿不空
 
     // 院子
     var ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), M.ground);
     ground.rotation.x = -Math.PI / 2; ground.position.y = GY - 0.01; ground.receiveShadow = true; group.add(ground);
+    // 院子深色石板纵带（复刻 窗口-A2.png 通向校门双柱的石板纵带）
+    var runnerM = new THREE.MeshStandardMaterial({ color: 0x8f7a74, roughness: 0.85 });
+    [10.9, 18.1].forEach(function (rx) {
+      box(rx - 0.45, rx + 0.45, GY - 0.005, GY + 0.015, 13.6, 26.6, runnerM, false, true);
+    });
     box(-10, 40, GY, GY + 0.35, 12.3, 13.6, M.concrete, false, true);                 // 花坛沿
     for (var i = 0; i < 26; i++) {
       var bush = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), i % 2 ? M.leaf : M.leaf2);
@@ -1909,7 +2136,12 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     var trees = [];
     function tree(x, z, s) {
       var tm = model('tree', x, GY, z, x * 1.7, s * 0.8);
-      if (tm) { tm.userData.dynamic = true; trees.push(tm); return; }      // 不并进大网格，才能各自被视锥剔除
+      if (tm) {
+        tm.castShadow = false; tm.userData.dynamic = true; trees.push(tm);
+        box(x - 0.14 * s, x + 0.14 * s, GY, GY + 2.4 * s, z - 0.14 * s, z + 0.14 * s, ghostM, true, false);
+        box(x - 1.15 * s, x + 1.15 * s, GY + 2.1 * s, GY + 3.8 * s, z - 1.15 * s, z + 1.15 * s, ghostM, true, false);
+        return;
+      }      // 不并进大网格，才能各自被视锥剔除
       var t = new THREE.Group();
       var tr = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.18 * s, 3.2 * s, 7), M.trunk);
       tr.position.y = 1.6 * s; t.add(tr);
@@ -1921,36 +2153,91 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       t.traverse(function (o) { o.castShadow = true; o.receiveShadow = true; });
       t.position.set(x, GY, z); group.add(t); trees.push(t);
     }
-    tree(6, 17, 1.2); tree(24, 16, 1.4); tree(2, 24, 1.1); tree(28, 25, 1.3); tree(-6, 18, 1.3);
-    // 校门：两根门柱 + 铁栅栏
-    box(10.5, 11.3, GY, GY + 2.6, 26.6, 27.4, M.concrete, false, true); box(17.7, 18.5, GY, GY + 2.6, 26.6, 27.4, M.concrete, false, true);
+    tree(6, 17, 1.2); tree(23.2, 17.5, 1.35); tree(2, 24, 1.1); tree(24.8, 23.5, 1.3);
+    // 校门：两根门柱（配石雕压顶帽 + 球顶 + 壁挂暖光灯笼，开启阴影投射，复刻 窗口-A2.png 与 楼下爸爸-A2.png） + 铁栅栏
+    W.lamps = [];
+    [[10.5, 11.3], [17.7, 18.5]].forEach(function (px) {
+      var cx = (px[0] + px[1]) * 0.5;
+      box(px[0], px[1], GY, GY + 2.6, 26.6, 27.4, M.concrete, true, true);
+      box(px[0] - 0.1, px[1] + 0.1, GY + 2.6, GY + 2.78, 26.5, 27.5, M.concrete, true, true);
+      var finial = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), M.concrete);
+      finial.position.set(cx, GY + 2.98, 27.0); finial.castShadow = true; group.add(finial);
+      var lantern = box(cx - 0.12, cx + 0.12, GY + 1.85, GY + 2.15, 26.45, 26.62, M.lampGlow, false, false);
+      W.lamps.push(lantern);
+    });
+    // 门卫室移至 x=32.5..36.5（不侵入 窗口 与 楼下爸爸 镜头左侧树影与对称铁栅栏构图）
+    box(32.5, 36.5, GY, GY + 0.95, 24.4, 26.8, M.dado, true, true);
+    box(32.5, 36.5, GY + 0.95, GY + 2.7, 24.4, 26.8, M.wall, true, true);
+    box(32.48, 36.52, GY + 0.94, GY + 0.99, 24.38, 26.82, M.rail, false, false);
+    box(32.25, 36.75, GY + 2.7, GY + 2.98, 24.15, 27.05, M.concrete, true, true);
+    // 校门人行道石阶沿与铁栅栏（开启阴影投射 + 地面斜向长排栅栏阴影带与树影，自动合并进 yardLow 零额外 Draw Call）
+    box(-30, 60, GY, GY + 0.08, 26.4, 27.6, M.concrete, false, true);
+    var fenceShadowM = new THREE.MeshBasicMaterial({ color: 0x563f48, transparent: true, opacity: 0.28, depthWrite: false });
     for (var fx = -30; fx < 60; fx += 0.35) {
       if (fx > 11.3 && fx < 17.7) continue;
-      box(fx, fx + 0.04, GY, GY + 1.8, 26.98, 27.02, M.metal, false, false);
+      if (fx > 32.4 && fx < 36.6) continue;
+      var nearGate = fx > 2 && fx < 27;
+      box(fx, fx + 0.045, GY, GY + 1.8, 26.98, 27.02, M.metal, nearGate, false);
+      if (nearGate) {
+        var fs = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 5.6), fenceShadowM);
+        fs.rotation.x = -Math.PI / 2; fs.rotation.z = -0.16;
+        fs.position.set(fx - 0.42, GY + 0.006, 24.2); fs.userData.mergeable = true; group.add(fs);
+      }
     }
-    box(-30, 10.5, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal, false, false); box(18.5, 60, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal, false, false);
-    // 路灯（傍晚会亮）
-    W.lamps = [];
-    [[9.5, 29], [20, 29], [-4, 29], [32, 29]].forEach(function (p) {
-      box(p[0] - 0.06, p[0] + 0.06, GY, GY + 4.2, p[1] - 0.06, p[1] + 0.06, M.metal, false, false);
-      var head = box(p[0] - 0.25, p[0] + 0.25, GY + 4.1, GY + 4.25, p[1] - 0.15, p[1] + 0.15, M.lampGlow, false, false);
-      W.lamps.push(head);
+    // 门柱与横梁的地面斜向长影 + 左右两侧树冠斑驳投影
+    [[10.9, 23.6, 0.92, 6.4], [18.1, 23.6, 0.92, 6.4]].forEach(function (ps) {
+      var pm = new THREE.Mesh(new THREE.PlaneGeometry(ps[2], ps[3]), fenceShadowM);
+      pm.rotation.x = -Math.PI / 2; pm.rotation.z = -0.16;
+      pm.position.set(ps[0] - 0.48, GY + 0.007, ps[1]); pm.userData.mergeable = true; group.add(pm);
     });
-    // 远处的居民楼：一格一格的窗、楼顶水箱；天黑了窗户一盏盏亮起来
+    var treeShadowTex = canvasTex(256, 256, function (g, w, h) {
+      var r = rnd(91);
+      for (var ti = 0; ti < 14; ti++) {
+        var tx = 65 + (r() - 0.5) * 110, ty = 65 + (r() - 0.5) * 110, tr = 28 + r() * 42;
+        var gr = g.createRadialGradient(tx, ty, tr * 0.2, tx, ty, tr);
+        gr.addColorStop(0, 'rgba(72,52,62,0.34)'); gr.addColorStop(1, 'rgba(72,52,62,0)');
+        g.fillStyle = gr; g.beginPath(); g.arc(tx, ty, tr, 0, 6.283); g.fill();
+      }
+    });
+    var treeShadowMat = new THREE.MeshBasicMaterial({ map: treeShadowTex, transparent: true, depthWrite: false });
+    [[20.2, 22.8, 6.2], [7.2, 18.5, 5.4], [22.0, 17.8, 5.8]].forEach(function (ts) {
+      var tm = new THREE.Mesh(new THREE.PlaneGeometry(ts[2], ts[2]), treeShadowMat);
+      tm.rotation.x = -Math.PI / 2; tm.position.set(ts[0], GY + 0.005, ts[1]); tm.userData.mergeable = true; group.add(tm);
+    });
+    box(-30, 10.5, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal, true, false); box(18.5, 60, GY + 1.7, GY + 1.75, 26.95, 27.05, M.metal, true, false);
+    // 路灯（圆润复古伞状灯头 + 暖黄灯泡，复刻 楼下爸爸-A2.png）
+    [[9.5, 29], [20, 29], [-4, 29], [32, 29]].forEach(function (p) {
+      box(p[0] - 0.055, p[0] + 0.055, GY, GY + 4.2, p[1] - 0.055, p[1] + 0.055, M.metal, false, false);
+      var cap = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.16, 12), M.metal);
+      cap.position.set(p[0], GY + 4.28, p[1]); group.add(cap);
+      var head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), M.lampGlow);
+      head.position.set(p[0], GY + 4.16, p[1]);
+      group.add(head); W.lamps.push(head);
+    });
+    // 远处的居民楼：柔和手绘夕阳雾化窗户（避免生硬高对比度方格抢戏，复刻 楼下爸爸-A2.png 空气透视楼群）
     var winDraw = function (lit) {
       return function (g, w, h) {
         var r = rnd(lit ? 23 : 23);
-        g.fillStyle = lit ? '#000' : '#fff'; g.fillRect(0, 0, w, h);
+        if (lit) {
+          g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+        } else {
+          var bg = g.createLinearGradient(0, 0, 0, h);
+          bg.addColorStop(0, '#e2be96'); bg.addColorStop(0.6, '#d9ae84'); bg.addColorStop(1, '#e8bc8e');
+          g.fillStyle = bg; g.fillRect(0, 0, w, h);
+        }
         for (var wy = 0; wy < 16; wy++) for (var wx = 0; wx < 6; wx++) {
           var on = r() < 0.35, x = 8 + wx * 20, y = 8 + wy * 15.5;
           if (lit) { if (on) { g.fillStyle = '#fff'; g.fillRect(x, y, 12, 9); } }
-          else { g.fillStyle = on ? '#cbbfae' : '#8f8a86'; g.fillRect(x, y, 12, 9); g.fillStyle = 'rgba(255,255,255,0.35)'; g.fillRect(x - 1, y + 9, 14, 1.5); }
+          else {
+            g.fillStyle = on ? 'rgba(248,214,158,0.52)' : 'rgba(156,122,102,0.34)';
+            g.fillRect(x, y, 12, 8.5);
+          }
         }
       };
     };
     var farMap = canvasTex(128, 256, winDraw(false), true), farLit = canvasTex(128, 256, winDraw(true), true);
     farLit.colorSpace = THREE.NoColorSpace;
-    var farTones = [0xd8c7ad, 0xc9b9a6, 0xe0d2bc, 0xbfae9c];
+    var farTones = [0xe4bf97, 0xd8b18a, 0xeac79e, 0xcfa782];
     W.farMats = farTones.map(function (c) {
       return new THREE.MeshStandardMaterial({ color: c, map: farMap, roughness: 0.95, emissive: 0xffc27a, emissiveMap: farLit, emissiveIntensity: 0 });
     });
@@ -1986,9 +2273,12 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     }
     if (bikeModel) {
       // Tripo 的车：车头朝 -x，车筐中心在 (-0.6, 0.94, 0)
+      bikeModel.castShadow = false;
       bike.add(bikeModel);
       bike.rotation.y = -Math.PI / 2;
       bike.position.set(B.x, GY, B.z + 0.6);
+      box(B.x - 0.12, B.x + 0.12, GY + 0.12, GY + 0.88, B.z - 0.05, B.z + 1.25, ghostM, true, false);
+      box(B.x - 0.18, B.x + 0.18, GY + 0.72, GY + 1.02, B.z - 0.18, B.z + 0.18, ghostM, true, false);
     } else {
     rod([-0.52, 0.35, 0], [0, 0.4, 0], 0.02, bikeM); rod([0, 0.4, 0], [0.42, 0.78, 0], 0.022, bikeM);
     rod([-0.52, 0.35, 0], [-0.15, 0.82, 0], 0.02, bikeM); rod([-0.15, 0.82, 0], [0.42, 0.78, 0], 0.022, bikeM);
@@ -2044,39 +2334,54 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     W.dad = { group: dad, armL: armL, armR: armR, head: head, mode: 'wait', t: 0 };
     var dadM = MD && MD.get(THREE, 'dad');
     if (dadM) {
-      // 换成 Tripo 的爸爸：一整块网格，手臂和头用顶点着色器按权重转（不用骨骼，几乎零开销）
-      var gD = dadM.geometry.clone(), PA = gD.attributes.position, wv = new Float32Array(PA.count * 3);
+      // 换成 Tripo 的爸爸：一整块网格，肩关节 + 肘关节两级顶点着色器按权重转（不用骨骼，几乎零开销）
+      var gD = dadM.geometry.clone(), PA = gD.attributes.position, wv = new Float32Array(PA.count * 4);
       for (var vi = 0; vi < PA.count; vi++) {
         var vy = PA.getY(vi), vz = PA.getZ(vi), az = Math.abs(vz);
         // 身体最宽到 |z|≈0.2，A 字张开的手臂都在外面；肩膀往上收，免得把领口一起带走
         var edge = 0.2 + Math.max(0, vy - 1.28) * 1.5;
         var wa = Math.min(1, Math.max(0, (az - edge) / 0.03)) * (vy > 0.7 && vy < 1.46 ? 1 : 0);
-        wv[vi * 3] = vz < 0 ? wa : 0; wv[vi * 3 + 1] = vz > 0 ? wa : 0;
-        wv[vi * 3 + 2] = Math.min(1, Math.max(0, (vy - 1.44) / 0.08));
+        // 小臂与手掌（|z| > 0.24，肘部在 |z|≈0.25, y≈1.24）：绕手肘额外向上弯曲挥手，让手掌高举过肩
+        var we = Math.min(1, Math.max(0, (az - 0.23) / 0.045)) * wa;
+        wv[vi * 4] = vz < 0 ? wa : 0; wv[vi * 4 + 1] = vz > 0 ? wa : 0;
+        wv[vi * 4 + 2] = Math.min(1, Math.max(0, (vy - 1.44) / 0.08));
+        wv[vi * 4 + 3] = we;
       }
-      gD.setAttribute('aW', new THREE.BufferAttribute(wv, 3));
-      var dU = { aL: { value: 0 }, aR: { value: 0 }, aH: { value: 0.45 } };
+      gD.setAttribute('aW', new THREE.BufferAttribute(wv, 4));
+      var dU = { aL: { value: 0 }, aR: { value: 0 }, eL: { value: 0 }, eR: { value: 0 }, aH: { value: 0.45 } };
       var dMat = dadM.material.clone();
-      dMat.onBeforeCompile = function (sh) {
+      var dadVertCompile = function (sh) {
         Object.assign(sh.uniforms, dU);
-        sh.vertexShader = 'attribute vec3 aW; uniform float aL, aR, aH;\n' +
+        sh.vertexShader = 'attribute vec4 aW; uniform float aL, aR, eL, eR, aH;\n' +
           'vec3 rotX(vec3 p, vec3 o, float a){ p -= o; float c = cos(a), s = sin(a); return o + vec3(p.x, p.y*c - p.z*s, p.y*s + p.z*c); }\n' +
           'vec3 rotZ(vec3 p, vec3 o, float a){ p -= o; float c = cos(a), s = sin(a); return o + vec3(p.x*c - p.y*s, p.x*s + p.y*c, p.z); }\n' + sh.vertexShader;
         sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>',
           'vec3 transformed = position;\n' +
-          'transformed = mix(transformed, rotX(position, vec3(0.0, 1.38, -0.17), aL), aW.x);\n' +
-          'transformed = mix(transformed, rotX(position, vec3(0.0, 1.38, 0.17), -aR), aW.y);\n' +
+          'vec3 pL = mix(position, rotX(position, vec3(0.0, 1.24, -0.25), eL), aW.w);\n' +
+          'vec3 pR = mix(position, rotX(position, vec3(0.0, 1.24, 0.25), -eR), aW.w);\n' +
+          'transformed = mix(transformed, rotX(pL, vec3(0.0, 1.38, -0.17), aL), aW.x);\n' +
+          'transformed = mix(transformed, rotX(pR, vec3(0.0, 1.38, 0.17), -aR), aW.y);\n' +
           'transformed = mix(transformed, rotZ(position, vec3(0.0, 1.46, 0.0), aH), aW.z);');
         sh.vertexShader = sh.vertexShader.replace('#include <beginnormal_vertex>',
           'vec3 objectNormal = normal;\n' +
-          'objectNormal = mix(objectNormal, rotX(normal, vec3(0.0), aL), aW.x);\n' +
-          'objectNormal = mix(objectNormal, rotX(normal, vec3(0.0), -aR), aW.y);');
+          'vec3 nL = mix(normal, rotX(normal, vec3(0.0), eL), aW.w);\n' +
+          'vec3 nR = mix(normal, rotX(normal, vec3(0.0), -eR), aW.w);\n' +
+          'objectNormal = mix(objectNormal, rotX(nL, vec3(0.0), aL), aW.x);\n' +
+          'objectNormal = mix(objectNormal, rotX(nR, vec3(0.0), -aR), aW.y);');
       };
-      dMat.customProgramCacheKey = function () { return 'dadrig'; };
+      dMat.onBeforeCompile = function (sh) {
+        dadVertCompile(sh);
+        // 逆光夕阳金边轮廓光（Rim Light）与柔和面部暖补光（复刻 楼下爸爸-A2.png 夕阳金边轮廓）
+        sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>',
+          'float rim = pow(1.0 - clamp(abs(dot(normalize(vNormal), normalize(vViewPosition))), 0.0, 1.0), 2.3);\n' +
+          'gl_FragColor.rgb += vec3(1.0, 0.72, 0.34) * rim * 0.48 + vec3(0.06, 0.04, 0.02);\n' +
+          '#include <dithering_fragment>');
+      };
+      dMat.customProgramCacheKey = function () { return 'dadrig3'; };
       var dadMesh = new THREE.Mesh(gD, dMat); dadMesh.castShadow = true; dadMesh.receiveShadow = true;
       // 阴影深度也要跟着动
       var dDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
-      dDepth.onBeforeCompile = dMat.onBeforeCompile; dDepth.customProgramCacheKey = function () { return 'dadrigd'; };
+      dDepth.onBeforeCompile = dadVertCompile; dDepth.customProgramCacheKey = function () { return 'dadrigd3'; };
       dadMesh.customDepthMaterial = dDepth;
       dadMesh.frustumCulled = false;
       dad.children.slice().forEach(function (o) { dad.remove(o); });
@@ -2096,13 +2401,19 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       fragmentShader: [
         'uniform vec3 top, mid, hor, sunCol, sunDir; uniform float sunAmt; varying vec3 vd;',
         'void main(){',
-        '  float h = clamp(vd.y, -0.2, 1.0);',
-        '  vec3 c = mix(hor, mid, smoothstep(0.0, 0.12, h));',
-        '  c = mix(c, top, smoothstep(0.1, 0.65, h));',
-        '  float s = max(dot(normalize(vd), normalize(sunDir)), 0.0);',
+        '  vec3 d = normalize(vd);',
+        '  float h = clamp(d.y, -0.2, 1.0);',
+        '  vec3 c = mix(hor, mid, smoothstep(0.0, 0.14, h));',
+        '  c = mix(c, top, smoothstep(0.12, 0.65, h));',
+        '  float s = max(dot(d, normalize(sunDir)), 0.0);',
+        '  float cw1 = sin(d.x * 11.0 + sin(d.y * 28.0) * 1.4) * 0.5 + 0.5;',
+        '  float cw2 = cos(d.x * 19.0 - d.y * 34.0 + 1.2) * 0.5 + 0.5;',
+        '  float cloudBand = smoothstep(0.03, 0.15, h) * (1.0 - smoothstep(0.18, 0.42, h));',
+        '  float cloud = smoothstep(0.45, 0.85, cw1 * 0.6 + cw2 * 0.4) * cloudBand;',
+        '  c = mix(c, sunCol * 1.06, cloud * (0.28 + 0.35 * pow(s, 3.0)) * sunAmt);',
         '  c += sunCol * (pow(s, 8.0) * 0.35 + pow(s, 64.0) * 0.8) * sunAmt;',
         '  c += sunCol * smoothstep(0.9993, 0.9997, s) * 2.5 * sunAmt;',
-        '  if (vd.y < 0.0) c = mix(c, hor * 0.6, smoothstep(0.0, -0.2, vd.y));',
+        '  if (d.y < 0.0) c = mix(c, hor * 0.6, smoothstep(0.0, -0.2, d.y));',
         '  gl_FragColor = vec4(c, 1.0);',
         '}'].join('\n')
     }));
@@ -2124,7 +2435,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     group.traverse(function (o) {
       if (o.material && o.material.isMeshStandardMaterial) o.material.envMapIntensity = 0.35;
     });
-    wetSlab.material.envMapIntensity = 1.4;
+    wetSlab.material.envMapIntensity = 1.65;
 
     /* ---------------- 灯光 ---------------- */
     var sun = new THREE.DirectionalLight(0xffc38a, 3.2);
@@ -2134,27 +2445,33 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     sun.shadow.camera.near = 1; sun.shadow.camera.far = 90;
     sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
     scene.add(sun); scene.add(sun.target);
-    var hemi = new THREE.HemisphereLight(0x9fb4d8, 0x8a6a4a, 0.75);
+    var hemi = new THREE.HemisphereLight(0x9fb4d8, 0x8a6a4a, 0.78);
     scene.add(hemi);
-    var amb = new THREE.AmbientLight(0xffe2c4, 0.22);
+    var amb = new THREE.AmbientLight(0xffe2c4, 0.25);
     scene.add(amb);
     // 室内的冷色日光灯（天越黑越亮）
     var fill = [];
     [[-5, 2.6, 0], [3, 2.6, 0], [14.5, 2.6, 0], [14.5, 2.6, 6], [14.5, 2.6, 10.5]].forEach(function (p) {
       var l = new THREE.PointLight(0xdfeeff, 0, 9, 1.6); l.position.set(p[0], p[1], p[2]); scene.add(l); fill.push(l);
     });
+    // 走廊起投端夕阳漫射补光（避免天井前侧木地板死黑）
+    var hallSunLight = new THREE.PointLight(0xffcf96, 1.85, 9, 1.5); hallSunLight.position.set(4.8, 2.3, 0); scene.add(hallSunLight);
+    // 天井深井蓝紫天光（对应世界观设定：天井深处偏蓝紫色阴影）
+    var shaftWellLight = new THREE.PointLight(0x5b7ec2, 1.5, 14, 1.4); shaftWellLight.position.set(9.8, -5.0, 0); scene.add(shaftWellLight);
     // 天井里那束光自带一点暖色补光
-    var gapLight = new THREE.PointLight(0xffb070, 2.2, 12, 1.5); gapLight.position.set(9.8, 1.5, 0.5); scene.add(gapLight);
+    var gapLight = new THREE.PointLight(0xffb070, 2.4, 12, 1.5); gapLight.position.set(9.8, 1.5, 0.5); scene.add(gapLight);
     // 天井对面的平台亮一些：那边是要去的地方
     var landLight = new THREE.PointLight(0xffc890, 3.0, 7, 1.4); landLight.position.set(15.2, 2.4, 0); scene.add(landLight);
+    // 湿走廊侧窗夕阳暖漫射
+    var wetSunLight = new THREE.PointLight(0xffcb8c, 1.8, 10, 1.4); wetSunLight.position.set(14.5, 1.9, 6.0); scene.add(wetSunLight);
     scene.fog = new THREE.Fog(0xe9b27f, 40, 190);
 
     /* ---------------- 光柱（加色体积感） ---------------- */
     var beamMat = new THREE.ShaderMaterial({
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
-      uniforms: { col: { value: new THREE.Color(0xffb46a) }, amt: { value: 0.16 }, time: { value: 0 } },
+      uniforms: { col: { value: new THREE.Color(0xffb46a) }, amt: { value: 0.14 }, time: { value: 0 } },
       vertexShader: 'attribute float fade; varying float vf; varying vec3 wp; void main(){ vf = fade; vec4 w = modelMatrix*vec4(position,1.0); wp = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }',
-      fragmentShader: 'uniform vec3 col; uniform float amt; uniform float time; varying float vf; varying vec3 wp; void main(){ float n = 0.85 + 0.15*sin(wp.x*3.1+wp.z*2.3+time*0.6); float near = smoothstep(0.4, 2.2, distance(cameraPosition, wp)); gl_FragColor = vec4(col * amt * vf * vf * n * near, 1.0); }'
+      fragmentShader: 'uniform vec3 col; uniform float amt; uniform float time; varying float vf; varying vec3 wp; void main(){ float n = 0.85 + 0.15*sin(wp.x*3.1+wp.z*2.3+time*0.6); float near = smoothstep(0.5, 2.4, distance(cameraPosition, wp)); float flr = smoothstep(-0.05, 0.35, wp.y); gl_FragColor = vec4(col * amt * vf * vf * vf * n * near * flr, 1.0); }'
     });
     W.beamMat = beamMat;
     function beam(corners, len, dir) {
@@ -2241,7 +2558,10 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       if (LAMP.tube) LAMP.tube.emissiveIntensity = 0.08 + 1.4 * lightsOn;
       M.lampGlow.emissiveIntensity = 3 * Math.max(0, (t - 0.5) / 0.5);
       W.farMats.forEach(function (m) { m.emissiveIntensity = 1.6 * lightsOn; });
-      gapLight.intensity = 2.2 * (1 - t * 0.7);
+      gapLight.intensity = 2.4 * (1 - t * 0.7);
+      hallSunLight.intensity = 1.85 * (1 - t * 0.65);
+      shaftWellLight.intensity = 1.5 * (1 - t * 0.4);
+      wetSunLight.intensity = 1.35 * (1 - t * 0.65);
       // 太阳慢慢往下沉
       var d = SUN_DIR.clone(); d.y = 0.25 - 0.17 * t; d.normalize();
       skyU.sunDir.value.copy(d); W.sunNow = d;
@@ -2273,6 +2593,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       // 一次成功挑战（W.showDad）：人在教室窗口往下看，楼下的爸爸和车要画出来
       var inClass = focus.x < 0 && !W.showDad;
       dad.visible = bike.visible = !inClass;
+      if (mopM) mopM.visible = focus.x > -2;
       var showYard = focus.z > 5 || focus.y < -2 || !!W.showDad;
       for (var ti = 0; ti < trees.length; ti++) trees[ti].visible = showYard;
       for (var yi = 0; yi < yardLow.length; yi++) yardLow[yi].visible = showYard;
@@ -2318,12 +2639,14 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       // 爸爸
       var D = W.dad; D.t += dt;
       if (D.rig) {
-        var R = D.rig, wR = 0, wL = 0, hd = 0.45 + Math.sin(D.t * 0.5) * 0.05;
-        if (D.mode === 'wait') { wR = Math.sin(D.t * 1.3) * 0.04; }
-        else if (D.mode === 'wave') { wR = 1.55 + Math.sin(D.t * 9) * 0.3; hd = 0.55; }
-        else if (D.mode === 'cheer') { wR = 1.75 + Math.sin(D.t * 7) * 0.2; wL = 1.75 + Math.sin(D.t * 7 + 0.5) * 0.2; hd = 0.3; D.group.position.y = C.GROUND + Math.abs(Math.sin(D.t * 7)) * 0.06; }
+        var R = D.rig, wR = 0, wL = 0, elR = 0, elL = 0, hd = 0.45 + Math.sin(D.t * 0.5) * 0.05;
+        if (D.mode === 'wait') { wR = Math.sin(D.t * 1.3) * 0.04; elR = 0.08; }
+        else if (D.mode === 'wave') { wR = 1.32 + Math.sin(D.t * 9) * 0.16; elR = 0.98 + Math.sin(D.t * 9 - 0.3) * 0.36; hd = 0.55; }
+        else if (D.mode === 'cheer') { wR = 1.52 + Math.sin(D.t * 7) * 0.18; wL = 1.52 + Math.sin(D.t * 7 + 0.5) * 0.18; elR = 0.78 + Math.sin(D.t * 7) * 0.25; elL = 0.78 + Math.sin(D.t * 7 + 0.5) * 0.25; hd = 0.3; D.group.position.y = C.GROUND + Math.abs(Math.sin(D.t * 7)) * 0.06; }
         R.aR.value += (wR - R.aR.value) * Math.min(1, dt * 10);
         R.aL.value += (wL - R.aL.value) * Math.min(1, dt * 10);
+        R.eR.value += (elR - R.eR.value) * Math.min(1, dt * 12);
+        R.eL.value += (elL - R.eL.value) * Math.min(1, dt * 12);
         R.aH.value += (hd - R.aH.value) * Math.min(1, dt * 6);
       } else if (D.mode === 'wait') {
         D.armR.rotation.z = 0.12 + Math.sin(D.t * 1.3) * 0.03;
@@ -2370,7 +2693,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
       group.children.slice().forEach(function (o) {
         if (o.userData.dynamic || !o.isMesh || o.isPoints) return;
         var mats = Array.isArray(o.material) ? o.material : [o.material];
-        if (mats.some(function (m) { return m.isShaderMaterial || m.transparent; })) return;
+        if (mats.some(function (m) { return m.isShaderMaterial || (m.transparent && !o.userData.mergeable); })) return;
         if (o.children.length) return;
         before++; take(o); remove.push(o);
       });
@@ -2401,7 +2724,7 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
         if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
       }
       fill.forEach(function (l) { l.visible = q !== 'low'; });
-      gapLight.visible = landLight.visible = q !== 'low';
+      gapLight.visible = landLight.visible = hallSunLight.visible = shaftWellLight.visible = wetSunLight.visible = q !== 'low';
       W.quality = q;
       syncShadowCam();
     };
@@ -2907,8 +3230,8 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
     };
     P.showTray = function (on) { tray.visible = on; };
     P.setOnDesk = function (d) { shape.onDesk = Math.max(0, Math.min(1, d || 0)); build(); };
-    // 趴在窗台往下看时镜头是俯视的，盒子要挪到手边，免得挨着翼尖
-    P.placeTray = function (room) { if (room === 'window') tray.position.set(-0.24, -0.02, 0.15); else tray.position.copy(TRAY_POS); };
+    // 趴在窗台往下看时镜头是俯视的，盒子挪到窗台右侧手边，避开翼尖与蓝校服袖管
+    P.placeTray = function (room) { if (room === 'window') tray.position.set(-0.22, -0.02, 0.25); else tray.position.copy(TRAY_POS); };
 
     P.update = function (dt, flutter) {
       shape.t += dt;
@@ -2963,53 +3286,74 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
 
   function create(THREE, scene, plane) {
     var A = {};
-    var skin = new THREE.MeshStandardMaterial({ color: 0xe9b48e, roughness: 0.75 });
-    var sleeveM = new THREE.MeshStandardMaterial({ color: 0x3f66ad, roughness: 0.85 });   // 蓝白校服
-    var cuffM = new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: 0.8 });
+    var skin = new THREE.MeshStandardMaterial({ color: 0xf0b58d, roughness: 0.65, emissive: 0x381608, emissiveIntensity: 0.08 });
+    var skinTip = new THREE.MeshStandardMaterial({ color: 0xe59a74, roughness: 0.62, emissive: 0x381608, emissiveIntensity: 0.08 });
+    var sleeveM = new THREE.MeshStandardMaterial({ color: 0x2f4b82, roughness: 0.82 });   // 靛蓝校服袖（呼应天井-A2/湿走廊-A2）
+    var cuffM = new THREE.MeshStandardMaterial({ color: 0xf4f1ea, roughness: 0.75 });
     var Y = new THREE.Vector3(0, 1, 0);
 
-    // 两点之间一段圆柱（6 棱，够看又省面）
+    // 两点之间一段圆润圆柱（默认 10 棱，彻底告别六棱柱方块感）
     function seg(parent, a, b, r0, r1, mat, rad) {
       var va = new THREE.Vector3().fromArray(a), vb = new THREE.Vector3().fromArray(b);
       var len = va.distanceTo(vb);
-      var m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, len, rad || 6, 1, false), mat);
+      var m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, len, rad || 10, 1, false), mat);
       m.position.copy(va).add(vb).multiplyScalar(0.5);
       m.quaternion.setFromUnitVectors(Y, vb.clone().sub(va).normalize());
       m.castShadow = mat === sleeveM; parent.add(m); return m;
     }
     function knob(parent, p, r, mat) {
-      var m = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 0), mat); m.position.fromArray(p); parent.add(m); return m;
+      var m = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), mat || skinTip);
+      m.position.fromArray(p); parent.add(m); return m;
     }
 
-    /* 一只手：捏合点在原点，手指朝 +x，手腕朝 -x */
+    /* 一只圆润的《小王子》动画电影风小手：捏合点在原点，手指朝 +x，手腕朝 -x */
     function makeHand(withSleeve, sleeveLen) {
       var h = new THREE.Group();
-      var palm = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.02, 0.056), skin);
-      palm.position.set(-0.05, -0.026, 0.012); palm.rotation.set(0.15, 0, -0.15); palm.castShadow = true; h.add(palm);
-      // 食指（可开合）
-      var idx = new THREE.Group(); idx.position.set(-0.028, -0.02, -0.012); h.add(idx);
-      seg(idx, [0, 0, 0], [0.016, 0.006, 0.004], 0.0072, 0.0068, skin);
-      seg(idx, [0.016, 0.006, 0.004], [0.028, 0.012, 0.012], 0.0068, 0.006, skin);
-      knob(idx, [0.028, 0.012, 0.012], 0.0062, skin);
-      // 拇指（可开合）
-      var th = new THREE.Group(); th.position.set(-0.05, -0.03, 0.036); h.add(th);
-      seg(th, [0, 0, 0], [0.024, 0.008, -0.014], 0.0085, 0.0075, skin);
-      seg(th, [0.024, 0.008, -0.014], [0.046, 0.017, -0.03], 0.0075, 0.0068, skin);
-      var thTip = knob(th, [0.046, 0.017, -0.03], 0.0068, skin);
-      // 另外三根手指蜷着（桌面伸手时关节稍抬，手指尖不穿进桌面）
+      // 1. 圆润肉感手掌（主掌垫 + 拇指大鱼际软垫 + 掌根过渡球，取代原本生硬的 BoxGeometry 方块掌）
+      var palm = new THREE.Mesh(new THREE.SphereGeometry(0.031, 14, 10), skin);
+      palm.scale.set(1.10, 0.56, 0.98);
+      palm.position.set(-0.048, -0.025, 0.011); palm.rotation.set(0.16, -0.06, -0.14); palm.castShadow = true; h.add(palm);
+      var thenar = new THREE.Mesh(new THREE.SphereGeometry(0.019, 10, 8), skin);
+      thenar.scale.set(1.18, 0.72, 0.88);
+      thenar.position.set(-0.041, -0.027, 0.027); thenar.rotation.set(0.2, 0.25, -0.1); h.add(thenar);
+      var heel = new THREE.Mesh(new THREE.SphereGeometry(0.021, 10, 8), skin);
+      heel.scale.set(1.08, 0.68, 0.92);
+      heel.position.set(-0.068, -0.029, 0.014); h.add(heel);
+
+      // 2. 食指（可开合，带圆润指节与微粉指尖）
+      var idx = new THREE.Group(); idx.position.set(-0.028, -0.02, -0.011); h.add(idx);
+      knob(idx, [0, 0, 0], 0.0080, skin);
+      seg(idx, [0, 0, 0], [0.016, 0.006, 0.004], 0.0078, 0.0070, skin, 10);
+      knob(idx, [0.016, 0.006, 0.004], 0.0071, skin);
+      seg(idx, [0.016, 0.006, 0.004], [0.028, 0.012, 0.012], 0.0070, 0.0062, skin, 10);
+      var idxTip = knob(idx, [0.028, 0.012, 0.012], 0.0064, skinTip);
+
+      // 3. 拇指（可开合，饱满肉感大拇指捏住纸飞机龙骨）
+      var th = new THREE.Group(); th.position.set(-0.048, -0.028, 0.034); h.add(th);
+      knob(th, [0, 0, 0], 0.0094, skin);
+      seg(th, [0, 0, 0], [0.024, 0.008, -0.014], 0.0092, 0.0080, skin, 10);
+      knob(th, [0.024, 0.008, -0.014], 0.0081, skin);
+      seg(th, [0.024, 0.008, -0.014], [0.045, 0.017, -0.029], 0.0080, 0.0070, skin, 10);
+      var thTip = knob(th, [0.045, 0.017, -0.029], 0.0072, skinTip);
+
+      // 4. 中指、无名指、小指自然弯曲收拢（两节圆润指骨 + 球形指肚）
       for (var i = 0; i < 3; i++) {
-        var z = 0.002 + i * 0.013, y0 = -0.025 + i * 0.002, y1 = -0.032 + i * 0.004;
-        seg(h, [-0.03, y0, z], [-0.016, y1, z + 0.002], 0.0068, 0.0062, skin);
-        knob(h, [-0.016, y1, z + 0.002], 0.0062, skin);
+        var z = 0.001 + i * 0.0125, y0 = -0.024 + i * 0.002, y1 = -0.030 + i * 0.0035;
+        knob(h, [-0.030, y0, z], 0.0074 - i * 0.0004, skin);
+        seg(h, [-0.030, y0, z], [-0.016, y1, z + 0.003], 0.0072 - i * 0.0004, 0.0065 - i * 0.0004, skin, 10);
+        knob(h, [-0.016, y1, z + 0.003], 0.0065 - i * 0.0004, skin);
+        seg(h, [-0.016, y1, z + 0.003], [-0.024, y1 - 0.007, z + 0.008], 0.0063 - i * 0.0004, 0.0058 - i * 0.0004, skin, 10);
+        knob(h, [-0.024, y1 - 0.007, z + 0.008], 0.0059 - i * 0.0004, skinTip);
       }
-      // 手腕
-      seg(h, [-0.07, -0.03, 0.014], [-0.11, -0.04, 0.02], 0.016, 0.017, skin, 7);
+
+      // 5. 圆润手腕 + 无缝白色内衬袖口 + 靛蓝校服衣袖（全部使用同轴 seg 消除错位环）
+      seg(h, [-0.068, -0.029, 0.014], [-0.108, -0.039, 0.020], 0.0175, 0.0192, skin, 12);
       if (withSleeve) {
-        seg(h, [-0.11, -0.04, 0.02], [-0.125, -0.044, 0.022], 0.024, 0.024, cuffM, 7);
+        seg(h, [-0.104, -0.038, 0.019], [-0.126, -0.044, 0.022], 0.0222, 0.0238, cuffM, 12);
         var L = sleeveLen || 0.43;
-        seg(h, [-0.125, -0.044, 0.022], [-0.125 - L, -0.044 - L * 0.22, 0.022 + L * 0.07], 0.026, 0.026 + L * 0.033, sleeveM, 7);
+        seg(h, [-0.123, -0.043, 0.0215], [-0.125 - L, -0.044 - L * 0.24, 0.022 + L * 0.08], 0.0256, 0.0256 + L * 0.035, sleeveM, 12);
       }
-      h.userData = { idx: idx, th: th, palm: palm, thTip: thTip, idxTip: idx.children[2] };
+      h.userData = { idx: idx, th: th, palm: palm, thTip: thTip, idxTip: idxTip };
       return h;
     }
     function pinchPose(h, open) {
@@ -3077,11 +3421,14 @@ window.MODEL_DATA = {"bike":{"id":"bike","tris":4271,"verts":6034,"half":[0.875,
           st.enter = Math.min(1, st.enter + dt / 0.35);
           var e = 1 - Math.pow(1 - st.enter, 3);
           var p = s.power || 0;
-          // 进画：从右后下方滑进来；蓄力：手腕顺着右后下方轻轻压沉，避免把蓝校服袖子往上撬穿机翼
+          // 俯视窗口补偿：当玩家趴在四楼窗台往下看（s.camLocal.y > 0.42）时，右手向机尾后外侧微移露出圆润掌指与白袖口，同时保持长袖一直延伸出画面底边
+          var topDown = s.camLocal ? Math.max(0, Math.min(1, (s.camLocal.y - 0.38) / 0.38)) : 0;
           tmp.copy(R_WRIST_DIR).multiplyScalar((1 - e) * 0.35);
-          tmp.x -= p * 0.025; tmp.y -= p * 0.018; tmp.z += p * 0.012;
+          tmp.x += -p * 0.025 - topDown * 0.085;
+          tmp.y += -p * 0.018 - topDown * 0.012;
+          tmp.z += p * 0.012 + topDown * 0.038;
           rightRoot.position.copy(tmp);
-          rightRoot.rotation.set(0, 0, p * 0.08);
+          rightRoot.rotation.set(0, -topDown * 0.14, p * 0.08 - topDown * 0.08);
           pinchPose(right, s.dragKind === 'pull' ? 0 : 0.05 + 0.03 * Math.sin(st.t * 2), 0);
           rightRoot.visible = st.rightOn;
         }
