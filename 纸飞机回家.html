@@ -5701,6 +5701,31 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.4231,0.0879,0.084
       chal: function () { return { on: !!S.challenge, tries: S.challenge ? S.challenge.tries : null, save: SV.challenge || null, prize: elPrize.className === 'on', hud: elChalHud.className === 'on', endBtn: elChal.className, badge: elChalBadge.className ? elChalBadge.textContent : '' }; }
     }
   };
+
+  function applyQuickHash() {
+    var h = (root.location.hash || '').replace(/^#/, '');
+    if (!h) return;
+    if (h === 'home' || h === 'desk') {
+      root.PAPER.api.skipIntro();
+    } else if (h === 'hall' || h === 'gap') {
+      root.PAPER.api.skipIntro();
+      root.PAPER.api.teleport('hall');
+    } else if (h === 'wet' || h === 'land') {
+      root.PAPER.api.skipIntro();
+      root.PAPER.api.teleport('land');
+    } else if (h === 'window') {
+      root.PAPER.api.skipIntro();
+      root.PAPER.api.teleport('window');
+    } else if (h === 'challenge') {
+      root.PAPER.api.skipIntro();
+      root.PAPER.api.challenge();
+    } else if (h === 'fold' || h === 'aim' || h === 'book' || /^mg/.test(h)) {
+      if (root.parent && root.parent !== root && root.parent.__PAPER_SWITCH__) root.parent.__PAPER_SWITCH__(h);
+      else root.location.href = 'index.html#' + h;
+    }
+  }
+  if (root.location.hash) applyQuickHash();
+  root.addEventListener('hashchange', applyQuickHash);
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 </body>
