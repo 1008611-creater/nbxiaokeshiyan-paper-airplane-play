@@ -19,14 +19,16 @@
     return new TextDecoder('utf-8').decode(bytes);
   }
   var frontDoc = decodeB64('tpl-front'), backDoc = decodeB64('tpl-back');
+  // 直达：在页面第一个 script 之前先写好 hash（构建好的页面里已经没有 __THREE__ 占位符了）
+  function withHash(doc, t) { var i = doc.indexOf('<script'); return i < 0 ? doc : doc.slice(0, i) + '<script>location.hash="#' + t + '";</' + 'script>' + doc.slice(i); }
   window.__PAPER_SWITCH__ = function (target) {
     var t = (target || '').replace(/^#/, '');
     if (/^roam/.test(t) || t === 'home' || t === 'desk' || t === 'hall' || t === 'gap' || t === 'wet' || t === 'land' || t === 'window' || t === 'challenge') {
       location.hash = '#' + t;
-      frame.srcdoc = t === 'home' ? backDoc : backDoc.replace('<script>/*__THREE__*/', '<script>location.hash="#' + t + '";</' + 'script><script>/*__THREE__*/');
+      frame.srcdoc = t === 'home' ? backDoc : withHash(backDoc, t);
     } else {
       location.hash = t ? '#' + t : '';
-      frame.srcdoc = t ? frontDoc.replace('<script>/*__THREE__*/', '<script>location.hash="#' + t + '";</' + 'script><script>/*__THREE__*/') : frontDoc;
+      frame.srcdoc = t ? withHash(frontDoc, t) : frontDoc;
     }
   };
   var initHash = (location.hash || '').replace(/^#/, '');
