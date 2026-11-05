@@ -378,66 +378,6 @@
     #book .bc.hid.flip, #book .bc.hid .stamp.drop { animation: hidFade 0.4s ease both; }
     .sub, #line { transition: none; }
   }
-/* OPEN_WORLD_UI_START */
-  #roamBtn { position: fixed; right: max(14px, env(safe-area-inset-right)); top: max(12px, env(safe-area-inset-top)); z-index: 5;
-             display: none; align-items: center; gap: 8px; appearance: none; font: inherit; font-size: 14px; font-weight: 800;
-             letter-spacing: 0.06em; color: var(--accent-fg); background: linear-gradient(180deg, #2d727b 0%, #205a63 100%);
-             border: 1.5px solid rgba(231,198,137,0.9); border-radius: 999px; padding: 7px 16px 7px 12px; min-height: 40px;
-             cursor: pointer; box-shadow: 0 6px 18px rgba(22,48,41,0.28), inset 0 1px 0 rgba(255,255,255,0.3); }
-  #roamBtn.on { display: inline-flex; }
-  #roamBtn svg { width: 18px; height: 18px; flex: none; }
-  #roamBtn:active { transform: scale(0.97); }
-  body.challenging #roamBtn { top: max(58px, calc(env(safe-area-inset-top) + 46px)); }
-  body.carding #roamBtn, body.prizing #roamBtn, body.modaling #roamBtn, body.roaming #roamBtn { display: none !important; }
-  body.roaming #line { top: 68px; font-size: 17px; }
-  body:has(#done.on) #roamBtn { right: max(112px, calc(env(safe-area-inset-right) + 98px)); }
-
-  #roamHud { position: fixed; inset: 0; pointer-events: none; z-index: 5; display: none; }
-  #roamHud.on { display: block; }
-  #roamTop { position: fixed; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right));
-             top: max(10px, env(safe-area-inset-top)); display: flex; align-items: center; justify-content: space-between;
-             gap: 8px; flex-wrap: wrap; pointer-events: none; }
-  #roamLoc { pointer-events: auto; display: inline-flex; align-items: center; gap: 8px; background: var(--stage-glass);
-             color: var(--stage-ink); border: 1px solid var(--bevel); border-radius: 999px; padding: 6px 14px;
-             font-size: 14px; font-weight: 800; letter-spacing: 0.05em; box-shadow: var(--shadow-float); }
-  #roamLoc b { background: var(--step-chip); color: var(--on-step-chip); border-radius: 999px; padding: 2px 9px; font-size: 12px; }
-  #roamSpots { pointer-events: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-               background: rgba(28, 22, 18, 0.52); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-               padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(251,243,228,0.28); }
-  #roamSpots button { appearance: none; font: inherit; font-size: 12px; font-weight: 700; color: #fbf3e4;
-                      background: transparent; border: 0; border-radius: 999px; padding: 4px 10px; cursor: pointer;
-                      transition: background 0.15s, color 0.15s; white-space: nowrap; }
-  #roamSpots button:hover, #roamSpots button.cur { background: var(--step-chip); color: var(--on-step-chip); }
-
-  #roamJoy { position: fixed; left: max(22px, calc(env(safe-area-inset-left) + 14px));
-             bottom: max(26px, calc(env(safe-area-inset-bottom) + 18px));
-             width: 112px; height: 112px; border-radius: 50%; pointer-events: auto; touch-action: none;
-             background: radial-gradient(circle, rgba(255,250,240,0.26) 0%, rgba(40,24,12,0.42) 100%);
-             border: 2px solid rgba(251,243,228,0.68); box-shadow: 0 8px 24px rgba(0,0,0,0.28); }
-  #roamJoy::after { content: "WASD / 摇杆"; position: absolute; left: 0; right: 0; bottom: -20px; text-align: center;
-                    font-size: 11px; font-weight: 700; color: rgba(251,243,228,0.85); letter-spacing: 0.04em; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-  #roamKnob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px;
-              border-radius: 50%; background: linear-gradient(180deg, #fffaf0 0%, #e7c689 100%);
-              border: 2px solid #654e25; box-shadow: 0 4px 10px rgba(0,0,0,0.35); pointer-events: none; }
-
-  #roamActs { position: fixed; right: max(18px, calc(env(safe-area-inset-right) + 12px));
-              bottom: max(26px, calc(env(safe-area-inset-bottom) + 18px));
-              display: flex; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: auto; }
-  .roamAct { appearance: none; font: inherit; font-size: 15px; font-weight: 800; letter-spacing: 0.06em;
-             padding: 10px 18px; min-height: 44px; border-radius: 999px; cursor: pointer;
-             display: inline-flex; align-items: center; gap: 8px;
-             color: var(--stage-ink); background: var(--stage-glass); border: 1.5px solid var(--bevel);
-             box-shadow: var(--shadow-float); }
-  .roamAct.pri { color: var(--accent-fg); background: linear-gradient(180deg, #2d727b 0%, #205a63 100%);
-                 border-color: rgba(231,198,137,0.9); box-shadow: 0 8px 22px rgba(22,48,41,0.35); font-size: 16px; padding: 12px 22px; }
-  .roamAct svg { width: 18px; height: 18px; flex: none; }
-  .roamAct:active { transform: scale(0.97); }
-  #roamHint { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%);
-              background: rgba(28,22,18,0.62); color: #fbf3e4; border: 1px solid rgba(251,243,228,0.3);
-              border-radius: 999px; padding: 5px 16px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
-              pointer-events: none; white-space: nowrap; }
-  @media (max-width: 680px) { #roamHint { display: none; } #roamJoy { width: 96px; height: 96px; } }
-/* OPEN_WORLD_UI_END */
 </style>
 </head>
 <body>
@@ -464,31 +404,6 @@
 <button id="confirm">就猜这儿</button>
 <button id="done">下课</button>
 <div id="record"></div>
-<!-- OPEN_WORLD_HTML_START -->
-<button id="roamBtn" type="button" aria-label="自由漫游探索开放世界"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.5"/><path d="M9 20l2-6-2-3 3-3 4 2 2 3"/><path d="M13 14l2 6"/><path d="M7 12l-2 3"/></svg><span>自由漫游探索</span></button>
-<div id="roamHud" aria-label="开放世界漫游控制">
-  <div id="roamTop">
-    <div id="roamLoc"><b>开放世界</b><span id="roamZoneTxt">四楼科学教室</span></div>
-    <div id="roamSpots">
-      <button type="button" data-spot="class">教室课桌</button>
-      <button type="button" data-spot="hall">四楼走廊</button>
-      <button type="button" data-spot="bridge">天井连廊</button>
-      <button type="button" data-spot="wet">四楼湿走廊</button>
-      <button type="button" data-spot="window">尽头大窗台</button>
-      <button type="button" data-spot="stairs">下楼楼梯</button>
-      <button type="button" data-spot="dad">一楼找爸爸</button>
-      <button type="button" data-spot="street">夕阳校门口</button>
-    </div>
-  </div>
-  <div id="roamJoy"><div id="roamKnob"></div></div>
-  <div id="roamActs">
-    <button id="roamJumpBtn" class="roamAct" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>跳跃 (Space)</button>
-    <button id="roamThrowBtn" class="roamAct pri" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 11 22 3 15 21 11 13z"/><path d="M11 13 22 3"/></svg>在此处起投 (E)</button>
-    <button id="roamDeskBtn" class="roamAct" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18"/><path d="M5 10v9"/><path d="M19 10v9"/></svg>回课桌</button>
-  </div>
-  <div id="roamHint">WASD / 方向键 / 摇杆行走 · Shift 奔跑 · 点地面自动走过去 · 拖拽屏幕转视角</div>
-</div>
-<!-- OPEN_WORLD_HTML_END -->
 <script>void 0,
 /**
  * @license
@@ -983,15 +898,6 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     tension: function (p) { if (!ensure()) return; noise(0.05, 'bandpass', 800 + p * 900, 700, 3, 0.02 + p * 0.04, 0.005); },
     // 哈——：一口热气
     breath: function () { if (!ensure()) return; noise(0.95, 'bandpass', 900, 500, 0.8, 0.22, 0.18); noise(0.8, 'lowpass', 1800, 600, 0.5, 0.08, 0.2, 0.05); },
-    // 脚步：木地板温润低频、水磨石清脆、水泥更短更干；音高带一点随机，避免机枪感。k：轻 0.6 / 跑 1 / 落地 1.3
-    stepsOn: true,
-    step: function (surface, k) {
-      if (!SFX.stepsOn || !ensure()) return;
-      var r = 0.9 + Math.random() * 0.2, v = 0.05 * (k || 1);
-      if (surface === 'wood') { noise(0.09, 'lowpass', 520 * r, 160, 1.1, v * 1.3, 0.003); tone(95 * r, 0.07, v * 0.5, 'sine'); }
-      else if (surface === 'terrazzo') { noise(0.06, 'bandpass', 2300 * r, 1200, 1.6, v, 0.002); tone(180 * r, 0.04, v * 0.25, 'sine'); }
-      else { noise(0.05, 'bandpass', 1500 * r, 700, 1.3, v * 1.1, 0.002); }
-    },
     airSpeed: function (v) {
       if (!ctx || !air) return;
       var t = now();
@@ -2288,63 +2194,6 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     };
     W.sun = sun;
 
-/* OPEN_WORLD_WALK_START */
-    var walkRingGeo = new THREE.RingGeometry(0.16, 0.23, 28);
-    var walkRingMat = new THREE.MeshBasicMaterial({ color: 0xffe394, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false });
-    var walkRing = new THREE.Mesh(walkRingGeo, walkRingMat);
-    walkRing.rotation.x = -Math.PI / 2;
-    walkRing.visible = false;
-    walkRing.userData.dynamic = true;
-    group.add(walkRing);
-    W.walkRing = walkRing;
-    W.setWalkRing = function (x, y, z, on) {
-      walkRing.visible = !!on;
-      if (on) walkRing.position.set(x, y + 0.02, z);
-    };
-
-    var DESK_OBS = [
-      { x: C.DESK.x, z: C.DESK.z, rx: 0.42, rz: 0.36 },
-      { x: -0.95, z: -2.15, rx: 0.55, rz: 1.25 }
-    ];
-    [-7.0, -5.6, -4.2, -2.8].forEach(function (dx) {
-      [-2.4, -1.5, 1.5, 2.4].forEach(function (dz) {
-        DESK_OBS.push({ x: dx - 0.12, z: dz, rx: 0.52, rz: 0.32 });
-      });
-    });
-
-    function isPointWalkable(x, z) {
-      if (x >= -8.75 && x <= -0.18 && z >= -3.32 && z <= 3.32) return true;
-      if (x >= -0.25 && x <= 0.25 && z >= -0.55 && z <= 0.55) return true;
-      if (x >= -0.18 && x <= 5.65 && z >= -1.12 && z <= 1.12) return true;
-      return false;
-    }
-
-    W.zoneName = function (x, y, z) {
-      if (x < -0.1) return '四楼科学教室';
-      return '四楼教室外走廊';
-    };
-
-    W.resolveWalk = function (x0, y0, z0, x1, z1) {
-      var nx = x1, nz = z1;
-      if (!isPointWalkable(nx, nz)) {
-        if (isPointWalkable(x1, z0)) { nx = x1; nz = z0; }
-        else if (isPointWalkable(x0, z1)) { nx = x0; nz = z1; }
-        else { nx = x0; nz = z0; }
-      }
-      if (nx < -0.2) {
-        for (var i = 0; i < DESK_OBS.length; i++) {
-          var ob = DESK_OBS[i];
-          var dx = nx - ob.x, dz = nz - ob.z;
-          if (Math.abs(dx) < ob.rx && Math.abs(dz) < ob.rz) {
-            var px = ob.rx - Math.abs(dx), pz = ob.rz - Math.abs(dz);
-            if (px < pz) nx += dx >= 0 ? px : -px;
-            else nz += dz >= 0 ? pz : -pz;
-          }
-        }
-      }
-      return { x: nx, y: 0, z: nz, zone: W.zoneName(nx, 0, nz), enterFullWorld: nx > 5.15 };
-    };
-    /* OPEN_WORLD_WALK_END */
     W.group = group;
     W.M = M;
     return W;
@@ -3209,8 +3058,6 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
 
     /* ==================== 原版完整 65 骨骼小学生全身模型 (D.kid) ==================== */
     var KID_SCALE = 1.18;
-    // 弯腰拾取的幅度（试玩后再定值）：drop 骨盆下沉米数，其余是弧度
-    A.pickBend = { drop: 0.18, spine: 0.80, spine1: 1.30, thigh: 1.45, knee: 2.35, foot: 1.3 };
     // 课桌折纸态站位（相对主角桌上的纸）：越肩构图里人只占画面左下角，作业纸、圆钮、目标圈完整让出来
     A.foldPose = { dx: -0.24, dy: -0.06, dz: -0.30, ry: -0.12, lean: -0.28, twist: 0, headYaw: 0 };   // 2026-11-04 格 1：配合前段 FOLD_CAM 右移，头不再挡纸
     var kid = null;
@@ -3411,7 +3258,6 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
 
     var st = {
       mode: 'hold', t: 0, enter: 1, swing: null, leftVis: 0, breath: 0, breathT: 0, breathing: false, rightOn: true, lastPull: 0,
-      roam: { on: false, x: -6.1, y: 0, z: 0, yaw: 0, speed: 0, phase: 0, jumpY: 0, carryPlane: true },
       groundAt: null
     };
     A.st = st;
@@ -3425,86 +3271,6 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       if (!kid) return;
       resetKidPose();
       var breathIdle = Math.sin(st.t * 2.2) * 0.018;
-
-      /* A. 开放大世界自由移动探索态 (roam.on) */
-      if (st.roam && st.roam.on) {
-        kid.root.visible = !st.roam.fp;   // 第一人称时不画自己（镜头在头里）
-        var R = st.roam;
-        kid.root.position.set(R.x, R.y, R.z);   // main 传进来的 y 已经含跳起高度
-        kid.root.rotation.set(0, -R.yaw, 0);   // 世界里前进方向是 (cos yaw, sin yaw)；three 的绕 y 旋转是反号，之前沿 z 走会脚尖朝后倒着走
-        var spd = R.speed || 0;
-        var ph = R.phase || 0;
-        var stride = Math.min(1.35, spd);
-        var inAir = (R.jumpY || 0) > 0.025;
-        var run = spd > 0.75 ? Math.min(1, (spd - 0.75) / 0.25) : 0;
-        // 起跳前 / 落地后 0.12 s 屈膝缓冲（0 → 1 → 0）
-        var crouch = Math.max(R.crouch || 0, 0);
-        // 弯腰捡飞机：R.pick 0 → 1 走 0.45 s，中点手到地面（屈膝 + 俯身，右手 IK 伸向纸飞机）
-        var bend = R.pick > 0 ? Math.sin(Math.PI * Math.min(1, R.pick)) * (R.pickLow === undefined ? 1 : R.pickLow) : 0;
-
-        // 骨盆起伏只走 kid.root（骨骼 position 一律不碰）：两腿交错经过时最高，迈开时最低，双倍频
-        var hipBob = inAir ? 0 : (0.5 - Math.abs(Math.sin(ph))) * 0.028 * stride - crouch * 0.027 - bend * A.pickBend.drop;
-        kid.root.position.y = R.y + hipBob;
-        // 重心左右转移：哪条腿撑地往哪边微倾；脊柱与骨盆反向扭转
-        rotBoneChar('Hips', Math.cos(ph) * 0.035 * stride, Math.sin(ph) * 0.07 * stride, 0);
-        rotBoneChar('Spine', 0, -Math.sin(ph) * 0.05 * stride, -crouch * 0.12 - bend * A.pickBend.spine);
-        rotBoneChar('Spine1', 0, -Math.sin(ph) * 0.06 * stride, -0.05 * stride - run * 0.10 - crouch * 0.10 - bend * A.pickBend.spine1 + breathIdle * 0.4);
-        rotBoneChar('Spine2', 0, -Math.sin(ph) * 0.04 * stride, -run * 0.05 - bend * 0.12);
-        rotBoneChar('Neck', 0, Math.sin(ph) * 0.05 * stride, 0.03 * stride + run * 0.06);
-        rotBoneChar('Head', 0, R.headYaw || 0, (R.headPitch || 0) + run * 0.05 - bend * 0.18 + breathIdle * 0.3);
-
-        // 双腿迈步（+Z 为迈步轴：正值向前迈腿，负值向后蹬腿；膝关节负值向后弯曲）
-        var amp = 0.50 + run * 0.16;
-        var swingL = inAir ? 0.38 : Math.sin(ph) * amp * stride + crouch * 0.42 + bend * A.pickBend.thigh;
-        var swingR = inAir ? -0.22 : -Math.sin(ph) * amp * stride + crouch * 0.42 + bend * A.pickBend.thigh;
-        // 摆动腿（往前迈的那条）抬膝，支撑腿微屈吸收冲击
-        var liftL = Math.max(0, Math.cos(ph)), liftR = Math.max(0, -Math.cos(ph));
-        var kneeL = inAir ? -0.62 : -(liftL * (0.85 + run * 0.45) + 0.10) * stride - crouch * 0.85 - bend * A.pickBend.knee;
-        var kneeR = inAir ? -0.48 : -(liftR * (0.85 + run * 0.45) + 0.10) * stride - crouch * 0.85 - bend * A.pickBend.knee;
-        rotBoneChar('LeftUpLeg', 0, 0, swingL);
-        rotBoneChar('LeftLeg', 0, 0, kneeL);
-        rotBoneChar('RightUpLeg', 0, 0, swingR);
-        rotBoneChar('RightLeg', 0, 0, kneeR);
-        // 脚跟到脚尖滚动：脚掌始终大致贴平地面（抵消大腿 + 小腿的转角），蹬地那一下脚尖弯
-        var bendLeg = bend * (A.pickBend.thigh - A.pickBend.knee);   // 蹲下那部分脚掌全额找平，否则脚尖或脚跟插进地里
-        var footL = -(swingL + kneeL - bendLeg) * 0.85 - bendLeg * A.pickBend.foot, footR = -(swingR + kneeR - bendLeg) * 0.85 - bendLeg * A.pickBend.foot;
-        rotBoneChar('LeftFoot', 0, 0, inAir ? -0.25 : footL);
-        rotBoneChar('RightFoot', 0, 0, inAir ? -0.2 : footR);
-        rotBoneChar('LeftToeBase', 0, 0, inAir ? 0 : Math.max(0, -Math.sin(ph)) * 0.35 * stride);
-        rotBoneChar('RightToeBase', 0, 0, inAir ? 0 : Math.max(0, Math.sin(ph)) * 0.35 * stride);
-
-        // 左臂随步伐自然摆动（从 A-pose 收拢至身侧）
-        var armSwingL = inAir ? 0.25 : -Math.sin(ph) * (0.42 + run * 0.2) * stride;
-        aimBoneChar(kid.byName.LeftArm, _vTgt.set(0.32 * armSwingL, -0.94, -0.17), 0);
-        aimBoneChar(kid.byName.LeftForeArm, _vTgt.set(0.28 + Math.max(0, armSwingL) * 0.38, -0.92, -0.08), 0);
-        curlKidFingers(true, 0.28, 'press');
-
-        // 右臂：若携带有纸飞机则右手真实捏住机身龙骨自然托在右腰胸侧随步伐轻摆，否则自然摆臂
-        if (R.carryPlane !== false || bend > 0) {
-          plane.rig.updateMatrixWorld(true);
-          _wTargetR.copy(plane.rig.position);
-          _wTargetR.x -= Math.cos(R.yaw) * 0.058;
-          _wTargetR.y -= 0.014;
-          _wTargetR.z += Math.sin(R.yaw) * 0.058;
-          solveKidArmIK(
-            false,
-            _wTargetR,
-            _poleR.set(-0.35, -0.75, 0.55),
-            _hDirR.set(0.92, 0.14, -0.14),
-            0.45,
-            0.68,
-            'hold'
-          );
-        } else {
-          var armSwingR = inAir ? 0.25 : Math.sin(ph) * (0.42 + run * 0.2) * stride;
-          aimBoneChar(kid.byName.RightArm, _vTgt.set(0.32 * armSwingR, -0.94, 0.17), 0);
-          aimBoneChar(kid.byName.RightForeArm, _vTgt.set(0.28 + Math.max(0, armSwingR) * 0.38, -0.92, 0.08), 0);
-          curlKidFingers(false, 0.28, 'press');
-        }
-        kid.root.updateMatrixWorld(true);
-        if (kid.mesh.skeleton) kid.mesh.skeleton.update();
-        return;
-      }
 
       /* B. 课桌折纸态（越肩第三人称视角：完整小学生站在课桌前俯身看纸，双手在桌面上真折纸） */
       if (s && s.foldState && s.foldState.on) {
@@ -3661,7 +3427,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     };
     A.hide = function () {
       rightRoot.visible = false; leftRoot.visible = false;
-      if (kid && (!st.roam || !st.roam.on)) kid.root.visible = false;
+      if (kid) kid.root.visible = false;
     };
     A.setRight = function (on) {
       st.rightOn = !!on;
@@ -5915,7 +5681,6 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   }
   function setStage(st) {
     S.stage = st; S.stageThrows = 0;
-    if (typeof syncRoamBtnFront === 'function') syncRoamBtnFront();
     world.showGoal(st === 'angle');
     world.setFlag(S.predictX, st === 'predict' || st === 'flat');
     elConfirm.className = '';
@@ -6392,13 +6157,6 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
         if (u >= 1) enterFold();
         break;
       }
-/* OPEN_WORLD_TICK_START */
-      case 'roam': {
-        updateRoam(dt);
-        flutter = S.roam && S.roam.speed > 0.1 ? 0.25 : 0.04;
-        break;
-      }
-      /* OPEN_WORLD_TICK_END */
       case 'fold': {
         var fv = foldPose(tmpV, tmpV2);
         k = 1 - Math.exp(-dt * 4);
@@ -6639,7 +6397,6 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   }
   var shakeAmt = 0;
   function focusPoint() {
-    if (S.phase === 'roam' && S.roam) return tmpV2.set(S.roam.x, S.roam.y, S.roam.z);
     if (S.phase === 'title' || S.phase === 'intro') return tmpV2.set(-4, 0.8, 0);
     if (S.phase === 'fold' || S.phase === 'lift') return tmpV2.set(-6.5, 0.8, 0);
     return plane.rig.position;
@@ -6779,279 +6536,6 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
   root.addEventListener('pageshow', function (e) { if (e.persisted) elVeil.className = ''; });   // 从后段按后退回来（页面缓存）也要揭开
   requestAnimationFrame(loop);
 
-/* OPEN_WORLD_MAIN_START */
-  var elRoamBtn = document.getElementById('roamBtn');
-  var elRoamHud = document.getElementById('roamHud');
-  var elRoamZoneTxt = document.getElementById('roamZoneTxt');
-  var elRoamSpots = document.getElementById('roamSpots');
-  var elRoamJoy = document.getElementById('roamJoy');
-  var elRoamKnob = document.getElementById('roamKnob');
-  var elRoamJumpBtn = document.getElementById('roamJumpBtn');
-  var elRoamThrowBtn = document.getElementById('roamThrowBtn');
-  var elRoamDeskBtn = document.getElementById('roamDeskBtn');
-
-  var roamKeys = {};
-  var roamJoy = { active: false, id: null, x0: 0, y0: 0, dx: 0, dy: 0 };
-  var roamOrbit = { active: false, id: null, x0: 0, y0: 0, moved: false, yaw0: 0, pitch0: 0 };
-
-  function syncRoamBtnFront() {
-    if (!elRoamBtn) return;
-    var show = (S.phase === 'fold' || S.phase === 'predict' || S.phase === 'aim') && elEnd.className !== 'on';
-    elRoamBtn.className = show ? 'on' : '';
-  }
-
-  function switchToFullWorldRoam(spotName) {
-    var targetHash = 'roam=' + (spotName || 'bridge');
-    if (root.parent && root.parent !== root && root.parent.__PAPER_SWITCH__) {
-      root.parent.__PAPER_SWITCH__(targetHash);
-      return true;
-    }
-    root.location.href = '纸飞机回家.html#' + targetHash;
-    return true;
-  }
-
-  function startRoam(spotName) {
-    if (spotName && spotName !== 'class' && spotName !== 'hall') {
-      return switchToFullWorldRoam(spotName);
-    }
-    elTitle.className = 'off'; elEnd.className = ''; elConfirm.className = ''; elStep.className = '';
-    if (!plane.foldDone()) { plane.finishFoldInstant(); plane.setOpen(1); }
-    plane.showRing(false); plane.showDots(false, S.t);
-    var initX = spotName === 'hall' ? 2.6 : -5.8;
-    S.roam = {
-      x: initX, y: 0, z: 0,
-      yaw: 0, camYaw: 0, camPitch: 0.24, camDist: 1.72,
-      speed: 0, vy: 0, jumpY: 0, phase: 0, crouch: 0, jumpQ: 0, landT: 0, target: null
-    };
-    S.phase = 'roam'; S.phaseT = 0; S.drag = null;
-    arm.onAim(); arm.setRight(true); arm.st.enter = 1;
-    arm.st.roam.on = true;
-    if (elRoamHud) elRoamHud.className = 'on';
-    if (elRoamBtn) elRoamBtn.className = '';
-    document.body.classList.add('roaming');
-    hush();
-    updateRoam(1.0);
-    return S.roam;
-  }
-
-  function stopRoamToAim() {
-    if (!S.roam) return;
-    arm.st.roam.on = false;
-    if (elRoamHud) elRoamHud.className = '';
-    document.body.classList.remove('roaming');
-    if (world.setWalkRing) world.setWalkRing(0, 0, 0, false);
-    SPOT.x = PH.clamp(S.roam.x, -7.8, -1.2);
-    SPOT.z = PH.clamp(S.roam.z, -2.2, 2.2);
-    if (!S.stage || S.stage === 'fold' || S.stage === 'predict') setStage('free');
-    enterAim();
-    aimPose(SPOT, camPos, camLook);
-    syncRoamBtnFront();
-  }
-
-  /* 漫游步态参数（与后段同值） */
-  var ROAM_GAIT = { walk: 1.75, run: 3.9, walkStride: 1.05, runStride: 1.6, squash: 0.12 };
-  function roamJump() {
-    var R = S.roam;
-    if (!R || R.jumpY > 0.01 || R.jumpQ > 0 || R.landT > 0.04) return;
-    R.jumpQ = ROAM_GAIT.squash;
-  }
-  function updateRoam(dt) {
-    var R = S.roam;
-    if (!R) return;
-    var kx = 0, ky = 0;
-    if (roamKeys.KeyW || roamKeys.ArrowUp) ky += 1;
-    if (roamKeys.KeyS || roamKeys.ArrowDown) ky -= 1;
-    if (roamKeys.KeyD || roamKeys.ArrowRight) kx += 1;
-    if (roamKeys.KeyA || roamKeys.ArrowLeft) kx -= 1;
-    if (roamJoy.active) { kx += roamJoy.dx; ky -= roamJoy.dy; }
-    var mag = Math.hypot(kx, ky);
-    var sprint = !!(roamKeys.ShiftLeft || roamKeys.ShiftRight || mag > 0.85);
-    var mvX = 0, mvZ = 0;
-    if (mag > 0.08) {
-      var nx = kx / Math.max(1, mag), ny = ky / Math.max(1, mag);
-      var cf = Math.cos(R.camYaw), sf = Math.sin(R.camYaw);
-      mvX = cf * ny - sf * nx;
-      mvZ = sf * ny + cf * nx;
-      R.target = null;
-      if (world.setWalkRing) world.setWalkRing(0, 0, 0, false);
-    } else if (R.target) {
-      var tx = R.target.x - R.x, tz = R.target.z - R.z, td = Math.hypot(tx, tz);
-      if (td < 0.18) { R.target = null; if (world.setWalkRing) world.setWalkRing(0, 0, 0, false); }
-      else { mvX = tx / td; mvZ = tz / td; mag = Math.min(1, td * 1.6); }
-    }
-    var moveLen = Math.hypot(mvX, mvZ);
-    if (moveLen > 0.04) {
-      mvX /= moveLen; mvZ /= moveLen;
-      var spd = (sprint ? ROAM_GAIT.run : ROAM_GAIT.walk) * Math.min(1, mag);
-      var next = world.resolveWalk ? world.resolveWalk(R.x, 0, R.z, R.x + mvX * spd * dt, R.z + mvZ * spd * dt) : { x: R.x + mvX * spd * dt, y: 0, z: R.z + mvZ * spd * dt, zone: '四楼科学教室' };
-      var actualDist = Math.hypot(next.x - R.x, next.z - R.z);
-      R.x = next.x; R.z = next.z;
-      // 步频跟着脚下真实走过的距离走：一个完整步态周期走 strideLen 米，脚不打滑
-      if (actualDist > 0.0005 && R.jumpY <= 0.01) {
-        var ph0 = R.phase;
-        R.phase += actualDist / (sprint ? ROAM_GAIT.runStride : ROAM_GAIT.walkStride) * Math.PI * 2;
-        if (Math.floor(ph0 / Math.PI) !== Math.floor(R.phase / Math.PI) && SFX.step) SFX.step(R.x < -0.1 ? 'wood' : 'terrazzo', sprint ? 1 : 0.6);
-      }
-      var wantYaw = Math.atan2(mvZ, mvX);
-      var dYaw = ((wantYaw - R.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-      R.yaw += dYaw * Math.min(1, dt * 12);
-      if (!roamOrbit.active) {
-        var dCam = ((R.yaw - R.camYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-        R.camYaw += dCam * Math.min(1, dt * 3.2);
-      }
-      R.speed = actualDist > 0.001 ? (sprint ? 1.0 : 0.62) : 0.2;
-      if (next.enterFullWorld) { switchToFullWorldRoam('bridge'); return; }
-    } else {
-      R.speed = Math.max(0, R.speed - dt * 5);
-    }
-    // 起跳先屈膝 0.12 s 再离地，落地再屈膝 0.12 s 缓冲
-    if (R.jumpQ > 0) {
-      R.jumpQ -= dt; R.crouch = 1 - Math.max(0, R.jumpQ) / ROAM_GAIT.squash;
-      if (R.jumpQ <= 0) { R.jumpQ = 0; R.vy = 4.6; R.jumpY = 0.001; SFX.throw(0.15); }
-    } else if (R.landT > 0) {
-      R.landT -= dt; R.crouch = Math.max(0, R.landT) / ROAM_GAIT.squash;
-    } else R.crouch = 0;
-    if (R.jumpY > 0 || R.vy !== 0) {
-      R.jumpY += R.vy * dt; R.vy -= 14.5 * dt;
-      if (R.jumpY <= 0) { R.jumpY = 0; R.vy = 0; R.landT = ROAM_GAIT.squash; if (SFX.step) SFX.step(R.x < -0.1 ? 'wood' : 'terrazzo', 1.3); }
-    }
-    var zone = world.zoneName ? world.zoneName(R.x, 0, R.z) : '四楼科学教室';
-    if (elRoamZoneTxt && elRoamZoneTxt.textContent !== zone) elRoamZoneTxt.textContent = zone;
-
-    var cy = Math.cos(R.yaw), sy = Math.sin(R.yaw);
-    var swing = Math.sin(S.t * 8) * 0.03 * R.speed;
-    plane.rig.position.set(R.x + cy * 0.23 - sy * 0.21, R.jumpY + 0.62 + Math.abs(swing) * 0.22, R.z + sy * 0.23 + cy * 0.21);
-    plane.rig.rotation.set(0, -R.yaw, 0.06 + swing * 1.2);
-    plane.body.position.set(0, 0, 0); plane.body.rotation.set(0, 0, 0);
-
-    arm.st.roam.on = true;
-    arm.st.roam.x = R.x; arm.st.roam.y = R.jumpY; arm.st.roam.z = R.z;
-    arm.st.roam.yaw = R.yaw; arm.st.roam.speed = R.speed; arm.st.roam.jump = R.jumpY;
-    arm.st.roam.jumpY = R.jumpY; arm.st.roam.phase = R.phase; arm.st.roam.crouch = R.crouch; arm.st.roam.carryPlane = true;
-    arm.update(dt, { power: 0, dragKind: null, camLocal: tmpV.set(0, 0, 0), dotLocal: dotLocalFn });
-
-    var dist = R.x > -0.1 ? 1.35 : R.camDist;
-    var cpX = R.x - Math.cos(R.camYaw) * Math.cos(R.camPitch) * dist;
-    var cpY = R.jumpY + 0.98 + Math.sin(R.camPitch) * dist;
-    var cpZ = R.z - Math.sin(R.camYaw) * Math.cos(R.camPitch) * dist;
-    if (R.x > -0.1) cpZ = PH.clamp(cpZ, -1.05, 1.05);
-    tmpV.set(cpX, cpY, cpZ);
-    tmpV2.set(R.x + Math.cos(R.camYaw) * 0.35, R.jumpY + 0.92, R.z + Math.sin(R.camYaw) * 0.35);
-    var kCam = 1 - Math.exp(-dt * 10);
-    camPos.lerp(tmpV, kCam); camLook.lerp(tmpV2, kCam); fovTarget = 58;
-  }
-
-  if (elRoamBtn) {
-    elRoamBtn.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-    elRoamBtn.addEventListener('click', function (e) { e.stopPropagation(); SFX.unlock(); startRoam('class'); });
-  }
-  if (elRoamSpots) {
-    elRoamSpots.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-    elRoamSpots.addEventListener('click', function (e) {
-      e.stopPropagation();
-      var btn = e.target && e.target.closest && e.target.closest('button[data-spot]');
-      if (!btn) return;
-      SFX.unlock();
-      startRoam(btn.getAttribute('data-spot'));
-    });
-  }
-  if (elRoamJumpBtn) {
-    elRoamJumpBtn.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-    elRoamJumpBtn.addEventListener('click', function (e) {
-      e.stopPropagation(); SFX.unlock();
-      roamJump();
-    });
-  }
-  if (elRoamThrowBtn) {
-    elRoamThrowBtn.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-    elRoamThrowBtn.addEventListener('click', function (e) { e.stopPropagation(); SFX.unlock(); stopRoamToAim(); });
-  }
-  if (elRoamDeskBtn) {
-    elRoamDeskBtn.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-    elRoamDeskBtn.addEventListener('click', function (e) {
-      e.stopPropagation(); SFX.unlock();
-      arm.st.roam.on = false;
-      if (elRoamHud) elRoamHud.className = '';
-      document.body.classList.remove('roaming');
-      if (world.setWalkRing) world.setWalkRing(0, 0, 0, false);
-      enterFold();
-      syncRoamBtnFront();
-    });
-  }
-  if (elRoamJoy) {
-    elRoamJoy.addEventListener('pointerdown', function (e) {
-      e.stopPropagation(); SFX.unlock();
-      var r = elRoamJoy.getBoundingClientRect();
-      roamJoy.active = true; roamJoy.id = e.pointerId;
-      roamJoy.x0 = r.left + r.width / 2; roamJoy.y0 = r.top + r.height / 2;
-      elRoamJoy.setPointerCapture && e.pointerId !== undefined && elRoamJoy.setPointerCapture(e.pointerId);
-      var dx = e.clientX - roamJoy.x0, dy = e.clientY - roamJoy.y0, maxR = r.width * 0.38;
-      var d = Math.hypot(dx, dy);
-      if (d > maxR) { dx = dx / d * maxR; dy = dy / d * maxR; }
-      roamJoy.dx = dx / maxR; roamJoy.dy = dy / maxR;
-      if (elRoamKnob) elRoamKnob.style.transform = 'translate(' + Math.round(dx) + 'px,' + Math.round(dy) + 'px)';
-    });
-    elRoamJoy.addEventListener('pointermove', function (e) {
-      if (!roamJoy.active || (e.pointerId !== undefined && roamJoy.id !== undefined && e.pointerId !== roamJoy.id)) return;
-      e.stopPropagation();
-      var r = elRoamJoy.getBoundingClientRect(), maxR = r.width * 0.38;
-      var dx = e.clientX - roamJoy.x0, dy = e.clientY - roamJoy.y0;
-      var d = Math.hypot(dx, dy);
-      if (d > maxR) { dx = dx / d * maxR; dy = dy / d * maxR; }
-      roamJoy.dx = dx / maxR; roamJoy.dy = dy / maxR;
-      if (elRoamKnob) elRoamKnob.style.transform = 'translate(' + Math.round(dx) + 'px,' + Math.round(dy) + 'px)';
-    });
-    var endJoy = function (e) {
-      if (!roamJoy.active || (e && e.pointerId !== undefined && roamJoy.id !== undefined && e.pointerId !== roamJoy.id)) return;
-      roamJoy.active = false; roamJoy.dx = 0; roamJoy.dy = 0;
-      if (elRoamKnob) elRoamKnob.style.transform = 'none';
-    };
-    elRoamJoy.addEventListener('pointerup', endJoy);
-    elRoamJoy.addEventListener('pointercancel', endJoy);
-  }
-  canvas.addEventListener('pointerdown', function (e) {
-    if (S.phase !== 'roam' || !S.roam) return;
-    roamOrbit.active = true; roamOrbit.id = e.pointerId;
-    roamOrbit.x0 = e.clientX; roamOrbit.y0 = e.clientY; roamOrbit.moved = false;
-    roamOrbit.yaw0 = S.roam.camYaw; roamOrbit.pitch0 = S.roam.camPitch;
-  });
-  root.addEventListener('pointermove', function (e) {
-    if (S.phase !== 'roam' || !S.roam || !roamOrbit.active) return;
-    if (e.pointerId !== undefined && roamOrbit.id !== undefined && e.pointerId !== roamOrbit.id) return;
-    var dx = e.clientX - roamOrbit.x0, dy = e.clientY - roamOrbit.y0;
-    if (Math.hypot(dx, dy) > 6) roamOrbit.moved = true;
-    if (roamOrbit.moved) {
-      S.roam.camYaw = roamOrbit.yaw0 - dx * 0.0065;
-      S.roam.camPitch = PH.clamp(roamOrbit.pitch0 + dy * 0.0045, -0.05, 0.72);
-    }
-  });
-  root.addEventListener('pointerup', function (e) {
-    if (S.phase !== 'roam' || !S.roam || !roamOrbit.active) return;
-    if (e && e.pointerId !== undefined && roamOrbit.id !== undefined && e.pointerId !== roamOrbit.id) return;
-    var wasTap = !roamOrbit.moved;
-    roamOrbit.active = false;
-    if (wasTap && e) {
-      setNdc(e.clientX, e.clientY); ray.setFromCamera(ndc, camera);
-      if (ray.ray.intersectPlane(floorPlane, floorHit)) {
-        S.roam.target = { x: floorHit.x, z: floorHit.z };
-        if (world.setWalkRing) world.setWalkRing(floorHit.x, 0, floorHit.z, true);
-      }
-    }
-  });
-  root.addEventListener('keydown', function (e) {
-    if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
-    roamKeys[e.code] = true;
-    if (S.phase === 'aim' && !S.drag && (e.code === 'KeyW' || e.code === 'KeyA' || e.code === 'KeyS' || e.code === 'KeyD')) {
-      startRoam('class');
-      return;
-    }
-    if (S.phase === 'roam' && S.roam) {
-      if (e.code === 'Space') { e.preventDefault(); roamJump(); }
-      if (e.code === 'KeyE') { e.preventDefault(); stopRoamToAim(); }
-    }
-  });
-  root.addEventListener('keyup', function (e) { roamKeys[e.code] = false; });
-/* OPEN_WORLD_MAIN_END */
   /* ---------------- 调试接口（给无头探针用） ---------------- */
   root.PAPER = {
     S: S, foldCam: FOLD_CAM, scene: scene, plane: plane, arm: arm, world: world, camera: camera, camPos: camPos, camLook: camLook,
@@ -7065,10 +6549,6 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
       bookGuess: function (g) { book.setGuess(g); return true; },
       bookState: function () { return { mode: S.mode, testI: S.testI, save: book.state(), open: book.isOpen() }; },
       setKind: function (k) { plane.setKind(k); S.setup.kind = plane.kind; if (S.phase === 'fold') enterFold(); return plane.kind; },
-/* OPEN_WORLD_API_START */
-      startRoam: function (spotName) { return startRoam(spotName); },
-      stopRoamToAim: function () { stopRoamToAim(); return SPOT; },
-      /* OPEN_WORLD_API_END */
       clearSave: function () { try { root.localStorage.removeItem(SAVE_KEY); } catch (e) {} return true; },
       snapshot: function () {
         return {
@@ -7084,7 +6564,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
       setSetup: function (o) { Object.assign(S.setup, o); applySetup(true); return S.setup; },
       throwNow: function (power, aim) { if (S.phase !== 'aim') return false; S.power = power; S.aim = aim || 0; doThrow(); return true; },
       advance: function (sec, noRender) { var n = Math.round(sec * 60); for (var i = 0; i < n; i++) tick(1 / 60); if (!noRender) render(); return this.snapshot(); },
-      mute: function (on) { G.N.muted = !!on; SFX.stepsOn = !on; return true; },
+      mute: function (on) { G.N.muted = !!on; return true; },
       screen: function (name) {
         render();
         if (name === 'foldTarget') return screenOf(plane.body.localToWorld(plane.foldTargetLocal(new THREE.Vector3())));
@@ -7122,7 +6602,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
       elTitle.className = 'off';
       if (m[1] && MG_MENU.some(function (c) { return c[0] === m[1]; })) { S.mgMenu = true; G.mgCard(m[1], true, function () { mgMenu(true); }); }
       else mgMenu(true);
-    } else if (/^roam/.test(h) || h === 'home' || h === 'hall' || h === 'gap' || h === 'wet' || h === 'land' || h === 'window' || h === 'challenge') {
+    } else if (h === 'home' || h === 'hall' || h === 'gap' || h === 'wet' || h === 'land' || h === 'window' || h === 'challenge') {
       if (root.parent && root.parent !== root && root.parent.__PAPER_SWITCH__) root.parent.__PAPER_SWITCH__(h);
       else root.location.href = '纸飞机回家.html#' + h;
     }
