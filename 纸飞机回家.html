@@ -3508,7 +3508,7 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.3523,0.0777,0.077
     /* ==================== 原版完整 65 骨骼小学生全身模型 (D.kid) ==================== */
     var KID_SCALE = 1.18;
     // 课桌折纸态站位（相对主角桌上的纸）：越肩构图里人只占画面左下角，作业纸、圆钮、目标圈完整让出来
-    A.foldPose = { dx: -0.21, dy: 0.01, dz: -0.27, ry: -0.12, lean: -0.16, twist: 0, headYaw: 0 };
+    A.foldPose = { dx: -0.18, dy: 0.02, dz: -0.22, ry: -0.15, lean: -0.18, twist: 0, headYaw: 0 };
     var kid = null;
     function makeFullBodyKid() {
       if (!armSpec || !armSpec.data || !armSpec.data.kid) return null;
@@ -3910,6 +3910,9 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.3523,0.0777,0.077
 
         var useLeftMain = !!s.foldState.isLeft;
         var auxSgn = useLeftMain ? 1 : -1;
+        // 折纸时双肩锁骨自然前送，增大桌面远端纸角与机尖的可达半径
+        aimBoneChar(kid.byName.LeftShoulder, _vTgt.set(useLeftMain ? 0.42 : 0.25, -0.05, -0.90), 0);
+        aimBoneChar(kid.byName.RightShoulder, _vTgt.set(!useLeftMain ? 0.42 : 0.25, -0.05, 0.90), 0);
         var pt = s.foldState.sweeping && s.foldState.creaseLocal
           ? s.foldState.creaseLocal(s.foldState.sweep)
           : (s.dotLocal ? s.dotLocal('fold') : _vCur.set(0, 0, 0));
@@ -3938,8 +3941,10 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.3523,0.0777,0.077
           floor: deskY
         });
         applyHeadDodge(dt);
-        rotBoneChar('Neck', dodge.x * 0.45, -dodge.x * 0.25, -0.14 + dodge.z * 0.55);
-        rotBoneChar('Head', dodge.x * 0.55, FP.headYaw - dodge.x * 0.35, -0.18 + breathIdle * 0.2 + dodge.z * 0.65);
+        // 课桌折纸时纸面在人物右前方，手靠近头部时头向左后上方自然仰让（绝不向右侧纸面偏头）
+        var dodgeLeftFold = -Math.abs(dodge.x) * 0.55;
+        rotBoneChar('Neck', dodgeLeftFold * 0.45, 0, -0.10 + dodge.z * 0.65);
+        rotBoneChar('Head', dodgeLeftFold * 0.55, FP.headYaw, -0.14 + breathIdle * 0.2 + dodge.z * 0.75);
 
         kid.root.updateMatrixWorld(true);
         if (kid.mesh.skeleton) kid.mesh.skeleton.update();
@@ -3957,35 +3962,38 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.3523,0.0777,0.077
         var yaw = Math.atan2(-_fwdPlane.z, _fwdPlane.x);
 
         var gY = st.groundAt ? st.groundAt(_pPlane.x, _pPlane.y, _pPlane.z) : (_pPlane.y < -2 ? -12 : 0);
-        // 站立在纸飞机左后方（backDist=0.22, leftDist=0.16），人物身体在画面左下方，右手在画面中央自然举起持机，绝不挡镜头
-        var backDist = 0.22, leftDist = 0.16;
+        var isWingRDrag = st.mode === 'hold' && s && s.dragKind === 'wingR';
+        var part = (s && s.dragKind && s.dragKind !== 'wingR' && s.dragKind !== 'pull') ? s.dragKind : (st.lastLeft || 'nose');
+        var reachFwd = isWingRDrag ? 1 : ((leftRoot.visible && part !== 'wingL') ? st.leftVis : 0);
+        // 站立在纸飞机左后方，调机远端部位（捏机头/回形针/树叶/换手扶机身）时身体重心自然微向右前倾送肩；左机翼原本就在左肩正前方，保持原站位防止头部靠近左手
+        var backDist = 0.25 - 0.08 * reachFwd, leftDist = 0.22 - 0.07 * reachFwd;
         var cosY = Math.cos(yaw), sinY = Math.sin(yaw);
         var kx = _pPlane.x - cosY * backDist - sinY * leftDist;
         var kz = _pPlane.z + sinY * backDist - cosY * leftDist;
-        var ky = Math.max(gY, _pPlane.y - 0.94);
+        var ky = Math.max(gY, _pPlane.y - 0.98);
         kid.root.position.set(kx, ky, kz);
         kid.root.rotation.set(0, yaw, 0);
 
         var p = (s && s.power) || 0;
         var swingF = st.mode === 'swing' ? Math.min(1, st.t / 0.18) : 0;
-        rotBoneChar('Spine1', 0, -0.16 * p + 0.22 * swingF, -0.04 * p + 0.10 * swingF);
-        rotBoneChar('Spine2', 0, -0.12 * p + 0.16 * swingF, 0);
-        rotBoneChar('Neck', 0, 0.12 * p - 0.10 * swingF, 0.05);
-        rotBoneChar('Head', 0, 0.14 * p - 0.08 * swingF, 0.06 + breathIdle * 0.25);
+        var reachTwist = -0.22 * reachFwd, reachLean = -0.08 * reachFwd;
+        rotBoneChar('Spine1', 0, -0.16 * p + 0.22 * swingF + reachTwist, -0.04 * p + 0.10 * swingF + reachLean);
+        rotBoneChar('Spine2', 0, -0.12 * p + 0.16 * swingF + reachTwist * 0.8, reachLean * 0.5);
+        rotBoneChar('Neck', 0, 0.12 * p - 0.10 * swingF - reachTwist * 0.6, 0.05);
+        rotBoneChar('Head', 0, 0.14 * p - 0.08 * swingF - reachTwist * 0.6, 0.06 + breathIdle * 0.25);
 
-        aimBoneChar(kid.byName.RightShoulder, _vTgt.set(0.05, 0.22, 0.97), 0);
+        aimBoneChar(kid.byName.RightShoulder, _vTgt.set(0.22, 0.08, 0.97), 0);
 
-        var isWingRDrag = st.mode === 'hold' && s && s.dragKind === 'wingR';
         if (isWingRDrag && s.dotLocal) {
-          aimBoneChar(kid.byName.LeftShoulder, _vTgt.set(0.08, 0.18, -0.98), 0);
-          _wTargetL.set(0.0, -0.024, 0.0);
+          aimBoneChar(kid.byName.LeftShoulder, _vTgt.set(0.52, 0.06, -0.85), 0);
+          _wTargetL.set(0.0, -0.028, 0.0);
           plane.body.localToWorld(_wTargetL);
           reachKid(true, _wTargetL, {
             mode: 'hold',
             amt: 1,
-            pitch: 0.10,
+            pitch: -0.45,
             palm: _palmWant.set(0, 0.35, 1).applyQuaternion(_qPlane),
-            pole: _poleL.set(-0.35, -0.75, -0.55)
+            pole: _poleL.set(-0.35, -0.85, -0.55)
           });
           var dotR = s.dotLocal('wingR');
           _wTargetR.copy(dotR);
@@ -3993,12 +4001,12 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.3523,0.0777,0.077
           reachKid(false, _wTargetR, {
             mode: 'fold',
             amt: 1,
-            pitch: 0.18,
-            palm: _palmWant.set(0, -0.7, -0.7).applyQuaternion(_qPlane),
-            pole: _poleR.set(-0.35, -0.75, 0.65)
+            pitch: -0.38,
+            palm: _palmWant.set(0, 0.4, -0.9).applyQuaternion(_qPlane),
+            pole: _poleR.set(-0.35, -0.85, 0.65)
           });
         } else {
-          _wTargetR.set(0.0, -0.024, 0.0);
+          _wTargetR.set(0.0, -0.028, 0.0);
           plane.body.localToWorld(_wTargetR);
           if (st.mode === 'swing') {
             _wTargetR.addScaledVector(_fwdPlane, 0.18 * swingF);
@@ -4006,23 +4014,22 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.3523,0.0777,0.077
           reachKid(false, _wTargetR, {
             mode: 'hold',
             amt: st.mode === 'swing' ? Math.max(0.2, 1 - swingF * 0.8) : 1,
-            pitch: -0.08,
+            pitch: -0.46,
             palm: _palmWant.set(0, 0.35, -1).applyQuaternion(_qPlane),
-            pole: _poleR.set(-0.35, -0.75, 0.55)
+            pole: _poleR.set(-0.35, -0.85, 0.55)
           });
 
           if (leftRoot.visible && s && s.dotLocal) {
-            aimBoneChar(kid.byName.LeftShoulder, _vTgt.set(0.08, 0.18, -0.98), 0);
-            var part = (s.dragKind && s.dragKind !== 'wingR' && s.dragKind !== 'pull') ? s.dragKind : (st.lastLeft || 'nose');
+            aimBoneChar(kid.byName.LeftShoulder, _vTgt.set(part === 'wingL' ? 0.08 : 0.55, 0.06, part === 'wingL' ? -0.99 : -0.83), 0);
             var dotL = s.dotLocal(part);
             _wTargetL.copy(dotL);
             plane.body.localToWorld(_wTargetL);
             reachKid(true, _wTargetL, {
               mode: 'fold',
               amt: 0.55 + 0.45 * st.leftVis,
-              pitch: 0.12,
-              palm: _palmWant.set(0, -0.6, 0.8).applyQuaternion(_qPlane),
-              pole: _poleL.set(-0.35, -0.75, -0.65)
+              pitch: -0.36,
+              palm: _palmWant.set(0, 0.4, 0.9).applyQuaternion(_qPlane),
+              pole: _poleL.set(-0.35, -0.85, -0.65)
             });
           } else {
             aimBoneChar(kid.byName.LeftArm, _vTgt.set(0.10 - 0.18 * p, -0.92, -0.22), 0);
@@ -4032,8 +4039,10 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.3523,0.0777,0.077
         }
 
         applyHeadDodge(dt);
-        rotBoneChar('Neck', dodge.x * 0.45, 0.12 * p - 0.10 * swingF - dodge.x * 0.25, 0.05 + dodge.z * 0.50);
-        rotBoneChar('Head', dodge.x * 0.55, 0.14 * p - 0.08 * swingF - dodge.x * 0.35, 0.06 + breathIdle * 0.25 + dodge.z * 0.60);
+        // 持机/调机时镜头在右肩后方，头部避让只向左侧(-x)与后方(+z)微让，绝不向右偏挡住镜头或机翼
+        var dodgeLeft = -Math.abs(dodge.x) * 0.45;
+        rotBoneChar('Neck', dodgeLeft * 0.45, 0.12 * p - 0.10 * swingF - reachTwist * 0.6, 0.05 + dodge.z * 0.55);
+        rotBoneChar('Head', dodgeLeft * 0.55, 0.14 * p - 0.08 * swingF - reachTwist * 0.6, 0.06 + breathIdle * 0.25 + dodge.z * 0.65);
 
         kid.root.updateMatrixWorld(true);
         if (kid.mesh.skeleton) kid.mesh.skeleton.update();
@@ -5688,7 +5697,7 @@ window.MODEL_DATA = {"arm":{"verts":1269,"tris":1014,"size":[0.3523,0.0777,0.077
         arm.throwPose(pw, shake, plane.body.position, plane.body.rotation);
         // 手：引臂时大臂与小臂调整夹角，哈气时把飞机举到嘴边
         var camLocal = plane.body.worldToLocal(camPos.clone());
-        var bOut = arm.update(dt, { power: pw, dragKind: S.drag ? S.drag.kind : null, camLocal: camLocal, dotLocal: function (n) { var d = plane.dots[n] || plane.dots.nose; return d ? d.position.clone() : new THREE.Vector3(0.11, 0.004, 0); } });
+        var bOut = arm.update(dt, { power: pw, dragKind: S.drag ? S.drag.kind : null, camLocal: camLocal, dotLocal: function (n) { if (n === 'leaf' && plane.leaf) return plane.leaf.position.clone().add(new THREE.Vector3(0.03, 0, 0)); var d = plane.dots[n] || plane.dots.nose; return d ? d.position.clone() : new THREE.Vector3(0.11, 0.004, 0); } });
         if (bOut) {
           plane.body.position.copy(bOut.pos); plane.body.rotation.set(0, bOut.rotY, bOut.rotZ);
           if (bOut.T > 0.5 && S.breathFx === 0) { S.breathFx = 1; SFX.breath(); plane.setBreath(1); }
