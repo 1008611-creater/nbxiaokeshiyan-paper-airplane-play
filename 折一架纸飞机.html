@@ -2834,10 +2834,10 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
   root.PLANE = { create: create };
 })(typeof window !== 'undefined' ? window : globalThis);
 
-/* arm.js — 方案 B（原版完整 Tripo3D Mixamo 65 骨骼小学生全身模型 kid-B-rigged-mixamo.glb + 开放世界自由移动与越肩视角）：
+/* arm.js — 方案 B（原版完整 Tripo3D Mixamo 65 骨骼小学生全身模型 kid-B-rigged-mixamo.glb + 越肩视角）：
  * 1. 100% 原生 12,888 三角面、65 根 Mixamo 骨骼完整呈现，绝不减面、绝不缩放头部、绝不偏移脖子、绝不切断浮空袖管；
  * 2. 折纸、持机、调机、投掷均由小学生自身左右双臂（LeftShoulder→LeftArm→LeftForeArm→LeftHand 与 RightShoulder→RightArm→RightForeArm→RightHand）通过真双段骨骼 IK 完成；
- * 3. 支持全场景开放世界自由漫游（WASD / 方向键 / 虚拟摇杆 / 点地移动 / 跳跃 / 随时随地起投试飞）。 */
+ * 3. 只用于固定关卡流程（折纸、持机、投掷），自由漫游已于 2026-11-05 下线。 */
 (function (root) {
   'use strict';
 
