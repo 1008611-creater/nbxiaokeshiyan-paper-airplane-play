@@ -3059,7 +3059,7 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     /* ==================== 原版完整 65 骨骼小学生全身模型 (D.kid) ==================== */
     var KID_SCALE = 1.18;
     // 课桌折纸态站位（相对主角桌上的纸）：越肩构图里人只占画面左下角，作业纸、圆钮、目标圈完整让出来
-    A.foldPose = { dx: -0.24, dy: -0.06, dz: -0.30, ry: -0.12, lean: -0.28, twist: 0, headYaw: 0 };   // 2026-11-04 格 1：配合前段 FOLD_CAM 右移，头不再挡纸
+    A.foldPose = { dx: -0.21, dy: 0.01, dz: -0.27, ry: -0.12, lean: -0.16, twist: 0, headYaw: 0 };
     var kid = null;
     function makeFullBodyKid() {
       if (!armSpec || !armSpec.data || !armSpec.data.kid) return null;
@@ -3253,8 +3253,177 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
       aimBoneChar(foreIdx, _fDir, 0);
       if (handDirChar) aimBoneChar(handIdx, handDirChar, handTwist || 0);
       else aimBoneChar(handIdx, _fDir, handTwist || 0);
-      curlKidFingers(isLeft, curlAmt, pinchMode);
+      if (pinchMode) curlKidFingers(isLeft, curlAmt, pinchMode);
     }
+
+    /* ---------- 手的做法照《简易电动机》arm.js：先定「指尖 / 捏合点」落在哪，再反推手腕 ----------
+     * 1. 手势表：每根手指三节各自的弯曲角；拇指的对掌角度在第一次用时自动搜出来，让拇指尖和食指尖真的合拢（中间留一张纸的缝）；
+     * 2. 落点：解完 IK 后量真实的捏合点（拇指尖与食指尖的中点；按纸时取三根手指指腹），差多少就把手腕挪多少，迭代几次；
+     * 3. 朝向：手的指向 = 肩膀指向落点的方向再往下压一点；手掌朝向按手势转到位（折纸、按纸掌心朝下）；
+     * 4. 避让：手指不进桌面（量指节最低点，不够就把手腕抬起来）；手离脑袋太近时头往另一边让开。 */
+    var FINGERS_K = ['Index', 'Middle', 'Ring', 'Pinky'];
+    var KPOSE = {
+      press: { f: [[0.10, 0.08, 0.05], [0.12, 0.10, 0.06], [0.16, 0.12, 0.08], [0.20, 0.14, 0.10]], gap: 0.05 },
+      fold:  { f: [[0.55, 0.60, 0.40], [1.00, 1.05, 0.75], [1.10, 1.15, 0.80], [1.20, 1.20, 0.85]], gap: 0.006 },
+      hold:  { f: [[0.60, 0.65, 0.45], [1.20, 1.25, 0.90], [1.25, 1.30, 0.90], [1.30, 1.30, 0.90]], gap: 0.006 },
+      relax: { f: [[0.25, 0.30, 0.20], [0.30, 0.35, 0.25], [0.35, 0.40, 0.30], [0.40, 0.45, 0.30]], gap: 0.04 }
+    };
+    var thumbCache = {}, palmLocal = {};
+    var _bw = new THREE.Vector3(), _bw2 = new THREE.Vector3(), _bw3 = new THREE.Vector3();
+    function bonePos(name, out) { return out.setFromMatrixPosition(kid.bones[kid.byName[name]].matrixWorld); }
+    function setFingerPose(isLeft, mode, amt) {
+      var pfx = isLeft ? 'LeftHand' : 'RightHand', P = KPOSE[mode] || KPOSE.relax, R = KPOSE.relax;
+      for (var f = 0; f < 4; f++) for (var j = 0; j < 3; j++) {
+        var bi = kid.byName[pfx + FINGERS_K[f] + (j + 1)]; if (bi === undefined) continue;
+        var v = R.f[f][j] + (P.f[f][j] - R.f[f][j]) * amt;
+        _eul.set(0, 0, -v); kid.bones[bi].quaternion.copy(kid.restQuat[bi]).multiply(_qDelta.setFromEuler(_eul));
+      }
+      var th = thumbFor(isLeft, mode);
+      for (var k = 0; k < 3; k++) {
+        var ti = kid.byName[pfx + 'Thumb' + (k + 1)]; if (ti === undefined) continue;
+        var t = th[k];
+        _eul.set(t[0] * amt, t[1] * amt, t[2] * amt);
+        kid.bones[ti].quaternion.copy(kid.restQuat[ti]).multiply(_qDelta.setFromEuler(_eul));
+      }
+    }
+    // 拇指对掌：在静止姿态里搜三节拇指的角度，让拇指尖贴到食指尖（留 KPOSE.gap 的缝），只搜一次
+    function thumbFor(isLeft, mode) {
+      var key = (isLeft ? 'L' : 'R') + mode;
+      if (thumbCache[key]) return thumbCache[key];
+      var zero = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+      if (mode === 'press' || mode === 'relax') { thumbCache[key] = [[0.15, 0, -0.1], [0, 0, -0.1], [0, 0, -0.05]]; return thumbCache[key]; }
+      var pfx = isLeft ? 'LeftHand' : 'RightHand', gap = KPOSE[mode].gap;
+      thumbCache[key] = zero;                    // 搜索期间先占位，setFingerPose 里不递归
+      var saveQ = kid.bones.map(function (b) { return b.quaternion.clone(); }), savePos = kid.root.position.clone(), saveRot = kid.root.rotation.clone();
+      resetKidPose(); setFingerPose(isLeft, mode, 1);
+      var t1 = kid.bones[kid.byName[pfx + 'Thumb1']], t2 = kid.bones[kid.byName[pfx + 'Thumb2']], t3 = kid.bones[kid.byName[pfx + 'Thumb3']];
+      var q1 = kid.restQuat[kid.byName[pfx + 'Thumb1']], q2 = kid.restQuat[kid.byName[pfx + 'Thumb2']], q3 = kid.restQuat[kid.byName[pfx + 'Thumb3']];
+      var hand = kid.bones[kid.byName[pfx]];
+      function evalT(a, b, c, d) {
+        t1.quaternion.copy(q1).multiply(_qDelta.setFromEuler(_eul.set(a, b, c)));
+        t2.quaternion.copy(q2).multiply(_qDelta.setFromEuler(_eul.set(0, 0, d)));
+        t3.quaternion.copy(q3).multiply(_qDelta.setFromEuler(_eul.set(0, 0, d * 0.8)));
+        hand.updateMatrixWorld(true);
+        bonePos(pfx + 'Thumb4', _bw); bonePos(pfx + 'Index4', _bw2);
+        // 指尖之间留一张纸的缝；拇指尖不能钻到手心里（离中指根要有距离）
+        bonePos(pfx + 'Middle1', _bw3);
+        var pen = Math.max(0, 0.03 * KID_SCALE - _bw.distanceTo(_bw3)) * 4;
+        return Math.abs(_bw.distanceTo(_bw2) - gap * KID_SCALE) + pen;
+      }
+      kid.root.updateMatrixWorld(true);
+      var best = [0, 0, 0, 0], bv = evalT(0, 0, 0, 0), stp = 0.5;
+      for (var a = -1.5; a <= 1.5; a += stp) for (var b = -1.5; b <= 1.5; b += stp) for (var c = -1.5; c <= 1.5; c += stp) for (var d = -1.2; d <= 0.6; d += 0.3) {
+        var v = evalT(a, b, c, d); if (v < bv) { bv = v; best = [a, b, c, d]; }
+      }
+      for (var r = 0; r < 4; r++) {           // 逐坐标细化
+        stp *= 0.5;
+        for (var i = 0; i < 4; i++) for (var sgn = -1; sgn <= 1; sgn += 2) {
+          var tr = best.slice(); tr[i] += sgn * stp; var v2 = evalT(tr[0], tr[1], tr[2], tr[3]);
+          if (v2 < bv) { bv = v2; best = tr; }
+        }
+      }
+      thumbCache[key] = [[best[0], best[1], best[2]], [0, 0, best[3]], [0, 0, best[3] * 0.8]];
+      // 顺便量手心朝向（手背坐标系里）：握拳后中指尖相对手轴偏向的那一侧就是手心
+      if (!palmLocal[isLeft ? 'L' : 'R']) {
+        setFingerPose(isLeft, 'hold', 1); hand.updateMatrixWorld(true);
+        bonePos(pfx + 'Middle4', _bw); bonePos(pfx, _bw2); bonePos(pfx + 'Middle1', _bw3);
+        var ax = _bw3.clone().sub(_bw2).normalize(), m = _bw.clone().sub(_bw2);
+        m.addScaledVector(ax, -m.dot(ax)).normalize();
+        var hq = new THREE.Quaternion(); hand.matrixWorld.decompose(_bw3, hq, _bw2);
+        palmLocal[isLeft ? 'L' : 'R'] = m.applyQuaternion(hq.invert());
+      }
+      kid.bones.forEach(function (bn, i) { bn.quaternion.copy(saveQ[i]); });
+      kid.root.position.copy(savePos); kid.root.rotation.copy(saveRot); kid.root.updateMatrixWorld(true);
+      return thumbCache[key];
+    }
+    A.thumbFor = thumbFor;
+    function anchorOf(isLeft, mode, out) {
+      var pfx = isLeft ? 'LeftHand' : 'RightHand';
+      if (mode === 'press') {
+        bonePos(pfx + 'Index3', out); out.add(bonePos(pfx + 'Middle3', _bw)).add(bonePos(pfx + 'Ring3', _bw)).multiplyScalar(1 / 3);
+        return out;
+      }
+      return bonePos(pfx + 'Index4', out).add(bonePos(pfx + 'Thumb4', _bw)).multiplyScalar(0.5);
+    }
+    // 手掌转到朝 palmWantWorld（绕手的长轴转）
+    var _qRoot = new THREE.Quaternion(), _qRootInv = new THREE.Quaternion(), _ax2 = new THREE.Vector3(), _pn = new THREE.Vector3(), _pd = new THREE.Vector3(), _qR = new THREE.Quaternion();
+    function rollPalm(isLeft, palmWantWorld) {
+      var pl = palmLocal[isLeft ? 'L' : 'R']; if (!pl) return;
+      var hIdx = kid.byName[isLeft ? 'LeftHand' : 'RightHand'];
+      kid.root.getWorldQuaternion(_qRoot); _qRootInv.copy(_qRoot).invert();
+      var Qh = getCharQuat(hIdx);
+      _ax2.set(0, 1, 0).applyQuaternion(Qh).normalize();
+      _pn.copy(pl).applyQuaternion(Qh); _pn.addScaledVector(_ax2, -_pn.dot(_ax2));
+      _pd.copy(palmWantWorld).applyQuaternion(_qRootInv); _pd.addScaledVector(_ax2, -_pd.dot(_ax2));
+      if (_pn.lengthSq() < 1e-8 || _pd.lengthSq() < 1e-8) return;
+      _pn.normalize(); _pd.normalize();
+      var ang = Math.atan2(_ax2.dot(_bw.crossVectors(_pn, _pd)), _pn.dot(_pd));
+      _qR.setFromAxisAngle(_ax2, ang);
+      var pIdx = kid.defs[hIdx].parent, qPW = getCharQuat(pIdx);
+      kid.bones[hIdx].quaternion.copy(qPW.invert()).multiply(_qR).multiply(Qh);
+    }
+    var _goal = new THREE.Vector3(), _anc = new THREE.Vector3(), _sh = new THREE.Vector3(), _hd = new THREE.Vector3(), _err = new THREE.Vector3();
+    var TIP_BONES = ['', 'Index1', 'Index2', 'Index3', 'Index4', 'Middle1', 'Middle2', 'Middle3', 'Middle4', 'Ring1', 'Ring2', 'Ring3', 'Ring4', 'Pinky1', 'Pinky2', 'Pinky3', 'Pinky4', 'Thumb1', 'Thumb2', 'Thumb3', 'Thumb4'];
+    var headPush = { L: 0, R: 0 };
+    /* reachKid：把这只手的捏合点（或指腹）放到 contact（世界坐标）。
+     * o.mode 手势，o.amt 手指收拢程度，o.pitch 手往下压的角度，o.palm 手掌想朝的世界方向，o.pole 手肘往哪边撑（角色空间），o.floor 手指不能低于的世界高度 */
+    function reachKid(isLeft, contact, o) {
+      var pfx = isLeft ? 'LeftHand' : 'RightHand', armName = isLeft ? 'LeftArm' : 'RightArm';
+      thumbFor(isLeft, o.mode === 'press' ? 'fold' : o.mode);   // 保证手心朝向已量好
+      kid.root.updateMatrixWorld(true);
+      kid.root.getWorldQuaternion(_qRoot); _qRootInv.copy(_qRoot).invert();
+      bonePos(armName, _sh);
+      // 手的指向（角色空间）：肩 → 落点的水平方向，再往下压 pitch
+      _hd.copy(contact).sub(_sh).applyQuaternion(_qRootInv); _hd.y = 0;
+      if (o.dir) _hd.copy(o.dir); else { _hd.normalize(); var pc = Math.cos(o.pitch || 0.3), ps = Math.sin(o.pitch || 0.3); _hd.multiplyScalar(pc); _hd.y = -ps; }
+      _hd.normalize();
+      // 初值：从落点沿手的指向退一个手掌长
+      var foreName = isLeft ? 'LeftForeArm' : 'RightForeArm';
+      var maxWR = (kid.restPos[kid.byName[foreName]].length() + kid.restPos[kid.byName[pfx]].length()) * KID_SCALE * 0.985;
+      _goal.copy(_hd).applyQuaternion(_qRoot).multiplyScalar(-0.085 * KID_SCALE).add(contact);
+      for (var it = 0; it < 6; it++) {
+        bonePos(armName, _sh);
+        var dyG = _goal.y - _sh.y, maxH = Math.sqrt(Math.max(0.005, maxWR * maxWR - dyG * dyG));
+        var dxG = _goal.x - _sh.x, dzG = _goal.z - _sh.z, dH = Math.hypot(dxG, dzG);
+        if (dH > maxH) { _goal.x = _sh.x + dxG * (maxH / dH); _goal.z = _sh.z + dzG * (maxH / dH); }
+        solveKidArmIK(isLeft, _goal, o.pole, _hd, 0, 0, null);
+        if (o.palm) rollPalm(isLeft, o.palm);
+        setFingerPose(isLeft, o.mode, o.amt === undefined ? 1 : o.amt);
+        kid.root.updateMatrixWorld(true);
+        if (it === 5) break;
+        anchorOf(isLeft, o.mode, _anc);
+        _err.copy(contact).sub(_anc);
+        // 手指不进桌面：量指节最低点
+        if (o.floor !== undefined) {
+          var lo = Infinity;
+          for (var k = 0; k < TIP_BONES.length; k++) { bonePos(pfx + TIP_BONES[k], _bw); if (_bw.y < lo) lo = _bw.y; }
+          var need = o.floor + 0.018 * KID_SCALE - lo;
+          if (need > 0) {
+            _err.y = Math.max(_err.y, need);
+            if (_hd.y < -0.04) { _hd.y *= 0.65; _hd.normalize(); }
+          }
+        }
+        if (_err.lengthSq() < 1e-8) break;
+        _goal.add(_err);
+      }
+      // 离脑袋多近：给让头用
+      var side = isLeft ? 'L' : 'R';
+      bonePos('Head', _bw2); bonePos('HeadTop_End', _bw3);
+      var hr = _bw2.distanceTo(_bw3) * 0.62; _bw2.lerp(_bw3, 0.45);
+      var minD = Infinity;
+      ['', 'Index1', 'Index2', 'Middle1', 'Middle2', 'Thumb2', 'Thumb3', 'Pinky2'].forEach(function (n) { bonePos(pfx + n, _bw); minD = Math.min(minD, _bw.distanceTo(_bw2)); });
+      bonePos(isLeft ? 'LeftForeArm' : 'RightForeArm', _bw); minD = Math.min(minD, _bw.distanceTo(_bw2));
+      headPush[side] = Math.max(0, hr + 0.04 * KID_SCALE - minD) / (0.06 * KID_SCALE);
+    }
+    var dodge = { x: 0, z: 0 };
+    function applyHeadDodge(dt) {
+      // 手在头左边（L 手）→ 头往右歪、往后仰；右手同理
+      var tx = Math.min(1.2, headPush.L) * 0.50 - Math.min(1.2, headPush.R) * 0.50;
+      var tz = Math.min(1.2, Math.max(headPush.L, headPush.R)) * 0.35;
+      var k = Math.min(1, (dt || 0.016) * 14);
+      dodge.x += (tx - dodge.x) * k; dodge.z += (tz - dodge.z) * k;
+    }
+    A.headPush = headPush; A.dodge = dodge;
 
     var st = {
       mode: 'hold', t: 0, enter: 1, swing: null, leftVis: 0, breath: 0, breathT: 0, breathing: false, rightOn: true, lastPull: 0,
@@ -3266,10 +3435,12 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
     var _wTargetL = new THREE.Vector3(), _wTargetR = new THREE.Vector3();
     var _poleL = new THREE.Vector3(), _poleR = new THREE.Vector3();
     var _hDirL = new THREE.Vector3(), _hDirR = new THREE.Vector3();
+    var _palmWant = new THREE.Vector3();
 
     function updateFullBodyKid(dt, s) {
       if (!kid) return;
       resetKidPose();
+      headPush.L = headPush.R = 0;
       var breathIdle = Math.sin(st.t * 2.2) * 0.018;
 
       /* B. 课桌折纸态（越肩第三人称视角：完整小学生站在课桌前俯身看纸，双手在桌面上真折纸） */
@@ -3282,38 +3453,45 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
         var FP = A.foldPose;
         kid.root.position.set(deskX + FP.dx, floorY + FP.dy, deskZ + FP.dz);
         kid.root.rotation.set(0, FP.ry, 0);
-        
 
         rotBoneChar('Spine1', 0, FP.twist, FP.lean);
         rotBoneChar('Spine2', 0, FP.twist * 0.5, -0.08);
         rotBoneChar('Neck', 0, 0, -0.14);
         rotBoneChar('Head', 0, FP.headYaw, -0.18 + breathIdle * 0.2);
 
-        left.getWorldPosition(_wTargetL);
-        right.getWorldPosition(_wTargetR);
-        // 将手腕锚点沿小臂方向后退约 6.5cm，使小学生真实的拇指与食指指尖刚好落在折痕/纸角点上，且手掌绝不穿桌面
-        _wTargetL.x -= 0.055; _wTargetL.y = Math.max(deskY + 0.036, _wTargetL.y + 0.008); _wTargetL.z -= 0.022;
-        _wTargetR.x -= 0.055; _wTargetR.y = Math.max(deskY + 0.036, _wTargetR.y + 0.008); _wTargetR.z += 0.022;
-
         var useLeftMain = !!s.foldState.isLeft;
-        solveKidArmIK(
-          true,
-          _wTargetL,
-          _poleL.set(-0.55, -0.35, -0.75),
-          _hDirL.set(0.88, -0.22, 0.28),
-          -0.35,
-          useLeftMain ? (s.foldState.active ? 0.55 : 0.32) : 0.12,
-          useLeftMain ? 'fold' : 'press'
-        );
-        solveKidArmIK(
-          false,
-          _wTargetR,
-          _poleR.set(-0.55, -0.35, 0.75),
-          _hDirR.set(0.88, -0.22, -0.28),
-          0.35,
-          !useLeftMain ? (s.foldState.active ? 0.55 : 0.32) : 0.12,
-          !useLeftMain ? 'fold' : 'press'
-        );
+        var auxSgn = useLeftMain ? 1 : -1;
+        var pt = s.foldState.sweeping && s.foldState.creaseLocal
+          ? s.foldState.creaseLocal(s.foldState.sweep)
+          : (s.dotLocal ? s.dotLocal('fold') : _vCur.set(0, 0, 0));
+        var mainPt = useLeftMain ? _wTargetL : _wTargetR;
+        var auxPt = useLeftMain ? _wTargetR : _wTargetL;
+        mainPt.set(pt.x, Math.max(0.016, pt.y + (s.foldState.active ? 0.012 : 0.018)), pt.z);
+        plane.body.localToWorld(mainPt);
+        auxPt.set(useLeftMain ? -0.070 : -0.085, 0.018, useLeftMain ? 0.032 : -0.085);
+        plane.body.localToWorld(auxPt);
+
+        var mainAmt = s.foldState.active ? 1 : 0.72;
+        reachKid(true, _wTargetL, {
+          mode: useLeftMain ? 'fold' : 'press',
+          amt: useLeftMain ? mainAmt : 0.85,
+          pitch: useLeftMain ? 0.24 : 0.18,
+          palm: _palmWant.set(0, -1, 0),
+          pole: _poleL.set(-0.55, -0.25, -0.80),
+          floor: deskY
+        });
+        reachKid(false, _wTargetR, {
+          mode: !useLeftMain ? 'fold' : 'press',
+          amt: !useLeftMain ? mainAmt : 0.85,
+          pitch: !useLeftMain ? 0.24 : 0.18,
+          palm: _palmWant.set(0, -1, 0),
+          pole: _poleR.set(-0.55, -0.25, 0.80),
+          floor: deskY
+        });
+        applyHeadDodge(dt);
+        rotBoneChar('Neck', dodge.x * 0.45, -dodge.x * 0.25, -0.14 + dodge.z * 0.55);
+        rotBoneChar('Head', dodge.x * 0.55, FP.headYaw - dodge.x * 0.35, -0.18 + breathIdle * 0.2 + dodge.z * 0.65);
+
         kid.root.updateMatrixWorld(true);
         if (kid.mesh.skeleton) kid.mesh.skeleton.update();
         return;
@@ -3330,59 +3508,84 @@ window.MG_CUES = {"G":0.125,"bpm":120,"made":"tools/mg-cues.mjs","cards":{"predi
         var yaw = Math.atan2(-_fwdPlane.z, _fwdPlane.x);
 
         var gY = st.groundAt ? st.groundAt(_pPlane.x, _pPlane.y, _pPlane.z) : (_pPlane.y < -2 ? -12 : 0);
-        // 站立在纸飞机左后方（backDist=0.18, leftDist=0.16），人物身体在画面左下方，右手在画面中央自然举起持机，绝不挡镜头
-        var backDist = 0.18, leftDist = 0.16;
+        // 站立在纸飞机左后方（backDist=0.22, leftDist=0.16），人物身体在画面左下方，右手在画面中央自然举起持机，绝不挡镜头
+        var backDist = 0.22, leftDist = 0.16;
         var cosY = Math.cos(yaw), sinY = Math.sin(yaw);
         var kx = _pPlane.x - cosY * backDist - sinY * leftDist;
         var kz = _pPlane.z + sinY * backDist - cosY * leftDist;
-        var ky = Math.max(gY, _pPlane.y - 0.92);
+        var ky = Math.max(gY, _pPlane.y - 0.94);
         kid.root.position.set(kx, ky, kz);
         kid.root.rotation.set(0, yaw, 0);
 
         var p = (s && s.power) || 0;
         var swingF = st.mode === 'swing' ? Math.min(1, st.t / 0.18) : 0;
-        // 蓄力时上身微向右后转体蓄力，出手时向前挥臂转体
         rotBoneChar('Spine1', 0, -0.16 * p + 0.22 * swingF, -0.04 * p + 0.10 * swingF);
         rotBoneChar('Spine2', 0, -0.12 * p + 0.16 * swingF, 0);
         rotBoneChar('Neck', 0, 0.12 * p - 0.10 * swingF, 0.05);
         rotBoneChar('Head', 0, 0.14 * p - 0.08 * swingF, 0.06 + breathIdle * 0.25);
 
-        // 右肩随举臂投掷微微自然上抬
         aimBoneChar(kid.byName.RightShoulder, _vTgt.set(0.05, 0.22, 0.97), 0);
 
-        right.getWorldPosition(_wTargetR);
-        // 从龙骨捏合点沿机身反方向退约 6.5cm 作为手腕骨骼位置，使右手指尖恰好捏在纸飞机龙骨下方
-        _wTargetR.addScaledVector(_fwdPlane, -0.065);
-        _wTargetR.y -= 0.015;
-        solveKidArmIK(
-          false,
-          _wTargetR,
-          _poleR.set(-0.35, -0.75, 0.55),
-          _hDirR.set(0.92, 0.22, -0.14),
-          0.45,
-          0.68,
-          'hold'
-        );
-
-        // 左臂：若正在调机（捏机头/掰左翼/掰右翼/别回形针），左手抬起精准捏住对应部位；否则自然垂放于身侧平衡
-        if (leftRoot.visible) {
+        var isWingRDrag = st.mode === 'hold' && s && s.dragKind === 'wingR';
+        if (isWingRDrag && s.dotLocal) {
           aimBoneChar(kid.byName.LeftShoulder, _vTgt.set(0.08, 0.18, -0.98), 0);
-          left.getWorldPosition(_wTargetL);
-          _wTargetL.addScaledVector(_fwdPlane, -0.055);
-          solveKidArmIK(
-            true,
-            _wTargetL,
-            _poleL.set(-0.35, -0.75, -0.55),
-            _hDirL.set(0.90, 0.20, 0.22),
-            -0.35,
-            0.58,
-            'hold'
-          );
+          _wTargetL.set(0.0, -0.024, 0.0);
+          plane.body.localToWorld(_wTargetL);
+          reachKid(true, _wTargetL, {
+            mode: 'hold',
+            amt: 1,
+            pitch: 0.10,
+            palm: _palmWant.set(0, 0.35, 1).applyQuaternion(_qPlane),
+            pole: _poleL.set(-0.35, -0.75, -0.55)
+          });
+          var dotR = s.dotLocal('wingR');
+          _wTargetR.copy(dotR);
+          plane.body.localToWorld(_wTargetR);
+          reachKid(false, _wTargetR, {
+            mode: 'fold',
+            amt: 1,
+            pitch: 0.18,
+            palm: _palmWant.set(0, -0.7, -0.7).applyQuaternion(_qPlane),
+            pole: _poleR.set(-0.35, -0.75, 0.65)
+          });
         } else {
-          aimBoneChar(kid.byName.LeftArm, _vTgt.set(0.10 - 0.18 * p, -0.92, -0.22), 0);
-          aimBoneChar(kid.byName.LeftForeArm, _vTgt.set(0.36, -0.88, -0.10), 0);
-          curlKidFingers(true, 0.25, 'press');
+          _wTargetR.set(0.0, -0.024, 0.0);
+          plane.body.localToWorld(_wTargetR);
+          if (st.mode === 'swing') {
+            _wTargetR.addScaledVector(_fwdPlane, 0.18 * swingF);
+          }
+          reachKid(false, _wTargetR, {
+            mode: 'hold',
+            amt: st.mode === 'swing' ? Math.max(0.2, 1 - swingF * 0.8) : 1,
+            pitch: -0.08,
+            palm: _palmWant.set(0, 0.35, -1).applyQuaternion(_qPlane),
+            pole: _poleR.set(-0.35, -0.75, 0.55)
+          });
+
+          if (leftRoot.visible && s && s.dotLocal) {
+            aimBoneChar(kid.byName.LeftShoulder, _vTgt.set(0.08, 0.18, -0.98), 0);
+            var part = (s.dragKind && s.dragKind !== 'wingR' && s.dragKind !== 'pull') ? s.dragKind : (st.lastLeft || 'nose');
+            var dotL = s.dotLocal(part);
+            _wTargetL.copy(dotL);
+            plane.body.localToWorld(_wTargetL);
+            reachKid(true, _wTargetL, {
+              mode: 'fold',
+              amt: 0.55 + 0.45 * st.leftVis,
+              pitch: 0.12,
+              palm: _palmWant.set(0, -0.6, 0.8).applyQuaternion(_qPlane),
+              pole: _poleL.set(-0.35, -0.75, -0.65)
+            });
+          } else {
+            aimBoneChar(kid.byName.LeftArm, _vTgt.set(0.10 - 0.18 * p, -0.92, -0.22), 0);
+            aimBoneChar(kid.byName.LeftForeArm, _vTgt.set(0.36, -0.88, -0.10), 0);
+            setFingerPose(true, 'relax', 1);
+          }
         }
+
+        applyHeadDodge(dt);
+        rotBoneChar('Neck', dodge.x * 0.45, 0.12 * p - 0.10 * swingF - dodge.x * 0.25, 0.05 + dodge.z * 0.50);
+        rotBoneChar('Head', dodge.x * 0.55, 0.14 * p - 0.08 * swingF - dodge.x * 0.35, 0.06 + breathIdle * 0.25 + dodge.z * 0.60);
+
         kid.root.updateMatrixWorld(true);
         if (kid.mesh.skeleton) kid.mesh.skeleton.update();
         return;
@@ -6538,7 +6741,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
 
   /* ---------------- 调试接口（给无头探针用） ---------------- */
   root.PAPER = {
-    S: S, foldCam: FOLD_CAM, scene: scene, plane: plane, arm: arm, world: world, camera: camera, camPos: camPos, camLook: camLook,
+    S: S, foldCam: FOLD_CAM, scene: scene, renderer: renderer, plane: plane, arm: arm, world: world, camera: camera, camPos: camPos, camLook: camLook,
     api: {
       pause: function (on) { paused = !!on; tuned = true; return paused; },
       render: render,
