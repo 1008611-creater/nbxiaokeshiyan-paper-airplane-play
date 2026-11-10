@@ -5696,7 +5696,7 @@ var t,e;t=this,e=function(t){const e={a:1,b:0,c:0,d:1,x:0,y:0};let r=()=>!1,n=t=
     say: function (id) { G.say(id); },
     onClose: function () {
       if (S.homeBook) {   // 从课后实践「回到教室」直接进的图鉴：关上回到标题
-        S.homeBook = false; S.phase = 'title'; elTitle.className = '';
+        S.homeBook = false; S.phase = 'title'; S.t = 0; elTitle.className = '';   // S.t 不清零，标题下一帧就自己开课
         try { root.history.replaceState(null, '', root.location.pathname + root.location.search); } catch (e) {}
         return;
       }
