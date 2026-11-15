@@ -88,7 +88,7 @@ window.MG_BGM = {"angle":"data:audio/mp4;base64,AAAAHGZ0eXBNNEEgAAAAAE00QSBtcDQy
       PODIUM: { x0: -1.4, x1: -0.35, z0: -3.4, z1: -0.9 },
       FLAG_X: -2.8                   // 第一关：红旗默认插在 3 米处（只是摆放位置，不算孩子的猜测）
     },
-    CAM: { FOV: 52 }
+    CAM: { FOV: 52, AIM: { back: 0.44, up: 0.09, side: 0.13, lookSide: 1, lookY: -0.08 } }   // 瞄准镜头 = 孩子的眼睛：比飞机高 9 cm、在飞机左边 13 cm，右手举着的飞机落在画面右侧；lookSide 1 = 视线和投掷方向平行（斜着看向飞机的话，直直扔出去在画面上像往左偏）（原来是后 64 cm、上 25 cm 的追尾镜头）
   };
   // ---- 第四步新增，只有这两处 ----
   // 中村锁的机头（隐藏款，不进「我的设计」）：三角往下折、两角再折、三角尖翻上来锁住，叠了好几层纸，重量靠前，比尖头稳；
@@ -376,6 +376,8 @@ window.MG_BGM = {"angle":"data:audio/mp4;base64,AAAAHGZ0eXBNNEEgAAAAAE00QSBtcDQy
 
     bend_r:      '哎呀，落地摔了一下，右边翅膀压低了。它还能飞直吗？',
     bend_l:      '哎呀，落地摔了一下，左边翅膀压低了。它还能飞直吗？',
+    bendfold_r:  '咦，右边翅膀松下来了。折的时候，那道折痕没压实。它还能飞直吗？',
+    bendfold_l:  '咦，左边翅膀松下来了。折的时候，那道折痕没压实。它还能飞直吗？',
     door_ask:    '下课铃快响了！让它从教室门飞出去吧。',
     wing_ask:    '它老往一边拐。两边翅膀，有什么不一样？',
     wing_t1:     '看看两边翅膀尖，一样高吗？',
@@ -1188,7 +1190,7 @@ window.MG_BGM = {"angle":"data:audio/mp4;base64,AAAAHGZ0eXBNNEEgAAAAAE00QSBtcDQy
       S.spr('pside', q2.x, q2.y, { s: 0.36, r: u2 > 0 ? q2.r : na });
       // 过线盖章、距离按八分音符数上去
       S.sticker('过线啦', 'green', cx, 150, pop(S, 'stamp'), { size: 14, mark: true, r: -0.05 });
-      if (t > ts) { var st = Math.min(4, Math.floor((t - ts) / 0.25) + 1); S.sticker(fmt(D.d15 * st / 4) + ' 米', 'blue', sideMap([D.d15, 0])[0], 236, 1, { size: 14 }); }
+      if (t > ts) { S.sticker(fmt(D.d15) + ' 米', 'blue', sideMap([D.d15, 0])[0], 236, 1, { size: 14 }); }
       var jb = t > ts ? jump(t, ts, ts + 0.35, 14) : { dy: 0, sq: 0 };
       S.book(t > ts ? 'cheer' : 'carry', 562, 267, { s: 0.7, dy: jb.dy, sq: jb.sq });
       if (t <= ts) S.spr('tape', 562, 267 - S.BOOK_H * 0.7 - 6, { s: 0.6 });
